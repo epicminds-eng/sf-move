@@ -2,811 +2,560 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Jamaica">
-<link rel="apple-touch-icon" href="jamaica-icon.png">
-<title>Jamaica — Trip HQ</title>
+<meta name="apple-mobile-web-app-title" content="SF Move">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>SF Move HQ</title>
+<link rel="apple-touch-icon" href="sf-icon.png">
 <style>
   :root{
-    --bg:#F2F2F7;            /* systemGroupedBackground */
-    --cell:#FFFFFF;          /* secondarySystemGroupedBackground */
-    --label:#000000;
-    --secondary:rgba(60,60,67,.60);
-    --tertiary:rgba(60,60,67,.30);
-    --sep:rgba(60,60,67,.29);
-    --blue:#007AFF;          /* systemBlue */
-    --green:#34C759;         /* systemGreen */
-    --gray:#8E8E93;          /* systemGray */
-    --fill:#E9E9EB;          /* tertiarySystemFill-ish */
-    --track:#E5E5EA;         /* systemGray5 */
+    --bg:#F2F2F7; --cell:#FFFFFF; --label:#000000; --secondary:#6C6C70; --tertiary:#AEAEB2;
+    --sep:#C6C6C8; --blue:#007AFF; --green:#34C759; --orange:#FF9500; --red:#FF3B30;
+    --teal:#30B0C7; --amber:#FFCC00; --brown:#A2845E; --fill:#E9E9EB;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html{background:#F2F2F7 !important;}
-  body{
-    background:#F2F2F7 !important;color:#000 !important;
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased;
-    padding-bottom:calc(84px + env(safe-area-inset-bottom));
-  }
-  .wrap{max-width:680px;margin:0 auto;padding:12px 16px 24px;}
-  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+  html,body{background:#F2F2F7 !important;}
+  body{color:var(--label);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+    font-size:17px;line-height:1.35;-webkit-font-smoothing:antialiased;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom));}
+  .wrap{max-width:640px;margin:0 auto;padding:8px 16px 24px;}
   :focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
 
-  /* large-title header */
-  .sign{background:transparent;padding:16px 0 6px;margin-bottom:6px;}
-  .sign.guide,.sign.service{background:transparent;color:var(--label);box-shadow:none;}
-  .sign .in{padding:0;color:var(--label);}
-  .sign .route{font-size:13px;font-weight:600;color:var(--secondary);letter-spacing:0;text-transform:none;font-family:inherit;}
-  .sign h1{font-size:34px;font-weight:700;letter-spacing:.01em;line-height:1.15;text-transform:none;margin:2px 0 3px;color:var(--label);font-family:inherit;}
-  .sign .sub{font-size:15px;color:var(--secondary);font-weight:400;opacity:1;}
+  /* hero */
+  .sign{margin:10px 0 18px;}
+  .sign .route{font-size:13px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
+  .sign h1{font-size:34px;font-weight:800;letter-spacing:.2px;margin:2px 0 4px;}
+  .sign .sub{font-size:15px;color:var(--secondary);}
 
-  /* progress */
-  .roadbar{background:var(--cell);border:none;border-radius:12px;padding:14px 16px;margin:6px 0 22px;}
-  .roadbar .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
-  .roadbar .lbl{font-size:15px;font-weight:600;color:var(--label);letter-spacing:0;text-transform:none;font-family:inherit;}
-  .roadbar .num{font-size:15px;color:var(--secondary);font-weight:400;font-family:inherit;}
-  .road{height:4px;border-radius:2px;background:var(--track);position:relative;overflow:hidden;}
-  .road::after{content:none;}
-  .road .fill{position:absolute;inset:0;right:auto;background:var(--green);width:0%;transition:width .35s ease;}
+  /* countdown bar */
+  .roadbar{background:var(--cell);border-radius:14px;padding:14px 16px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .roadbar .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .roadbar .lbl{font-size:13px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.03em;}
+  .roadbar .num{font-size:17px;font-weight:700;}
+  .road{height:6px;border-radius:3px;background:var(--fill);overflow:hidden;}
+  .road .fill{height:100%;border-radius:3px;background:var(--orange);width:0;transition:width .4s;}
+  .chipsrow{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;}
+  .chipsrow span{font-size:12px;font-weight:600;background:var(--cell);color:var(--secondary);border-radius:999px;padding:7px 12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .chipsrow span.hot{background:#000;color:#fff;}
 
-  /* grouped sections: header outside, inset rounded group */
-  .card{background:transparent;border:none;border-radius:0;margin-bottom:26px;overflow:visible;box-shadow:none;}
-  .sec-head{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:0 16px 7px;cursor:pointer;user-select:none;background:transparent !important;color:var(--secondary);box-shadow:none;
-  }
-  .sec-head .t{font-size:13px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;color:var(--secondary);font-family:inherit;}
-  .sec-head .m{font-size:13px;color:var(--secondary);display:flex;align-items:center;gap:8px;white-space:nowrap;font-family:inherit;font-weight:400;}
-  .chev{display:inline-block;transition:transform .15s;font-size:10px;color:var(--tertiary);}
+  /* cards + rows */
+  .card{background:var(--cell);border-radius:14px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;}
+  .sec-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;user-select:none;}
+  .sec-head .t{font-size:17px;font-weight:700;}
+  .sec-head .m{font-size:15px;color:var(--secondary);display:flex;align-items:center;gap:8px;}
+  .sec-head .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .chev{display:inline-block;transition:transform .2s;font-size:12px;color:var(--tertiary);}
+  .card.closed .sec-body,.card.closed .sec-note{display:none;}
   .card.closed .chev{transform:rotate(-90deg);}
-  .card.closed .sec-body{display:none;}
-  .sec-body{background:var(--cell);border-radius:12px;overflow:hidden;}
-  .sec-note{font-size:13px;color:var(--secondary);padding:10px 16px 0;}
+  .sec-note{padding:0 16px 10px;font-size:13px;color:var(--secondary);}
+  .sec-body{padding-bottom:6px;}
 
-  /* rows */
-  .item{padding:11px 16px 12px;position:relative;}
-  .item + .item::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .item .name{font-weight:400;font-size:17px;color:var(--label);}
-  .item .note{font-size:13px;color:var(--secondary);margin-top:1px;}
-  .item.is-bring .name{color:var(--secondary);text-decoration:line-through;text-decoration-color:var(--tertiary);}
-  .item.is-bring,.item.is-ship,.item.is-leave{background:var(--cell);}
-
-  /* segmented control */
-  .tagrow{display:flex;gap:0;margin-top:9px;background:var(--fill);border-radius:9px;padding:2px;}
-  .tag{
-    flex:1;font-family:inherit;font-weight:500;font-size:13px;letter-spacing:0;text-transform:none;
-    padding:6px 4px;border-radius:7px;border:none;background:transparent;color:var(--label);cursor:pointer;line-height:1.3;
-  }
-  .tag.on-bring,.tag.on-ship,.tag.on-leave{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);font-weight:600;}
-  .tag.on-bring{color:var(--green);}
-  .tag.on-ship{color:var(--blue);}
-  .tag.on-leave{color:var(--gray);}
-
-  .del{margin-top:8px;background:none;border:none;font-family:inherit;font-size:13px;color:#FF3B30;cursor:pointer;padding:2px 0;}
-  .addrow{display:flex;gap:8px;padding:11px 16px 12px;position:relative;}
-  .addrow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .addrow input{flex:1;font-family:inherit;font-size:17px;padding:8px 12px;border:none;border-radius:9px;outline:none;background:var(--fill);color:var(--label);}
-  .addrow button{font-family:inherit;font-size:15px;font-weight:600;padding:8px 14px;border-radius:9px;border:none;background:transparent;color:var(--blue);cursor:pointer;}
-
-  .chips{display:flex;gap:8px;margin:0 0 18px;}
-  .chip{font-family:inherit;font-size:15px;font-weight:400;letter-spacing:0;text-transform:none;
-    padding:7px 14px;border-radius:999px;border:none;background:var(--fill);cursor:pointer;color:var(--label);}
-  .chip.on{background:var(--blue);color:#fff;font-weight:600;}
-
-  /* today / timeline rows */
-  .exit{display:flex;gap:12px;padding:11px 16px;position:relative;align-items:flex-start;}
-  .exit + .exit::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .exitn{flex:none;min-width:44px;height:26px;border-radius:7px;background:var(--fill);color:var(--label);
-    font-family:inherit;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:none;margin-top:2px;}
-  .exit .t{font-weight:400;font-size:17px;color:var(--label);}
-  .exit .d{font-size:13px;color:var(--secondary);}
-  .diamond{margin:8px 16px 0;padding:0 0 12px;border:none;background:transparent;font-size:13px;color:var(--secondary);border-radius:0;}
-  .fact{padding:12px 16px;font-size:15px;color:var(--label);position:relative;}
-  img.ph + .fact::before{content:none;}
-  .fact strong{font-weight:600;}
-  img.ph{width:100%;height:180px;object-fit:cover;display:block;background:var(--track);}
-  .btns{display:flex;flex-wrap:wrap;gap:8px;padding:4px 16px 14px;}
-  a.btn{display:inline-block;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;
-    padding:10px 16px;border-radius:12px;text-decoration:none;border:none;color:var(--blue);background:var(--fill);}
-  a.btn.go{background:var(--blue);color:#fff;box-shadow:none;}
-  .slot{margin:0 16px 16px;padding:12px;border:none;border-radius:12px;background:var(--bg);}
-  .slot label{font-family:inherit;font-size:13px;letter-spacing:0;text-transform:none;color:var(--secondary);display:block;margin-bottom:7px;font-weight:400;}
-  .slot .srow{display:flex;gap:8px;}
-  .slot input{flex:1;font-family:inherit;font-size:15px;padding:9px 11px;border:none;border-radius:9px;outline:none;background:#fff;color:var(--label);}
-  .slot button{font-family:inherit;font-size:15px;font-weight:600;padding:9px 13px;border-radius:9px;border:none;background:transparent;color:var(--blue);cursor:pointer;}
-  .slot a.saved{display:inline-block;margin-top:8px;font-weight:500;color:var(--blue);word-break:break-all;font-size:14px;}
-
-  /* links: iOS list rows */
-  .linkgrid{display:block;background:var(--cell);border-radius:12px;overflow:hidden;}
-  .linkgrid a{display:flex;align-items:center;gap:12px;text-decoration:none;border:none;border-radius:0;padding:12px 16px;color:var(--label);background:var(--cell);box-shadow:none;min-height:0;position:relative;}
-  .linkgrid a + a::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .linkgrid a.blue,.linkgrid a.gold-dest{background:var(--cell);color:var(--label);}
-  .linkgrid a .k{font-family:inherit;font-size:13px;letter-spacing:0;text-transform:none;color:var(--secondary);order:2;margin-left:auto;}
-  .linkgrid a .n{font-family:inherit;font-weight:400;font-size:17px;line-height:1.3;text-transform:none;margin:0;order:1;}
-  .linkgrid a .ar{position:static;order:3;font-weight:600;font-size:15px;color:var(--tertiary);}
-
-  /* tab bar: translucent blur */
-  nav{
-    position:fixed;left:0;right:0;bottom:0;z-index:20;
-    background:rgba(249,249,249,.92);
-    -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
-    padding:6px 8px calc(6px + env(safe-area-inset-bottom));display:flex;gap:0;
-    border-top:.5px solid var(--sep);box-shadow:none;
-  }
-  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-    font-family:inherit;font-weight:500;font-size:10px;letter-spacing:0;text-transform:none;
-    padding:6px 2px 4px;border-radius:0;border:none;background:transparent;color:var(--gray);cursor:pointer;}
-  nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-  nav button.active{background:transparent;color:var(--blue);}
-  .daychips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 2px 14px;scrollbar-width:none;}
-  .daychips::-webkit-scrollbar{display:none;}
-  .dchip{flex:none;min-width:56px;text-align:center;padding:8px 10px;border-radius:12px;background:var(--cell);border:none;cursor:pointer;font-family:inherit;}
-  .dchip .dw{font-size:11px;color:var(--secondary);display:block;}
-  .dchip .dn{font-size:19px;font-weight:600;color:var(--label);display:block;line-height:1.2;}
-  .dchip.sel{background:var(--blue);}
-  .dchip.sel .dw,.dchip.sel .dn{color:#fff;}
-  .dchip.ours{box-shadow:inset 0 0 0 1.5px var(--green);}
-  .mealhead{padding:10px 16px 4px;font-size:13px;color:var(--secondary);display:flex;justify-content:space-between;}
-  .mealopt{padding:8px 16px;position:relative;}
-  .mealopt + .mealopt::before,.mealhead + .mealopt::before{content:none;}
-  .mealopt .mn{font-size:16px;color:var(--label);}
-  .mealopt .ms{font-size:13px;color:var(--secondary);}
-  .coursetag{display:inline-block;font-size:11px;font-weight:600;color:var(--blue);background:var(--fill);border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px;}
-  .simplerow{padding:10px 16px;position:relative;font-size:15px;color:var(--label);}
-  .simplerow + .simplerow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .simplerow .sub2{font-size:13px;color:var(--secondary);}
-  .check{display:flex;align-items:center;gap:12px;padding:11px 16px;position:relative;cursor:pointer;user-select:none;}
+  .check{display:flex;align-items:flex-start;gap:12px;padding:11px 16px;position:relative;cursor:pointer;user-select:none;}
   .check + .check::before{content:"";position:absolute;left:52px;right:0;top:0;height:.5px;background:var(--sep);}
-  .check .ring{flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--tertiary);display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700;font-size:14px;}
+  .check .ring{flex:none;margin-top:1px;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--tertiary);display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700;font-size:14px;}
   .check.on .ring{background:var(--green);border-color:var(--green);color:#fff;}
-  .check .ct{font-size:16px;color:var(--label);}
+  .check .ct{font-size:16px;}
+  .check .cd{font-size:13px;color:var(--secondary);margin-top:1px;}
   .check.on .ct{color:var(--secondary);text-decoration:line-through;text-decoration-color:var(--tertiary);}
+
+  /* sort rows */
+  .item{padding:11px 16px;position:relative;}
+  .item + .item::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .item .name{font-size:16px;margin-bottom:8px;}
+  .item .note{display:block;font-size:13px;color:var(--secondary);margin-top:1px;}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .tag{font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;border:1px solid var(--sep);background:var(--cell);color:var(--secondary);cursor:pointer;font-family:inherit;}
+  .tag.on{color:#fff;border-color:transparent;}
+  .tag.car.on{background:var(--green);}
+  .tag.ship.on{background:var(--blue);}
+  .tag.both.on{background:var(--teal);}
+  .tag.undecided.on{background:var(--orange);}
+  .tag.leave.on{background:var(--brown);}
+  .tag.sell.on{background:var(--red);}
+  .tag.noteBtn{min-width:34px;text-align:center;}
+  .tag.noteBtn.has{background:#000;color:#fff;border-color:#000;}
+  .tag.del{color:var(--red);border-color:var(--red);}
+  .unote{font-size:13px;color:#3A3A3C;background:var(--bg);border-left:3px solid var(--tertiary);border-radius:6px;padding:7px 10px;margin-top:8px;white-space:pre-wrap;}
+  .noteEd{margin-top:8px;display:flex;gap:8px;}
+  .noteEd textarea{flex:1;font-family:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--sep);border-radius:10px;outline:none;background:var(--cell);color:var(--label);min-height:54px;resize:vertical;}
+  .noteEd textarea:focus{border-color:var(--blue);}
+  .noteEd button{align-self:flex-start;font-family:inherit;font-size:14px;font-weight:600;padding:9px 13px;border-radius:10px;border:none;background:var(--blue);color:#fff;cursor:pointer;}
+  .addrow{padding:11px 16px;position:relative;}
+  .addrow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .addrow input{width:100%;font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--sep);border-radius:10px;outline:none;background:var(--cell);color:var(--label);}
+  .addrow input:focus{border-color:var(--blue);}
+
+  /* tally */
+  .tally{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  .tally .cellbox{background:var(--cell);border-radius:12px;padding:10px 6px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .tally .n{font-size:20px;font-weight:800;}
+  .tally .k{font-size:11px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.03em;}
+  .chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .chip{font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;border:none;background:var(--cell);color:var(--blue);box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer;font-family:inherit;}
+  .chip.on{background:var(--blue);color:#fff;}
+
+  /* numbers */
+  .fact{padding:12px 16px;font-size:15px;position:relative;}
+  .fact + .fact::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .fact strong{font-weight:700;}
+  .fact .vg{color:var(--secondary);font-size:13px;margin-top:2px;display:block;}
+  .verdict{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;margin-top:6px;}
+  .verdict.ship{background:#E1EFFF;color:#0A62C2;}
+  .verdict.sell{background:#FFE5E3;color:#C0392B;}
+  .verdict.keep{background:#E2F7E8;color:#1D7A4C;}
+  .verdict.tbd{background:#FFF3D6;color:#A06B00;}
+  .copyblock{margin:10px 16px 14px;background:var(--bg);border-radius:10px;padding:12px;font-size:13px;color:#3A3A3C;white-space:pre-wrap;}
+  .btns{padding:4px 16px 14px;}
+  .btn{display:inline-block;font-size:15px;font-weight:600;padding:10px 14px;border-radius:10px;border:none;background:var(--fill);color:var(--blue);cursor:pointer;font-family:inherit;text-decoration:none;}
+  .btn.go{background:var(--blue);color:#fff;}
+
+  /* links */
+  .linkgrid{background:var(--cell);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;}
+  .linkgrid a{display:flex;align-items:center;gap:6px;padding:13px 16px;text-decoration:none;color:var(--label);position:relative;font-size:16px;}
+  .linkgrid a + a::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .linkgrid .k{font-size:12px;font-weight:700;color:var(--secondary);text-transform:uppercase;width:86px;flex:none;}
+  .linkgrid .n{flex:1;}
+  .linkgrid .ar{color:var(--tertiary);}
+
+  .diamond{margin:0 16px 14px;background:#FFF8E1;border-radius:10px;padding:10px 12px;font-size:13px;color:#7A5B00;}
+
+  /* nav */
+  nav{position:fixed;left:0;right:0;bottom:0;background:rgba(249,249,249,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    border-top:.5px solid var(--sep);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:20;}
+  nav button{flex:1;background:none;border:none;font-family:inherit;font-size:10px;font-weight:600;color:var(--secondary);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  nav button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+  nav button.active{color:var(--blue);}
   .page{display:none;}
-  .page.show{display:block;}
-  footer{text-align:center;font-family:inherit;font-size:13px;letter-spacing:0;text-transform:none;color:var(--secondary);margin-top:20px;}
+  .page.active{display:block;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- ================= TODAY ================= -->
-  <div class="page show" id="page-today">
-    <div class="sign guide">
-      <div class="in">
-        <div class="route">Aug 11 · with Liz</div>
-        <h1>Jamaica</h1>
-        <div class="sub">Silent Waters Villa, Montego Bay — group of ~9.</div>
-      </div>
-    </div>
-
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Flight</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>Out · AA 3228 · ORD → MBJ · Tue Aug 11</strong><br>First class, seats 2A / 2B · lands 1:12 PM · Transport 1 to the villa.<br><br><strong>Home · AA 975 · Wed Aug 19</strong><br>Main group departs 2:12 PM · Transport 1.<br><br>Check in online 24 hrs out; do the Jamaica immigration form before the airport and screenshot the confirmation.</div>
-      </div>
-    </div>
-
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Villa</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>Silent Waters — Montego Bay · Villa 4 with Liz</strong><br>Your keeper is Raquel. Family trip — 8 guests growing to 12 (14 at Monday dinner). Staff gratuity is pooled at the end — bring small USD bills. Outlets are US-style 110V: no adapters needed.</div>
-        <div class="btns"><a class="btn go" href="https://maps.apple.com/?q=Silent+Waters+Villa+Montego+Bay+Jamaica">Apple Maps</a></div>
-      </div>
-    </div>
-
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Menu</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>Done.</strong> Every day's picks are locked in — see the Board tab. Your day is <strong>Tuesday, Aug 18</strong>.</div>
-      </div>
-      <div class="diamond">Mosquitoes come out at dusk — spray before dinner, not after the first bite.</div>
-    </div>
-  </div>
-
-  <!-- ================= BOARD ================= -->
-  <div class="page" id="page-board">
-    <div class="sign guide">
-      <div class="in">
-        <div class="route">Aug 11–19 · Silent Waters</div>
-        <h1>Board</h1>
-        <div class="sub">Meals, arrivals, villas — the family plan, live.</div>
-      </div>
-    </div>
-    <div class="daychips" id="dayChips"></div>
-    <div id="dayView"></div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Arrivals</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body" id="arrivalsBody"></div>
-    </div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Departures — Aug 19</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body" id="departuresBody"></div>
-    </div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Villas</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body" id="villasBody"></div>
-    </div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Kitchen notes</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body" id="kitchenBody"></div>
-    </div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Guest counts</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body" id="countsBody"></div>
-    </div>
-  </div>
-
-  <!-- ================= SHOOT ================= -->
-  <div class="page" id="page-shoot">
-    <div class="sign guide">
-      <div class="in">
-        <div class="route">Silent Waters · production book</div>
-        <h1>Shoot</h1>
-        <div class="sub">Must-gets first. Tue/Wed are the 8-guest days — bank the clean no-people shots early.</div>
-      </div>
+  <!-- ================= MOVE ================= -->
+  <div class="page active" id="page-move">
+    <div class="sign">
+      <div class="route">Chicago → San Francisco</div>
+      <h1>SF Move</h1>
+      <div class="sub">Assembly window. Tap a phase to open it.</div>
     </div>
     <div class="roadbar">
-      <div class="row"><span class="lbl">Shots captured</span><span class="num" id="shotNum">0 / 0</span></div>
-      <div class="road"><div class="fill" id="shotFill"></div></div>
+      <div class="row"><span class="lbl"><span id="cdDays">–</span> days to wheels up</span><span class="num" id="moveNum">0 / 0</span></div>
+      <div class="road"><div class="fill" id="moveFill"></div></div>
     </div>
-    <div id="shotGroups"></div>
-    <div class="card" data-static>
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Creative rules</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact">Keep it premium · fast first 3 seconds · slow luxury after the hook · no cheesy vlog · no influencer posing · no loud party energy · no clutter · always get a clean no-people version AND a warm family version.</div>
-        <div class="btns"><a class="btn go" href="book.html">Full Production Book</a></div>
-      </div>
-      <div class="diamond">Gear rule: iPhone 17 Max = vertical reels, hooks, walkthroughs. Canon 5D IV = horizontal film, website hero, photos. Tripod = night + stable holds. Drone only if it's zero-risk.</div>
+    <div class="chipsrow">
+      <span>Jamaica ✓</span><span class="hot">Assembly Aug 20–31</span><span>Drive ~Sept 1</span>
     </div>
+    <div id="phaseGroups"></div>
   </div>
 
-  <!-- ================= PACK ================= -->
-  <div class="page" id="page-pack">
-    <div class="sign guide">
-      <div class="in">
-        <div class="route">Jamaica · Aug 11</div>
-        <h1>Pack list</h1>
-        <div class="sub">Done · Buy · Skip — tag everything before Tuesday.</div>
-      </div>
+  <!-- ================= SORT ================= -->
+  <div class="page" id="page-sort">
+    <div class="sign">
+      <div class="route">114 items · 8 categories</div>
+      <h1>Pack &amp; Sort</h1>
+      <div class="sub">Car · Ship · Both · Undecided · Leave · Sell — ✎ leaves me a note.</div>
     </div>
-    <div class="roadbar">
-      <div class="row"><span class="lbl">Progress</span><span class="num" id="packNum">0 / 0</span></div>
-      <div class="road"><div class="fill" id="packFill"></div></div>
+    <div class="tally" id="tally">
+      <div class="cellbox"><div class="n" style="color:var(--green)" id="t-car">0</div><div class="k">Car</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--blue)" id="t-ship">0</div><div class="k">Ship</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--teal)" id="t-both">0</div><div class="k">Both</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--orange)" id="t-undecided">0</div><div class="k">Undecided</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--brown)" id="t-leave">0</div><div class="k">Leave</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--red)" id="t-sell">0</div><div class="k">Sell</div></div>
+      <div class="cellbox"><div class="n" id="t-todo">0</div><div class="k">Untagged</div></div>
+      <div class="cellbox"><div class="n" id="t-noted">0</div><div class="k">Notes</div></div>
     </div>
     <div class="chips">
-      <button class="chip" id="hideDone" type="button">Hide tagged</button>
+      <button class="chip" id="hideTagged" type="button">Hide tagged</button>
       <button class="chip" id="restoreBtn" type="button" style="display:none">Restore removed</button>
     </div>
-    <div id="groups"></div>
+    <div id="sortGroups"></div>
+  </div>
+
+  <!-- ================= NUMBERS ================= -->
+  <div class="page" id="page-numbers">
+    <div class="sign">
+      <div class="route">Research · Aug 20</div>
+      <h1>Numbers</h1>
+      <div class="sub">The dollar figures behind the Undecided tags.</div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head" role="button" tabindex="0"><span class="t">Golf — Ship Sticks</span><span class="m"><span class="chev">▼</span></span></div>
+      <div class="sec-body">
+        <div class="fact"><strong>Standard ground, one bag, CHI → SF: ~$60–90.</strong><span class="vg">Entry pricing starts ~$39–45 short-haul; cross-country standard runs higher. Exact quote = zip-to-zip on shipsticks.com (2 min). Insurance included: $1,000 loss + $200 consequential; up to $10k cheap.</span>
+        <span class="verdict tbd">DECISION: gamers ship (~$75) vs ride free in car</span></div>
+        <div class="fact">Set A stays home · Set B → uncle's. Only the gamers move — if car space survives the load test, they ride; if not, $75 well spent.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head" role="button" tabindex="0"><span class="t">Workout gear</span><span class="m"><span class="chev">▼</span></span></div>
+      <div class="sec-body">
+        <div class="fact"><strong>FLYBIRD bench:</strong> new $117–162 depending on model (~$150 typical) · used resale ~$50–80.<span class="vg">Sell here + rebuy in SF ≈ net $70–100 — about what shipping a 30 lb bench costs anyway.</span>
+        <span class="verdict sell">SELL + REBUY IN SF</span></div>
+        <div class="fact"><strong>Merach ab trainer:</strong> new $60–90 · used ~$25–40.<span class="vg">Never worth freight.</span>
+        <span class="verdict sell">SELL / DONATE</span></div>
+        <div class="fact"><strong>Steel mace:</strong> new ~$40–60 · used ~$20–30. <strong>Kettlebell:</strong> ~$1–2/lb new, resale ~half.<span class="vg">Dense + small = they can ride in the car floor as ballast if you like them; zero shipping logic.</span>
+        <span class="verdict keep">CAR IF LOVED, ELSE SELL</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head" role="button" tabindex="0"><span class="t">Movers — round two</span><span class="m"><span class="chev">▼</span></span></div>
+      <div class="sec-body">
+        <div class="fact"><strong>Full-service CHI → SF frame: ~$5–10k</strong> for a 2–3BR load, Oct/Nov timing.<span class="vg">Van lines (United/Mayflower/Allied) + one broker-free carrier for comparison. Get 3 in-home/video surveys — email below, copy-paste per company.</span>
+        <span class="verdict tbd">BOOK SURVEYS THIS WEEK</span></div>
+        <div class="copyblock">Subject: Quote request — Chicago suburbs → San Francisco, Oct/Nov
+
+Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (flexible dates). Partial household: bedroom set, office/studio equipment, boxes; no appliances. Requesting a video or in-home survey for a binding estimate. Please include: packing options, storage-in-transit pricing, and delivery window to SF (street parking — may need shuttle). Thanks, Chad</div>
+        <div class="btns"><a class="btn" id="copyEmail" href="#">Copy email</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head" role="button" tabindex="0"><span class="t">Desk / misc — quick calls</span><span class="m"><span class="chev">▼</span></span></div>
+      <div class="sec-body">
+        <div class="fact"><strong>iMac + monitor:</strong> ride in car (blankets, trunk) — never movers.<span class="verdict keep">CAR</span></div>
+        <div class="fact"><strong>Printer:</strong> ~$60–120 to replace; heavy, ink leaks in transit.<span class="verdict sell">LEAVE / SELL</span></div>
+        <div class="fact"><strong>Mirror + Hue lights:</strong> mirror = mover item (crate) or leave; Hue is small — car box.<span class="verdict tbd">HUE CAR · MIRROR TBD</span></div>
+        <div class="fact"><strong>Coolers:</strong> the good one rides (drive snacks/Kane water), rest leave.<span class="verdict keep">ONE RIDES</span></div>
+      </div>
+      <div class="diamond">Rule of thumb from the math: under ~$150 replacement value and heavy → sell here, rebuy there. Small + dense + loved → car. Only bulky-and-precious earns the mover.</div>
+    </div>
   </div>
 
   <!-- ================= LINKS ================= -->
   <div class="page" id="page-links">
-    <div class="sign guide">
-      <div class="in">
-        <div class="route">Tap to open</div>
-        <h1>Links</h1>
-        <div class="sub">Everything opens in Apple Maps.</div>
-      </div>
+    <div class="sign">
+      <div class="route">One tap each</div>
+      <h1>Links</h1>
+      <div class="sub">The move's supporting cast.</div>
     </div>
     <div class="linkgrid">
-      <a href="https://maps.apple.com/?q=Silent+Waters+Villa+Montego+Bay+Jamaica"><span class="k">Villa</span><div class="n">Silent Waters</div><span class="ar">›</span></a>
-      <a class="blue" href="https://maps.apple.com/?q=Sangster+International+Airport+Montego+Bay"><span class="k">Arrival</span><div class="n">MBJ — Sangster Intl</div><span class="ar">›</span></a>
-      <a class="blue" href="https://maps.apple.com/?q=O%27Hare+International+Airport"><span class="k">Departure</span><div class="n">O'Hare</div><span class="ar">›</span></a>
-      <a href="book.html"><span class="k">Reference</span><div class="n">Production Book</div><span class="ar">›</span></a>
-    </div><span class="ar">›</span></a>
+      <a href="https://www.shipsticks.com"><span class="k">Golf</span><div class="n">Ship Sticks — exact quote</div><span class="ar">›</span></a>
+      <a href="https://www.dmv.ca.gov/portal/dmv-online/"><span class="k">DMV</span><div class="n">CA DMV — 10/20-day clock</div><span class="ar">›</span></a>
+      <a href="https://www.coveredca.com"><span class="k">Health</span><div class="n">Covered California — 60-day SEP</div><span class="ar">›</span></a>
+      <a href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits"><span class="k">Parking</span><div class="n">SF residential parking permit</div><span class="ar">›</span></a>
+      <a href="https://flybirdfitness.com"><span class="k">Rebuy</span><div class="n">FLYBIRD — bench, SF edition</div><span class="ar">›</span></a>
     </div>
   </div>
 
-  <footer>Silent Waters · Jamaica 2026</footer>
 </div>
 
 <nav>
-  <button id="nav-today" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M10.5 13.5L3 11l1.5-1.5L11 10l4.5-4.5c.6-.6 1.6-.6 2.1 0 .6.6.6 1.6 0 2.1L13 12l.5 6.5L12 20l-2.5-6-3 2 .5-2.5z"/></svg>Trip</button>
-  <button id="nav-board" type="button"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>Board</button>
-  <button id="nav-pack" type="button"><svg viewBox="0 0 24 24"><path d="M4 6.5l1.5 1.5L8 5.5"/><path d="M11 6.5h9"/><path d="M4 12.5l1.5 1.5L8 11.5"/><path d="M11 12.5h9"/><path d="M4 18.5l1.5 1.5L8 17.5"/><path d="M11 18.5h9"/></svg>Pack</button>
-  <button id="nav-shoot" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8.5 7.5l1.5-2.5h4l1.5 2.5"/></svg>Shoot</button>
-  <button id="nav-links" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.4-6.5-10A6.5 6.5 0 0 1 12 4.5 6.5 6.5 0 0 1 18.5 11c0 4.6-6.5 10-6.5 10z"/><circle cx="12" cy="11" r="2.3"/></svg>Links</button>
+  <button id="nav-move" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M4 20V10.5L12 4l8 6.5V20"/><path d="M9.5 20v-6h5v6"/></svg>Move</button>
+  <button id="nav-sort" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Sort</button>
+  <button id="nav-numbers" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Numbers</button>
+  <button id="nav-links" type="button"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1.5-1.5"/></svg>Links</button>
 </nav>
 
 <script>
-(function(){
   "use strict";
-  var KEY="jamaicaPack_v1", BKEY="jamaicaBooking_v1";
-
-  /* ---------- storage ---------- */
-  var mem=null, bmem="";
-  function load(){ try{ var r=window.localStorage.getItem(KEY); return r?JSON.parse(r):mem; }catch(e){ return mem; } }
-  function save(s){ mem=s; try{ window.localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} }
-  function bload(){ try{ return window.localStorage.getItem(BKEY)||bmem; }catch(e){ return bmem; } }
-  function bsave(v){ bmem=v; try{ window.localStorage.setItem(BKEY,v); }catch(e){} }
-
-  /* ---------- data (ids match previous versions so tags persist) ---------- */
-  var DATA=[
-    {id:"docs",title:"Documents & Money",note:"the can't-fly-without pile",items:[
-      {id:"j-passports",t:"Passports \u2014 yours + Liz's",n:"Check expiry NOW \u2014 6+ months validity is the safe standard"},
-      {id:"j-immigration",t:"Jamaica immigration form (online)",n:"Do it before the airport; screenshot the confirmation"},
-      {id:"j-cash",t:"USD cash \u2014 small bills",n:"Staff gratuity is pooled at the end; ATMs there are a hassle"},
-      {id:"j-bank",t:"Notify bank of Jamaica travel",n:""},
-      {id:"j-screenshots",t:"Screenshots: flights, villa, organizer contact",n:"Don't count on data at landing"}
-    ]},
-    {id:"kane",title:"Kane \u2192 Joey's",note:"its own errand \u2014 do the drop-off before packing day chaos",items:[
-      {id:"j-kanefood",t:"Kane food \u2014 enough for 9 days",n:""},
-      {id:"j-kanebed",t:"Kane bed",n:""},
-      {id:"j-kanemeds",t:"Kane meds + vet info for Joey",n:"Just in case"},
-      {id:"j-kanenotes",t:"Feeding/walk notes for Joey",n:"Text works"}
-    ]},
-    {id:"clothes",title:"Clothes",note:"casual days, dressed-up villa dinners",items:[
-      {id:"j-swim",t:"Swimsuits \u00d72\u20133",n:"One's always wet"},
-      {id:"j-cover",t:"Coverups / rash guard",n:""},
-      {id:"j-linen",t:"Linen shirts + light shorts",n:""},
-      {id:"j-dinner",t:"Dinner outfits \u00d73\u20134",n:"Villa group dinners are the dress-up moment"},
-      {id:"j-shoes",t:"Sandals + one real pair of shoes",n:""},
-      {id:"j-hat",t:"Hat",n:""},
-      {id:"j-sunglasses",t:"Sunglasses",n:""},
-      {id:"j-sleep",t:"Sleep stuff",n:""}
-    ]},
-    {id:"sun",title:"Sun & Bugs",note:"the two things that ruin Jamaica trips",items:[
-      {id:"j-sunscreen",t:"Reef-safe sunscreen \u2014 lots",n:"Pricey to buy there"},
-      {id:"j-aloe",t:"Aloe / after-sun",n:""},
-      {id:"j-bug",t:"Bug spray \u2014 DEET or picaridin",n:"Dusk mosquitoes are real"},
-      {id:"j-lip",t:"SPF lip balm",n:""}
-    ]},
-    {id:"health",title:"Health & Personal",note:"",items:[
-      {id:"j-meds",t:"Daily meds \u2014 full trip + buffer",n:""},
-      {id:"j-glasses",t:"Glasses",n:""},
-      {id:"j-contacts",t:"Contacts \u2014 9 days' worth",n:""},
-      {id:"j-ibu",t:"Ibuprofen",n:""},
-      {id:"j-stomach",t:"Imodium / Pepto",n:"Travel stomach insurance"},
-      {id:"j-bandaids",t:"Band-aids",n:""},
-      {id:"j-electrolytes",t:"Electrolyte packets",n:"Sun + heat"},
-      {id:"j-motion",t:"Motion sickness tabs",n:"If there's a boat day"}
-    ]},
-    {id:"tech",title:"Tech",note:"no adapters needed \u2014 Jamaica runs 110V US outlets",items:[
-      {id:"j-chargers",t:"Phone chargers \u00d72 + car cable",n:""},
-      {id:"j-watchcharger",t:"Watch charger",n:""},
-      {id:"j-battery",t:"Portable battery pack",n:""},
-      {id:"j-earbuds",t:"Earbuds",n:""},
-      {id:"j-ipad",t:"iPad",n:""},
-      {id:"j-macbook",t:"MacBook Pro",n:"The nightly offload machine"},
-      {id:"j-macbookcharger",t:"MacBook charger",n:""},
-      {id:"j-pouch",t:"Waterproof phone pouch",n:""},
-      {id:"j-esim",t:"Carrier Jamaica plan / eSIM",n:"Sort before landing"}
-    ]},
-    {id:"shootgear",title:"Shoot Gear",note:"this is a production trip \u2014 the book's gear rule",items:[
-      {id:"sg-canon",t:"Canon 5D Mark IV",n:"Horizontal main film + photos"},
-      {id:"sg-lenses",t:"Lenses \u2014 wide + fast prime",n:"Interiors/exteriors + details"},
-      {id:"sg-batteries",t:"Canon batteries \u00d73 + charger",n:"8 days of golden hours"},
-      {id:"sg-cards",t:"Memory cards \u2014 plural + backup",n:""},
-      {id:"sg-drive",t:"PRO-G40 drive",n:"Nightly offload with the MacBook"},
-      {id:"sg-tripod",t:"Tripod",n:"Night ambience + stable website-hero holds"},
-      {id:"sg-cleaning",t:"Lens cleaning kit",n:"Salt air + sunscreen fingers \u2014 'clean lens' is daily item #1"},
-      {id:"sg-nd",t:"ND filter / polarizer",n:"Midday pool + water shots"},
-      {id:"sg-iphone",t:"iPhone storage cleared",n:"8 days of vertical 4K eats phones"},
-      {id:"sg-drone",t:"Drone \u2014 decide: check JCAA rules first",n:"Book has no-drone backups; skip if the paperwork's a hassle"}
-    ]},
-    {id:"before",title:"Before You Fly",note:"the Tuesday-morning list",items:[
-      {id:"j-kane",t:"Kane dropped at Joey's",n:"With food, bed, meds, notes"},
-      {id:"j-eco",t:"House on eco",n:"Thermostat \u2014 nobody home for 9 days"},
-      {id:"j-checkin",t:"AA online check-in \u2014 24 hrs out",n:""},
-      {id:"j-ride",t:"Ride to O'Hare plan",n:"Park vs drop-off \u2014 decide with Liz"},
-      {id:"j-house",t:"House squared: trash, dishes, fridge purge",n:""}
-    ]}
+  var PHASES = [
+    {
+      id:"now", title:"Back from Jamaica \u2014 Aug 20\u201331", tag:"LOCK IT DOWN",
+      items:[
+        {id:"decide-place", t:"Decide on the SF spot (or line up 2\u20133 backups)", d:"Sign the lease \u2014 confirm small dogs allowed, in writing; confirm what furniture it comes with"},
+        {id:"car-service", t:"Tesla pre-trip check: tire rotation + tread/pressure", d:"2,100 mi \u2014 also worth a quick check of wipers and cabin filter"},
+        {id:"route-plan", t:"Book the route overnights \u2014 southern via mom\u0027s", d:"Rolla \u2192 OKC \u2192 Santa Rosa \u2192 Holbrook \u2192 Chandler (mom, via Payson cutoff) \u2192 SF. \u22648-hr days incl. charging, never under 20%. Four hotel nights \u2014 dog-friendly, near Superchargers, book now"},
+        {id:"gear-decisions", t:"Make the gear calls", d:"Launch monitor car-vs-ship \u00b7 gamer clubs car-vs-Ship Sticks \u00b7 bench ship-vs-rebuy \u00b7 AB coaster sell? \u00b7 iMac/monitor/printer/mirror/Hue fates \u00b7 which cooler rides \u2014 numbers coming from Claude"}
+      ]
+    },
+    {
+      id:"carload", title:"Car Load \u2014 Essentials", tag:"WHAT RIDES WITH YOU",
+      items:[
+        {id:"work-kit", t:"Work kit: MacBook, PRO-G40 + backup drives, camera bodies, lenses", d:"Chargers, cables, card readers \u2014 never in the mover shipment anyway"},
+        {id:"documents", t:"Document folder", d:"IDs/passport, lease docs, insurance policies, car title + registration, tax records, checkbook"},
+        {id:"kane-kit", t:"Kane kit", d:"Food, bowls, leash, bed/crate, meds, vet records \u2014 within reach in the car"},
+        {id:"meds-toiletries", t:"Meds + toiletries", d:""},
+        {id:"bedding", t:"Bedding + towels", d:"Until you confirm what the furnished place actually has"},
+        {id:"kitchen-min", t:"Minimal kitchen box", d:"One pot, one pan, knife, cutting board, coffee setup"},
+        {id:"valuables", t:"Irreplaceables + valuables", d:"Anything you'd never trust to a mover"},
+        {id:"first-week", t:"First-week box packed last, unloaded first", d:"Chargers, basics, dog food \u2014 accessible without digging"}
+      ]
+    },
+    {
+      id:"biz", title:"Business \u2014 Epic Minds Setup", tag:"MAKE IT OFFICIAL",
+      items:[
+        {id:"biz-structure", t:"Pick the structure with an accountant: sole prop vs LLC", d:"CA LLC = ~$800/yr franchise tax; forming fresh in CA after the move means no IL paperwork to unwind"},
+        {id:"ca-entity", t:"Form the entity in CA (or file SF DBA for 'Epic Minds')", d:"LLC via CA Secretary of State; DBA (fictitious business name) if staying sole prop"},
+        {id:"ein", t:"Get an EIN from the IRS", d:"Free, online, ~10 minutes \u2014 needed for the bank account"},
+        {id:"sf-biz-reg", t:"SF business registration certificate", d:"Required shortly after starting operations in SF \u2014 city treasurer's office"},
+        {id:"biz-bank", t:"Open a business bank account under the entity", d:"Separate the money from day one"},
+        {id:"biz-insurance", t:"Business insurance: general liability + gear coverage", d:"Camera/drone gear rider \u2014 clients increasingly ask for proof of GL"}
+      ]
+    },
+    {
+      id:"logistics", title:"Logistics", tag:"THE GRIND",
+      items:[
+        {id:"kane", t:"Kane: vet records + microchip/tag address update", d:"He rides with you \u2014 sorted"},
+        {id:"covered-ca", t:"Apply via Covered California", d:"Move = 60-day Special Enrollment Period \u2014 apply up to 60 days ahead so coverage starts the 1st after landing"},
+        {id:"il-plan-end", t:"Set IL health plan end date \u2014 no gap", d:"End it the day before CA coverage starts; don't let it lapse early (SEP needs prior coverage)"},
+        {id:"mail", t:"USPS mail forwarding", d:"Then update bank, cards, insurance, subscriptions"},
+        {id:"car", t:"Car: CA registration + license + insurance", d:"Registration within 20 days, license within 10 days of residency"},
+        {id:"utilities", t:"Utilities: PG&E + internet at the new place", d:"Live before you arrive; no IL shutoff rush \u2014 family owns the place"},
+        {id:"renters", t:"Renters insurance for the SF place", d:""}
+      ]
+    },
+    {
+      id:"landing", title:"After Landing \u2014 Round Two", tag:"NO RUSH",
+      items:[
+        {id:"assess-furniture", t:"Live in the place 2\u20134 weeks \u2014 list what's actually missing", d:"The furnished stuff decides what ships"},
+        {id:"mover-quotes", t:"Get 3+ full-service mover quotes for the second load", d:"moveBuddha / American Van Lines / Colonial \u2014 off-peak (Oct\u2013Nov) is cheaper than Sept"},
+        {id:"mover-insurance", t:"Confirm full-value protection on the shipment", d:"1\u20132% of declared value \u2014 default is $0.60/lb"},
+        {id:"pick-mover", t:"Book the mover \u2014 binding estimate in writing", d:"Coordinate access to the family place for pickup"},
+        {id:"coi", t:"Check if the SF building needs a mover COI", d:"Many SF buildings require a Certificate of Insurance before move-in"}
+      ]
+    },
+    {
+      id:"money", title:"Money", tag:"THE DAMAGE",
+      items:[
+        {id:"move-budget", t:"Budget round two: ~$3\u20138k depending on how much ships", d:"Less urgency + off-peak timing = leverage"},
+        {id:"drive-budget", t:"Drive budget: gas, hotels, food (~$700\u2013$1,200)", d:""},
+        {id:"deposit", t:"First month + deposit ready", d:""},
+        {id:"taxes", t:"Flag part-year IL / part-year CA filing with accountant", d:"For next year's return"}
+      ]
+    }
   ];
+  var SORT = [
+    {
+      id:"golf", title:"Golf", meta:"essentials ride, rest ships",
+      items:[
+        {id:"g-bag", t:"Gamer bag + current clubs", note:"Rides in the car"},
+        {id:"g-shoes", t:"Golf shoes", note:""},
+        {id:"g-gps", t:"Golf GPS / rangefinder", note:"Small \u2014 car"},
+        {id:"g-glove", t:"Gloves (playing)", note:""},
+        {id:"g-balls", t:"Balls + tees + essentials pouch", note:""},
+        {id:"g-rain", t:"Rain gear / umbrella", note:""},
+        {sub:"Ships or organizes here"},
+        {id:"g-launch", t:"Launch monitor (Approach)", note:"Ship \u2014 doesn't need to be in the car"},
+        {id:"g-net", t:"Hitting net", note:""},
+        {id:"g-mats", t:"Hitting mats + putting green", note:"Bulky \u2014 ship or leave"},
+        {id:"g-headcovers", t:"Headcover collection", note:"Light \u2014 could ride if room"},
+        {id:"g-shelf", t:"Ball / accessory shelf stock", note:""},
+        {sub:"Backup sets \u2014 assign each a home"},
+        {id:"g-bk-here", t:"Backup set A \u2014 stays here (Chicago set)", note:"Leave"},
+        {id:"g-bk-uncle", t:"Backup set B \u2014 uncle's place", note:"Leave (drop on the way / arrange)"},
+        {id:"g-bk-extra", t:"Any set beyond two \u2014 sell or donate", note:"Sell if nice, donate if filler"},
+        {sub:"Pre-move sort"},
+        {id:"g-mystery1", t:"Mystery golf bag #1 \u2014 dump + sort", note:"Do this early August, not packing week"},
+        {id:"g-mystery2", t:"Mystery golf bag #2 \u2014 dump + sort", note:""}
+      ]
+    },
+    {
+      id:"camera", title:"Camera / Work Gear", meta:"all of it rides \u2014 never with a mover",
+      items:[
+        {id:"w-bodies", t:"Camera bodies (Canon)", note:"In the camera backpack"},
+        {id:"w-lenses", t:"Lenses", note:""},
+        {id:"w-batteries", t:"Batteries + chargers + card readers", note:""},
+        {id:"w-cards", t:"Memory cards", note:"With the documents, not loose"},
+        {id:"w-macbook", t:"M5 MacBook Pro", note:"Car \u2014 always"},
+        {id:"w-drives", t:"PRO-G40 + all backup drives", note:"Back up everything BEFORE the drive"},
+        {id:"w-tripods", t:"Tripods / stands / rigs", note:""},
+        {id:"w-audio", t:"Mics / audio kit", note:""},
+        {sub:"Desk setup \u2014 decide"},
+        {id:"w-imac", t:"iMac", note:"Big + fragile \u2014 ship carefully or decide its fate"},
+        {id:"w-monitor", t:"External monitor + arm", note:""},
+        {id:"w-vision", t:"Vision Pro", note:"Car \u2014 too expensive to ship"},
+        {id:"w-homepod", t:"HomePod", note:""},
+        {id:"w-printer", t:"Printer", note:"Cheap to replace \u2014 honest sell/leave candidate"},
+        {id:"w-hue", t:"Hue bridge + smart bulbs", note:"Only if the SF place is yours to light"},
+        {id:"w-lapdesk", t:"Lap desk", note:""},
+        {id:"w-lamp", t:"Cordless table lamp", note:""},
+        {id:"w-mirror", t:"Full-length mirror", note:"Furnished place likely has one \u2014 leave?"}
+      ]
+    },
+    {
+      id:"clothes", title:"Clothes", meta:"SF-first, one of every layer",
+      items:[
+        {sub:"Outer layers (SF core \u2014 cool + foggy)"},
+        {id:"c-rain", t:"Rain shell / waterproof jacket", note:"SF essential"},
+        {id:"c-coat", t:"Warm coat", note:"At least one"},
+        {id:"c-light-jacket", t:"Light jacket / overshirt", note:"The everyday SF layer"},
+        {id:"c-hoodies", t:"Hoodies / sweatshirts", note:"A few"},
+        {id:"c-sweaters", t:"Sweaters / knits", note:""},
+        {sub:"Tops"},
+        {id:"c-tees", t:"T-shirts", note:""},
+        {id:"c-longsleeve", t:"Long-sleeve / henleys", note:""},
+        {id:"c-buttonup", t:"Button-ups / nicer shirts", note:"For shoots / client work"},
+        {id:"c-base", t:"Base layers / thermals", note:"One set for cold snaps"},
+        {sub:"Bottoms"},
+        {id:"c-jeans", t:"Jeans / everyday pants", note:""},
+        {id:"c-chinos", t:"Chinos / nicer pants", note:""},
+        {id:"c-shorts", t:"Shorts (summer)", note:"A few \u2014 you'll want some"},
+        {sub:"Workout"},
+        {id:"c-gym-top", t:"Workout tops", note:""},
+        {id:"c-gym-bottom", t:"Shorts / joggers", note:""},
+        {id:"c-gym-socks", t:"Athletic socks", note:""},
+        {sub:"Accessories \u2014 one of each"},
+        {id:"c-gloves", t:"Gloves", note:""},
+        {id:"c-beanie", t:"Beanie / warm hat", note:"SF nights"},
+        {id:"c-cap", t:"Cap / sun hat (summer)", note:""},
+        {id:"c-scarf", t:"Scarf", note:""},
+        {id:"c-socks", t:"Everyday socks", note:""},
+        {id:"c-underwear", t:"Underwear", note:""},
+        {sub:"Footwear"},
+        {id:"c-boots", t:"Boots", note:""},
+        {id:"c-sneakers", t:"Everyday sneakers", note:""},
+        {id:"c-dress", t:"Dress / nicer shoes", note:"Client-facing"},
+        {id:"c-sandals", t:"Sandals / summer shoes", note:""},
+        {sub:"Summer \u2014 can wait for movers if tight on space"},
+        {id:"c-summer-box", t:"Summer overflow box", note:"Ship later if the car's full"}
+      ]
+    },
+    {
+      id:"workout", title:"Workout", meta:"small weights ride \u2014 that's it",
+      items:[
+        {id:"wo-15", t:"15 lb dumbbell pair", note:"Car"},
+        {id:"wo-10", t:"10 lb dumbbell pair", note:"Car"},
+        {sub:"Decide \u2014 dollar figures coming in August"},
+        {id:"wo-bench", t:"FLYBIRD adjustable bench", note:"Ship vs rebuy on Amazon \u2014 undecided"},
+        {id:"wo-ab", t:"Merach AB coaster", note:"Sell if it's worth the effort"},
+        {sub:"Leave / sell / donate"},
+        {id:"wo-mace", t:"Steel mace", note:"Worth a real sell-vs-replace look"},
+        {id:"wo-kb", t:"Kettlebell", note:""},
+        {id:"wo-ankle", t:"Adjustable ankle/wrist weights", note:""},
+        {id:"wo-gloves", t:"Weighted gloves", note:""},
+        {id:"wo-blue", t:"Blue neoprene dumbbells (light pair)", note:"Cheap to replace \u2014 not worth shipping"},
+        {id:"wo-slant", t:"Slant board / calf stretcher", note:""}
+      ]
+    },
+    {
+      id:"kitchen", title:"Kitchen", meta:"car if it fits \u2014 otherwise later shipment",
+      items:[
+        {sub:"Priority \u2014 rides if anything does"},
+        {id:"k-knives", t:"Knives + cutting board", note:""},
+        {id:"k-castiron", t:"Cast iron skillet", note:"Heavy but irreplaceable-ish once seasoned"},
+        {id:"k-pans", t:"Daily pans (wok / grill pan / skillet)", note:""},
+        {id:"k-coffee", t:"Coffee setup", note:""},
+        {id:"k-bottles", t:"Water bottles (Hydro Flask / Yeti)", note:"Fill for the drive"},
+        {sub:"Second tier \u2014 car if room, else ship"},
+        {id:"k-airfryer", t:"Typhur air fryer", note:"Bulky"},
+        {id:"k-blender", t:"Blender (Ninja)", note:""},
+        {id:"k-containers", t:"Food storage containers", note:"Nest them \u2014 pack stuff inside"},
+        {id:"k-utensils", t:"Cooking utensils + tools", note:""},
+        {id:"k-pepper", t:"Pepper mill + spices", note:""},
+        {id:"k-supplements", t:"Supplement shelf", note:"Purge expired before packing"},
+        {sub:"Coolers \u2014 useful ON the drive"},
+        {id:"k-yeti", t:"YETI cooler", note:"Ride food/drinks in it \u2014 works for itself"},
+        {id:"k-insmeer", t:"Insmeer cooler", note:"Two coolers is a lot \u2014 one rides, one ships?"}
+      ]
+    },
+    {
+      id:"skate", title:"Rollerblading", meta:"skate rides, spares ship",
+      items:[
+        {id:"r-skates", t:"Rollerblades", note:"Car"},
+        {id:"r-pads", t:"Pads (knee / elbow / wrist)", note:""},
+        {id:"r-helmet", t:"Helmet", note:""},
+        {id:"r-tool", t:"Skate tool / Allen keys", note:"Tiny \u2014 car"},
+        {sub:"Ships or leaves"},
+        {id:"r-wheels", t:"Spare wheels", note:""},
+        {id:"r-bearings", t:"Spare bearings", note:""},
+        {id:"r-laces", t:"Spare laces / liners", note:""},
+        {id:"r-bag", t:"Skate bag / backpack", note:""},
+        {id:"r-old", t:"Old / backup skates", note:"Leave or donate if you've upgraded"}
+      ]
+    },
+    {
+      id:"household", title:"Household / Essentials", meta:"light \u2014 the place is probably furnished",
+      items:[
+        {id:"h-towels", t:"Three good towels", note:"Car"},
+        {id:"h-toiletries", t:"All toiletries + essentials", note:"Car"},
+        {id:"h-firstnight", t:"First-night toiletry bag \u2014 packed separately", note:"Not buried in the load"},
+        {id:"h-rx", t:"Prescriptions refilled before the drive", note:"90-day if possible"},
+        {id:"h-bags", t:"Clear plastic zip bags (packing supply)", note:"For clothes/soft goods \u2014 not kitchen"},
+        {id:"h-bedding", t:"Bedding \u2014 DON'T pack", note:"Buying on arrival once you see the bed"}
+      ]
+    },
+    {
+      id:"docs", title:"Documents / The Safe", meta:"the safe rides \u2014 verify contents first",
+      items:[
+        {sub:"Identity"},
+        {id:"d-passport", t:"Passport", note:""},
+        {id:"d-birth", t:"Birth certificate", note:""},
+        {id:"d-ssn", t:"Social Security card", note:""},
+        {sub:"Vehicle"},
+        {id:"d-title", t:"Tesla title + registration", note:""},
+        {id:"d-carloan", t:"Purchase / loan paperwork", note:""},
+        {sub:"Financial / legal"},
+        {id:"d-tax", t:"Tax returns (last few years)", note:""},
+        {id:"d-checks", t:"Checkbooks + spare cards", note:""},
+        {id:"d-policies", t:"Insurance policies", note:""},
+        {id:"d-estate", t:"Wills / POA / trust docs (if any)", note:""},
+        {sub:"Personal"},
+        {id:"d-medical", t:"Medical records", note:""},
+        {id:"d-kane", t:"Kane's records / papers", note:""},
+        {id:"d-cash", t:"Cash reserve", note:""},
+        {id:"d-valuables", t:"Jewelry / small valuables", note:""},
+        {id:"d-sentimental", t:"Sentimental irreplaceables", note:""},
+        {sub:"Digital keys"},
+        {id:"d-2fa", t:"2FA / password recovery codes", note:""},
+        {id:"d-crypto", t:"Seed phrases / hardware wallet (if any)", note:""},
+        {id:"d-keys", t:"Spare house / safe keys", note:""}
+      ]
+    }
+  ];
+var ACCENTS = {
+    golf:      ["#1D6B43", "#E3F1E7"],
+    camera:    ["#2B5FA3", "#E3EDF8"],
+    clothes:   ["#6B4FA1", "#EEE7F6"],
+    workout:   ["#B0503F", "#FBE7E3"],
+    kitchen:   ["#97711F", "#FAF0DC"],
+    skate:     ["#177972", "#DFF2F1"],
+    household: ["#A84A74", "#FAE7EF"],
+    docs:      ["#7A6236", "#EFEAE0"]
+  };
 
-  var state=load()||{disp:{},collapsed:{},custom:{}};
-  state.disp=state.disp||{}; state.collapsed=state.collapsed||{}; state.custom=state.custom||{}; state.removed=state.removed||{};
-  var hideTagged=!!state.hideTagged;
+  var KEY="sfMoveApp_v1";
+  var mem=null;
+  function load(){try{var r=window.localStorage.getItem(KEY);return r?JSON.parse(r):mem;}catch(e){return mem;}}
+  function save(s){mem=s;try{window.localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  var state=load()||{};
+  state.done=state.done||{};       /* move checklist */
+  state.disp=state.disp||{};       /* sort tags */
+  state.notes=state.notes||{};
+  state.custom=state.custom||{};
+  state.removed=state.removed||{};
+  state.collapsed=state.collapsed||{};
 
-  var DISPO=["bring","ship","leave"];
-  var LABEL={bring:"Done",ship:"Buy",leave:"Skip"};
-
-  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
-
-  /* ---------- pack render ---------- */
-  var groupsEl=document.getElementById("groups");
-  function render(){
-    groupsEl.innerHTML="";
-    DATA.forEach(function(g){
-      var custom=state.custom[g.id]||[];
-      var all=g.items.concat(custom.map(function(c){return{id:c.id,t:c.t,n:"",custom:true};}));
-      var live=all.filter(function(it){return !state.removed[it.id];});
-      var done=live.filter(function(it){return state.disp[it.id];}).length;
-
-      var card=document.createElement("div");
-      card.className="card"+(state.collapsed[g.id]?" closed":"");
-
-      var head=document.createElement("div");
-      head.className="sec-head";head.setAttribute("role","button");head.setAttribute("tabindex","0");
-      head.innerHTML='<span class="t">'+esc(g.title)+'</span><span class="m">'+done+'/'+live.length+' <span class="chev">\u25BC</span></span>';
-      function toggle(){state.collapsed[g.id]=!state.collapsed[g.id];save(state);render();}
-      head.addEventListener("click",toggle);
-      head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}});
-      card.appendChild(head);
-
-      var body=document.createElement("div");
-      body.className="sec-body";
-      if(g.note){var sn=document.createElement("div");sn.className="sec-note";sn.textContent=g.note;body.appendChild(sn);}
-
-      all.forEach(function(it){
-        if(state.removed[it.id])return;
-        var d=state.disp[it.id]||"";
-        if(hideTagged&&d)return;
-        var row=document.createElement("div");
-        row.className="item"+(d?" is-"+d:"");
-        var tags=DISPO.map(function(k){
-          return '<button class="tag'+(d===k?" on-"+k:"")+'" data-k="'+k+'" type="button">'+LABEL[k]+'</button>';
-        }).join("");
-        row.innerHTML='<div class="name">'+esc(it.t)+'</div>'+
-          (it.n?'<div class="note">'+esc(it.n)+'</div>':'')+
-          '<div class="tagrow">'+tags+'</div>'+
-          '<button class="del" type="button">Remove</button>';
-        DISPO.forEach(function(k){
-          row.querySelector('[data-k="'+k+'"]').addEventListener("click",function(){
-            state.disp[it.id]=(state.disp[it.id]===k)?"":k;
-            save(state);render();
-          });
-        });
-        row.querySelector(".del").addEventListener("click",function(){
-          if(it.custom){
-            state.custom[g.id]=(state.custom[g.id]||[]).filter(function(c){return c.id!==it.id;});
-          }else{
-            state.removed[it.id]=true;
-          }
-          delete state.disp[it.id];save(state);render();
-        });
-        body.appendChild(row);
-      });
-
-      var add=document.createElement("div");
-      add.className="addrow";
-      add.innerHTML='<input type="text" placeholder="Add to '+esc(g.title)+'\u2026" aria-label="Add item"><button type="button">Add</button>';
-      var inp=add.querySelector("input"),btn=add.querySelector("button");
-      function addItem(){
-        var v=inp.value.trim();if(!v)return;
-        if(!state.custom[g.id])state.custom[g.id]=[];
-        state.custom[g.id].push({id:g.id+"-c"+Date.now(),t:v});
-        inp.value="";save(state);render();
-      }
-      btn.addEventListener("click",addItem);
-      inp.addEventListener("keydown",function(e){if(e.key==="Enter")addItem();});
-      body.appendChild(add);
-
-      card.appendChild(body);
-      groupsEl.appendChild(card);
-    });
-    progress();
-  }
-  function progress(){
-    var total=0,done=0;
-    DATA.forEach(function(g){
-      var ids=g.items.map(function(i){return i.id;}).concat((state.custom[g.id]||[]).map(function(c){return c.id;}));
-      ids=ids.filter(function(id){return !state.removed[id];});
-      total+=ids.length;
-      ids.forEach(function(id){if(state.disp[id])done++;});
-    });
-    var pct=total?Math.round(done/total*100):0;
-    document.getElementById("packNum").textContent=done+" / "+total;
-    document.getElementById("packFill").style.width=pct+"%";
-  }
-  var hideBtn=document.getElementById("hideDone");
-  function syncHide(){hideBtn.classList.toggle("on",hideTagged);hideBtn.textContent=hideTagged?"Show all":"Hide tagged";}
-  hideBtn.addEventListener("click",function(){hideTagged=!hideTagged;state.hideTagged=hideTagged;save(state);syncHide();render();});
-  syncHide();
-  var restoreBtn=document.getElementById("restoreBtn");
-  function syncRestore(){
-    var n=Object.keys(state.removed).filter(function(k){return state.removed[k];}).length;
-    restoreBtn.style.display=n?"inline-block":"none";
-    restoreBtn.textContent="Restore removed ("+n+")";
-  }
-  restoreBtn.addEventListener("click",function(){state.removed={};save(state);render();});
-  var _render=render;
-  render=function(){_render();syncRestore();};
-  syncRestore();
-
-  /* ---------- static section toggles ---------- */
-  document.querySelectorAll("[data-static] .sec-head").forEach(function(h){
-    function t(){h.parentElement.classList.toggle("closed");}
-    h.addEventListener("click",t);
-    h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();t();}});
-  });
-
-
-
-var E = "everyone";
-
-var DAYS = [
-  { id:"d11", dow:"Tue", date:"11", full:"Tuesday, August 11", tag:"Arrival Day", guests:"8 guests", ours:false,
-    note:"Flight lands 1:12 pm. Welcome drink on arrival.",
-    meals:[
-      { type:"Lunch", time:"Around 3:00, or on arrival", opts:[
-        { name:"Tuscan grilled shrimp salad", who:E, sub:"Grilled chicken instead of shrimp for London 2" }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Bacon wrapped plantains", who:E },
-        { name:"Sliced veggies with hummus", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Carrot / tomato soup", who:E, course:"Starter" },
-        { name:"Stuffed chicken breast with callaloo", who:E, course:"Main" },
-        { name:"Chocolate mousse", who:E, course:"Dessert" }
-      ]}
-    ]},
-
-  { id:"d12", dow:"Wed", date:"12", full:"Wednesday, August 12", tag:"", guests:"8 guests", ours:false, note:"",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Greek salad with grilled chicken", who:E }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Fresh guacamole, fresh salsa and chips", who:E },
-        { name:"Shrimp satay", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Salad", who:E, course:"Starter" },
-        { name:"Mahi mahi", who:E, course:"Main" },
-        { name:"Chef's surprise", who:E, course:"Dessert" }
-      ]}
-    ]},
-
-  { id:"d13", dow:"Thu", date:"13", full:"Thursday, August 13", tag:"Siena &amp; Michael arrive", guests:"10 guests", ours:false,
-    note:"Flight lands 1:12 pm.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Chicken Caesar salad", who:E }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Crudit\u00e9s", who:E },
-        { name:"Quesadillas", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Chef's surprise", who:E, course:"Starter", sub:"The Word doc says ginger pumpkin soup here \u2014 see Flags" },
-        { name:"Penang chicken curry", who:E, course:"Main", sub:"Rice, toasted coconut shavings, homemade chutney" },
-        { name:"Rum cake", who:E, course:"Dessert", sub:"The Word doc says key lime pie here \u2014 see Flags" }
-      ]}
-    ]},
-
-  { id:"d14", dow:"Fri", date:"14", full:"Friday, August 14", tag:"Seychelle arrives", guests:"11 guests", ours:false,
-    note:"Flight lands 11:42 am.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Turkey club with side salad and French fries", who:["Seychie","London","London 2","Siena","Michael","Carrie","Tom","Tyson"], sub:"Gluten free bread, lightly toasted, for London 2 and Siena" },
-        { name:"Tuscan salad", who:["Liz","Chad","Dayanne"] }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Spring rolls", who:E },
-        { name:"Coconut shrimp", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Salad", who:E, course:"Starter" },
-        { name:"Salmon", who:["Carrie","London","Tom","Dayanne","Liz","Chad","Tyson"], course:"Main" },
-        { name:"Gluten free pasta", who:["Seychie","London 2","Siena","Michael"], course:"Main" },
-        { name:"Pecan pie", who:E, course:"Dessert", sub:"Gluten free flour" }
-      ]}
-    ]},
-
-  { id:"d15", dow:"Sat", date:"15", full:"Saturday, August 15", tag:"Matthew arrives", guests:"12 guests", ours:false,
-    note:"Flight lands 11:42 am.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Crab cake with gazpacho and shrimp", who:["Carrie","London","Dayanne","Liz","Tyson"], sub:"No gluten \u00b7 gazpacho only for Seychie" },
-        { name:"Cheeseburgers", who:["London 2","Siena","Michael","Matthew","Chad","Tom"], sub:"Gluten free bun, lightly toasted, for London 2 and Siena" }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Quesadillas", who:E },
-        { name:"Beef skewers with dipping sauce", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Salad", who:E, course:"Starter" },
-        { name:"Chef Marlon's boca shrimp", who:["Carrie","London","Dayanne","Liz","Chad","Tom"], course:"Main" },
-        { name:"Beef kabobs with chimichurri", who:["London 2","Seychie","Michael","Siena","Matthew","Tyson"], course:"Main", sub:"Sauce on the side, per Carrie's recipe" },
-        { name:"Passion fruit pie or mousse", who:E, course:"Dessert" }
-      ]}
-    ]},
-
-  { id:"d16", dow:"Sun", date:"16", full:"Sunday, August 16", tag:"", guests:"12 guests &middot; 8 at lunch", ours:false,
-    note:"London 2, Siena, Michael and Matthew may go to Negril for the day.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00 &middot; 8 guests", opts:[
-        { name:"Greek salad with grilled shrimp and feta in brine", who:["Carrie","London","Liz","Chad","Dayanne","Tom","Tyson","Seychie"], sub:"No shrimp for Seychie" }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00 &middot; 12 guests", opts:[
-        { name:"Bruschetta", who:E, sub:"Gluten free bread, toasted, for some" },
-        { name:"Meatballs with dipping sauce", who:E }
-      ]},
-      { type:"Dinner", time:"7:00 &middot; 12 guests", opts:[
-        { name:"Pepperpot soup", who:E, course:"Starter" },
-        { name:"Jerk chicken", who:E, course:"Main" },
-        { name:"Ice cream", who:E, course:"Dessert", sub:"Dairy free or sorbet for London 2" }
-      ]}
-    ]},
-
-  { id:"d17", dow:"Mon", date:"17", full:"Monday, August 17", tag:"John &amp; Christine join", guests:"12 &middot; 14 at dinner", ours:false,
-    note:"John and Christine join for hors d'oeuvres and dinner.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Chicken pesto sandwich with side salad", who:["Carrie","London","London 2","Siena","Michael","Matthew","Tom","Tyson"], sub:"Gluten free bread, lightly toasted, for London 2 and Siena" },
-        { name:"Chicken Caesar salad", who:["Liz","Chad","Dayanne","Seychie","Tyson","Tom"], sub:"Tom and Tyson appear on both lists \u2014 see Flags" }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00 &middot; 14 guests", opts:[
-        { name:"Jerk chicken wings", who:E },
-        { name:"Shrimp cocktail", who:E }
-      ]},
-      { type:"Dinner", time:"7:00 &middot; 14 guests", opts:[
-        { name:"Ginger pumpkin soup", who:E, course:"Starter" },
-        { name:"Beef tenderloin", who:["London","London 2","Siena","Michael","Dayanne","Tom","Tyson","Liz","John","Christine"], course:"Main", sub:"Red wine reduction on the side" },
-        { name:"Escovitch fish", who:["Carrie"], course:"Main" },
-        { name:"Plain fish", who:["Chad"], course:"Main" },
-        { name:"Key lime pie", who:E, course:"Dessert" }
-      ]}
-    ]},
-
-  { id:"d18", dow:"Tue", date:"18", full:"Tuesday, August 18", tag:"Your day", guests:"12 guests", ours:true,
-    note:"Built from the selections you and Liz submitted.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] },
-      { type:"Lunch", time:"1:00", opts:[
-        { name:"Tuscan grilled shrimp salad", who:E, sub:"No shrimp for Seychie \u00b7 grilled chicken for London 2" }
-      ]},
-      { type:"Hors d'oeuvres", time:"5:00", opts:[
-        { name:"Chicken kabobs", who:E },
-        { name:"Chips with fresh guacamole and homemade salsa", who:E }
-      ]},
-      { type:"Dinner", time:"7:00", opts:[
-        { name:"Tossed garden salad", who:E, course:"Starter" },
-        { name:"Pan seared snapper", who:E, course:"Main" },
-        { name:"Chicken or beef surprise", who:["Seychie"], course:"Main" },
-        { name:"Bananas Foster", who:E, course:"Dessert", sub:"Light on the alcohol" }
-      ]}
-    ]},
-
-  { id:"d19", dow:"Wed", date:"19", full:"Wednesday, August 19", tag:"Departure Day", guests:"", ours:false,
-    note:"Check-out at 12:00. AA975 departs 2:12 pm.",
-    meals:[
-      { type:"Breakfast", time:"7:30 \u2013 10:30", opts:[] }
-    ]}
-];
-
-var FLAGS = [
-  ["f1","Sat Aug 15","You and Liz are split at lunch","Liz is down for the crab cake with gazpacho; you're on the cheeseburgers. Fine if that's what you both wanted \u2014 worth a look in case one of you got sorted by headcount rather than preference."],
-  ["f2","Mon Aug 17","You and Liz are split at dinner too","Liz is on the beef tenderloin with nine others; you're the only person listed for plain fish. Carrie has the escovitch. If you'd rather have the tenderloin, now is the moment to say so."],
-  ["f3","Mon Aug 17","Tom and Tyson are on both lunch lists","The sandwich list has 8 names and the Caesar salad list has 6 \u2014 that's 14 servings for a 12-guest lunch, because Tom and Tyson appear on both. The kitchen cooks to whatever the sheet says."],
-  ["f4","Thu Aug 13","The Word doc and the spreadsheet disagree","Spreadsheet says chef's surprise starter and rum cake. Word doc says ginger pumpkin soup and key lime pie. The spreadsheet looks newer, but somebody should confirm which one Marlon is working from."],
-  ["f5","Tue Aug 11 &amp; 18","Tuscan grilled shrimp salad is served twice","Arrival day and your day. Nobody's harmed by it, but if you want your day to feel distinct, this is the single swap to make."],
-  ["f6","Wed Aug 19","Liz's allergy question is still on the last page","It's been cleared from every other day. One line to Carrie and it's gone entirely."],
-  ["f7","Wed Aug 19","Departure pick-up times are still blank","Three flights that day \u2014 2:12, 2:37 and 2:52 pm \u2014 all on Transport 1, with no pick-up time set and noon check-out."]
-];
-
-var ARRIVALS = [
-  ["London, Carrie, London 2, Tyson, Tom, Dayanne, Chad, Liz","Tue, Aug 11","AA3228","1:12 pm","Transport 1"],
-  ["Siena and Michael","Thu, Aug 13","AA3228","1:12 pm","Transport 2"],
-  ["Seychelle","Fri, Aug 14","AA2124","11:42 am","Transport 3"],
-  ["Matthew","Sat, Aug 15","AA2124","11:42 am","Transport 4"]
-];
-
-var DEPARTURES = [
-  ["London, Carrie, London 2, Tyson, Tom, Dayanne, Chad, Liz, Siena, Michael","AA975","2:12 pm","Transport 1"],
-  ["Seychelle","AA875","2:37 pm","Transport 1"],
-  ["Matthew","AA2618","2:52 pm","Transport 1"]
-];
-
-var VILLAS = [
-  { name:"Owners Villa", keeper:"Roseann", ours:false, rows:["London","Carrie"], extra:"Kids room" },
-  { name:"Villa 1", keeper:"Roseann", ours:false, rows:["Seychie \u00b7 upper","Tyson \u00b7 lower"], extra:"" },
-  { name:"Villa 2", keeper:"Liz", ours:false, rows:["Siena \u00b7 upper","Michael \u00b7 upper"], extra:"Sofa bed \u00b7 lower" },
-  { name:"Villa 3", keeper:"Liz", ours:false, rows:["Tom","Dayanne"], extra:"Sofa bed" },
-  { name:"Villa 4", keeper:"Raquel", ours:true, rows:["Chad","Liz"], extra:"Sofa bed" },
-  { name:"Villa 5", keeper:"Raquel", ours:false, rows:["London 2","Matthew"], extra:"Sofa bed" }
-];
-
-var KITCHEN = [
-  "Serve meals on time, lunch especially \u2014 people leave for the beach after.",
-  "Olive oil only \u2014 no peanut, canola or any other oil.",
-  "Homemade salad dressing and homemade salsa \u2014 nothing bottled or jarred.",
-  "Go light on butter and cream sauces.",
-  "Jermaine juice every morning for anyone who wants it.",
-  "Fresh coconut water daily.",
-  "Fresh lime juice for margaritas.",
-  "Extra bananas and fruit for smoothies \u2014 a few bags of frozen strawberries and blueberries if available.",
-  "Sliced veggies and hummus on hand as a snack for London 2.",
-  "Dairy free ice cream or sorbet for London 2.",
-  "Gluten free flour for any dessert or meal that needs it, pancakes included.",
-  "Use the gluten free bread Carrie brought down for London 2 and Siena \u2014 lightly toasted.",
-  "London 2, Michael and Matthew are all 20-year-old guys and can eat."
-];
-
-var COUNTS = [
-  ["Tuesday &amp; Wednesday","8 guests"],
-  ["Thursday","10 guests"],
-  ["Friday","11 guests"],
-  ["Saturday through Wednesday","12 guests"],
-  ["Monday evening","14 \u2014 John and Christine join"]
-];
-
-  /* ---------- board render ---------- */
-  var selDay = "d11";
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function el(tag,cls,htmlc){var e=document.createElement(tag);if(cls)e.className=cls;if(htmlc!==undefined)e.innerHTML=htmlc;return e;}
-  function renderChips(){
-    var c=document.getElementById("dayChips");c.innerHTML="";
-    DAYS.forEach(function(d){
-      var b=el("button","dchip"+(d.id===selDay?" sel":"")+(d.ours?" ours":""),
-        '<span class="dw">'+d.dow+'</span><span class="dn">'+d.date+'</span>');
-      b.type="button";
-      b.addEventListener("click",function(){selDay=d.id;renderChips();renderDay();});
-      c.appendChild(b);
-    });
-  }
-  function renderDay(){
-    var d=DAYS.filter(function(x){return x.id===selDay;})[0];
-    var v=document.getElementById("dayView");v.innerHTML="";
-    var card=el("div","card");
-    var head=el("div","sec-head");
-    head.style.cursor="default";
-    head.innerHTML='<span class="t">'+d.full+(d.ours?' — your day':'')+'</span><span class="m">'+(d.guests||'')+'</span>';
-    card.appendChild(head);
-    var body=el("div","sec-body");
-    if(d.tag||d.note){body.appendChild(el("div","sec-note",esc(d.tag?d.tag+(d.note?" · ":""):"")+esc(d.note||"")));}
-    d.meals.forEach(function(mm){
-      body.appendChild(el("div","mealhead","<span>"+esc(mm.type)+"</span><span>"+esc(mm.time||"")+"</span>"));
-      if(!mm.opts.length){body.appendChild(el("div","mealopt",'<div class="ms">Open — order off the kitchen</div>'));}
-      mm.opts.forEach(function(o){
-        var s=(o.course?'<span class="coursetag">'+esc(o.course)+'</span>':'')+'<span class="mn">'+esc(o.name)+'</span>'+
-          (o.sub?'<div class="ms">'+esc(o.sub)+'</div>':'');
-        body.appendChild(el("div","mealopt",s));
-      });
-    });
-    card.appendChild(body);
-    v.appendChild(card);
-  }
-  function fillSimple(id, rows){
-    var b=document.getElementById(id);b.innerHTML="";
-    rows.forEach(function(r){b.appendChild(el("div","simplerow",r));});
-  }
-  fillSimple("arrivalsBody", ARRIVALS.map(function(a){return "<strong>"+esc(a[1])+"</strong> · "+esc(a[2])+" · "+esc(a[3])+' <div class="sub2">'+esc(a[0])+" · "+esc(a[4])+"</div>";}));
-  fillSimple("departuresBody", DEPARTURES.map(function(a){return "<strong>"+esc(a[1])+"</strong> · "+esc(a[2])+' <div class="sub2">'+esc(a[0])+" · "+esc(a[3])+"</div>";}));
-  fillSimple("villasBody", VILLAS.map(function(v){return "<strong>"+esc(v.name)+"</strong>"+(v.ours?" — you + Liz":"")+' <div class="sub2">'+esc(v.rows.join(" · "))+(v.extra?" · "+esc(v.extra):"")+" · keeper: "+esc(v.keeper)+"</div>";}));
-  fillSimple("kitchenBody", KITCHEN.map(function(k){return esc(k);}));
-  fillSimple("countsBody", COUNTS.map(function(c){return "<strong>"+c[0]+"</strong>"+' <div class="sub2">'+esc(c[1])+"</div>";}));
-  renderChips();renderDay();
 
-  /* ---------- shoot checklists ---------- */
-  var SKEY="jamaicaShots_v1";
-  var smem=null;
-  function sload(){try{var r=window.localStorage.getItem(SKEY);return r?JSON.parse(r):smem;}catch(e){return smem;}}
-  function ssave(s){smem=s;try{window.localStorage.setItem(SKEY,JSON.stringify(s));}catch(e){}}
-  var SHOTS=[
-    {id:"video",title:"Must-Get — Video",items:["First walk through estate","First villa reveal","Main villa exterior wide","Pool wide","Pool water detail","Bedroom doorway reveal","Bedroom wide shot","Garden/pathway walking shot","Terrace/view shot","Morning coffee detail","Sunset drinks","Night villa glow","Family walking naturally from behind","One clean website hero shot","Three vertical Instagram hook shots"]},
-    {id:"photo",title:"Must-Get — Photos / Backups",items:["Main villa exterior photo","Pool photo","Bedroom photo","Garden/pathway photo","Terrace/view photo","Morning coffee photo","Sunset drinks photo","Night exterior photo","Towel/linen/water/flower detail","Family candid from behind/distance","Clean version without people","Warm version with family","Backup no-drone shot","Backup no-people shot","Final quiet ending shot"]},
-    {id:"daily",title:"Daily — Before Shooting",items:["Clean lens","Check battery/storage","Remove clutter","Shoot vertical on iPhone","Shoot horizontal on Canon","Get 2–3 seconds before/after movement","One detail, one wide, one hook"]}
-  ];
-  var sstate=sload()||{done:{}};
-  sstate.done=sstate.done||{};
-  function renderShots(){
-    var wrap=document.getElementById("shotGroups");wrap.innerHTML="";
-    SHOTS.forEach(function(g){
-      var doneN=g.items.filter(function(_,i){return sstate.done[g.id+i];}).length;
-      var card=el("div","card");
-      var head=el("div","sec-head");head.style.cursor="default";
-      head.innerHTML='<span class="t">'+g.title+'</span><span class="m">'+doneN+'/'+g.items.length+'</span>';
+  /* ---------- countdown ---------- */
+  (function(){
+    var days=Math.ceil((new Date(2026,8,1)-new Date())/86400000);
+    document.getElementById("cdDays").textContent=days>0?days:"GO —";
+  })();
+
+  /* ---------- MOVE: phases ---------- */
+  function renderMove(){
+    var wrap=document.getElementById("phaseGroups");wrap.innerHTML="";
+    var total=0,dn=0;
+    PHASES.forEach(function(ph){
+      var ids=ph.items.map(function(i){return i.id;});
+      var pdone=ids.filter(function(id){return state.done[id];}).length;
+      total+=ids.length;dn+=pdone;
+      var card=el("div","card"+(state.collapsed["ph-"+ph.id]?" closed":""));
+      var head=el("div","sec-head");
+      head.setAttribute("role","button");head.setAttribute("tabindex","0");
+      head.innerHTML='<span class="t">'+esc(ph.title)+'</span><span class="m">'+pdone+'/'+ids.length+' <span class="chev">\u25BC</span></span>';
+      function togC(){state.collapsed["ph-"+ph.id]=!state.collapsed["ph-"+ph.id];save(state);renderMove();}
+      head.addEventListener("click",togC);
+      head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
       card.appendChild(head);
+      card.appendChild(el("div","sec-note",esc(ph.tag||"")));
       var body=el("div","sec-body");
-      g.items.forEach(function(t,i){
-        var k=g.id+i;
-        var row=el("div","check"+(sstate.done[k]?" on":""),
-          '<span class="ring">✓</span><span class="ct">'+esc(t)+'</span>');
+      ph.items.forEach(function(it){
+        var row=el("div","check"+(state.done[it.id]?" on":""),
+          '<span class="ring">\u2713</span><span><span class="ct">'+esc(it.t)+'</span>'+(it.d?'<div class="cd">'+esc(it.d)+'</div>':'')+'</span>');
         row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");
-        row.setAttribute("aria-checked",sstate.done[k]?"true":"false");
-        function tog(){sstate.done[k]=!sstate.done[k];ssave(sstate);renderShots();}
+        row.setAttribute("aria-checked",state.done[it.id]?"true":"false");
+        function tog(){state.done[it.id]=!state.done[it.id];save(state);renderMove();}
         row.addEventListener("click",tog);
         row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
         body.appendChild(row);
@@ -814,29 +563,136 @@ var COUNTS = [
       card.appendChild(body);
       wrap.appendChild(card);
     });
-    var total=0,dn=0;
-    SHOTS.forEach(function(g){g.items.forEach(function(_,i){total++;if(sstate.done[g.id+i])dn++;});});
-    document.getElementById("shotNum").textContent=dn+" / "+total;
-    document.getElementById("shotFill").style.width=(total?Math.round(dn/total*100):0)+"%";
+    document.getElementById("moveNum").textContent=dn+" / "+total;
+    document.getElementById("moveFill").style.width=(total?Math.round(dn/total*100):0)+"%";
   }
-  renderShots();
 
-  /* ---------- tabs ---------- */
-  var pages=["today","board","pack","shoot","links"];
-  function show(name){
-    pages.forEach(function(p){
-      document.getElementById("page-"+p).classList.toggle("show",p===name);
-      document.getElementById("nav-"+p).classList.toggle("active",p===name);
+  /* ---------- SORT ---------- */
+  var DISPO=["car","ship","both","undecided","leave","sell"];
+  var TLAB={car:"Car",ship:"Ship",both:"Both",undecided:"Undecided",leave:"Leave",sell:"Sell"};
+  var hideTagged=false;
+  function renderSort(){
+    var wrap=document.getElementById("sortGroups");wrap.innerHTML="";
+    SORT.forEach(function(g){
+      var custom=(state.custom[g.id]||[]).map(function(c){return{id:c.id,t:c.t,isCustom:true};});
+      var all=g.items.filter(function(x){return !x.sub;}).map(function(x){return{id:x.id,t:x.t,note:x.note};}).concat(custom);
+      var live=all.filter(function(it){return !state.removed[it.id];});
+      var tagged=live.filter(function(it){return state.disp[it.id];}).length;
+      var card=el("div","card"+(state.collapsed["g-"+g.id]?" closed":""));
+      var head=el("div","sec-head");
+      head.setAttribute("role","button");head.setAttribute("tabindex","0");
+      head.innerHTML='<span class="t">'+esc(g.title)+'</span><span class="m">'+tagged+'/'+live.length+' <span class="chev">\u25BC</span></span>';
+      function togC(){state.collapsed["g-"+g.id]=!state.collapsed["g-"+g.id];save(state);renderSort();}
+      head.addEventListener("click",togC);
+      head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
+      card.appendChild(head);
+      var body=el("div","sec-body");
+      live.forEach(function(it){
+        var d=state.disp[it.id]||"";
+        if(hideTagged&&d)return;
+        var myNote=state.notes[it.id]||"";
+        var tagsHtml=DISPO.map(function(k){
+          return '<button class="tag '+k+(d===k?' on':'')+'" data-d="'+k+'" type="button">'+TLAB[k]+'</button>';
+        }).join("");
+        var row=el("div","item",
+          '<div class="name">'+esc(it.t)+(it.note?'<span class="note">'+esc(it.note)+'</span>':'')+'</div>'+
+          '<div class="tags">'+tagsHtml+
+          '<button class="tag noteBtn'+(myNote?' has':'')+'" type="button" aria-label="Note">\u270E</button>'+
+          '<button class="tag del" type="button" aria-label="Remove">\u00D7</button></div>'+
+          (myNote?'<div class="unote">'+esc(myNote)+'</div>':''));
+        DISPO.forEach(function(k){
+          row.querySelector('.tag[data-d="'+k+'"]').addEventListener("click",function(){
+            state.disp[it.id]=(state.disp[it.id]===k)?"":k;save(state);renderSort();
+          });
+        });
+        row.querySelector(".noteBtn").addEventListener("click",function(){
+          var ex=row.querySelector(".noteEd");
+          if(ex){ex.remove();return;}
+          var ed=el("div","noteEd",'<textarea placeholder="Note for this item\u2026"></textarea><button type="button">Save</button>');
+          var ta=ed.querySelector("textarea");ta.value=state.notes[it.id]||"";
+          ed.querySelector("button").addEventListener("click",function(){
+            var v=ta.value.trim();
+            if(v){state.notes[it.id]=v;}else{delete state.notes[it.id];}
+            save(state);renderSort();
+          });
+          row.appendChild(ed);ta.focus();
+        });
+        row.querySelector(".tag.del").addEventListener("click",function(){
+          if(it.isCustom){state.custom[g.id]=(state.custom[g.id]||[]).filter(function(c){return c.id!==it.id;});}
+          else{state.removed[it.id]=true;}
+          delete state.disp[it.id];delete state.notes[it.id];save(state);renderSort();
+        });
+        body.appendChild(row);
+      });
+      var add=el("div","addrow",'<input type="text" placeholder="Add to '+esc(g.title)+'\u2026" enterkeyhint="done">');
+      add.querySelector("input").addEventListener("keydown",function(e){
+        if(e.key==="Enter"&&this.value.trim()){
+          var cid="c-"+g.id+"-"+Date.now();
+          state.custom[g.id]=(state.custom[g.id]||[]);
+          state.custom[g.id].push({id:cid,t:this.value.trim()});
+          save(state);renderSort();
+        }
+      });
+      body.appendChild(add);
+      card.appendChild(body);
+      wrap.appendChild(card);
     });
-    window.scrollTo(0,0);
+    updateTally();syncChips();
   }
-  pages.forEach(function(p){
-    document.getElementById("nav-"+p).addEventListener("click",function(){show(p);});
+  function updateTally(){
+    var c={car:0,ship:0,both:0,undecided:0,leave:0,sell:0,todo:0},noted=0;
+    SORT.forEach(function(g){
+      var ids=g.items.filter(function(x){return !x.sub;}).map(function(x){return x.id;})
+        .concat((state.custom[g.id]||[]).map(function(x){return x.id;}))
+        .filter(function(id){return !state.removed[id];});
+      ids.forEach(function(id){
+        var d=state.disp[id];
+        if(d&&c[d]!==undefined)c[d]++;else if(!d)c.todo++;
+        if(state.notes[id])noted++;
+      });
+    });
+    ["car","ship","both","undecided","leave","sell","todo"].forEach(function(k){
+      document.getElementById("t-"+k).textContent=c[k];
+    });
+    document.getElementById("t-noted").textContent=noted;
+  }
+  function syncChips(){
+    var n=Object.keys(state.removed).filter(function(k){return state.removed[k];}).length;
+    var rb=document.getElementById("restoreBtn");
+    rb.style.display=n?"inline-block":"none";
+    rb.textContent="Restore removed ("+n+")";
+    document.getElementById("hideTagged").classList.toggle("on",hideTagged);
+  }
+  document.getElementById("hideTagged").addEventListener("click",function(){hideTagged=!hideTagged;renderSort();});
+  document.getElementById("restoreBtn").addEventListener("click",function(){state.removed={};save(state);renderSort();});
+
+  /* ---------- NUMBERS: collapsible cards + copy ---------- */
+  document.querySelectorAll("#page-numbers .sec-head").forEach(function(hd){
+    function tog(){hd.parentElement.classList.toggle("closed");}
+    hd.addEventListener("click",tog);
+    hd.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
+  });
+  document.getElementById("copyEmail").addEventListener("click",function(e){
+    e.preventDefault();
+    var t=document.querySelector(".copyblock").textContent;
+    var btn=this;
+    function ok(){btn.textContent="Copied \u2713";setTimeout(function(){btn.textContent="Copy email";},1500);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,ok);}else{ok();}
   });
 
-  
-  render();
-})();
+  /* ---------- tabs ---------- */
+  var pages=["move","sort","numbers","links"];
+  pages.forEach(function(p){
+    document.getElementById("nav-"+p).addEventListener("click",function(){
+      pages.forEach(function(q){
+        document.getElementById("nav-"+q).classList.toggle("active",q===p);
+        document.getElementById("page-"+q).classList.toggle("active",q===p);
+      });
+      window.scrollTo(0,0);
+    });
+  });
+
+  renderMove();renderSort();
 </script>
 </body>
 </html>
