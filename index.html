@@ -140,14 +140,14 @@
     <div class="sign">
       <div class="route">Chicago → San Francisco</div>
       <h1>SF Move</h1>
-      <div class="sub">Assembly window. Tap a phase to open it.</div>
+      <div class="sub">Assembly through Sept 3 · drive out Sept 4.</div>
     </div>
     <div class="roadbar">
       <div class="row"><span class="lbl"><span id="cdDays">–</span> days to wheels up</span><span class="num" id="moveNum">0 / 0</span></div>
       <div class="road"><div class="fill" id="moveFill"></div></div>
     </div>
     <div class="chipsrow">
-      <span>Jamaica ✓</span><span class="hot">Assembly Aug 20–31</span><span>Drive ~Sept 1</span>
+      <span>Jamaica ✓</span><span class="hot">Assembly Aug 20 – Sept 3</span><span>Drive Sept 4</span>
     </div>
     <div id="phaseGroups"></div>
   </div>
@@ -528,7 +528,7 @@ var ACCENTS = {
 
   /* ---------- countdown ---------- */
   (function(){
-    var days=Math.ceil((new Date(2026,8,1)-new Date())/86400000);
+    var days=Math.ceil((new Date(2026,8,4)-new Date())/86400000);
     document.getElementById("cdDays").textContent=days>0?days:"GO —";
   })();
 
