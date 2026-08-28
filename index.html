@@ -131,6 +131,37 @@
   .page{display:none;}
   .page.active{display:block;}
   .appver{text-align:center;font-size:12px;color:var(--tertiary);padding:18px 0 4px;}
+
+  /* pack */
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;color:#fff;flex:none;}
+  .pill.car{background:var(--green);}
+  .pill.ship{background:var(--blue);}
+  .pill.both{background:var(--teal);}
+  .pill.undecided{background:var(--orange);}
+  .packsub{display:flex;gap:16px;font-size:13px;font-weight:600;color:var(--secondary);margin-top:9px;}
+  .prow{display:flex;align-items:center;gap:10px;padding:12px 16px;position:relative;font-size:16px;}
+  .prow + .prow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .prow .pt{flex:1;}
+  .pcheck{display:flex;align-items:center;gap:12px;padding:12px 16px;position:relative;cursor:pointer;user-select:none;-webkit-user-select:none;}
+  .pcheck + .pcheck::before{content:"";position:absolute;left:56px;right:0;top:0;height:.5px;background:var(--sep);}
+  .pcheck .pring{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--tertiary);display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700;font-size:15px;transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .pcheck.on .pring{background:var(--green);border-color:var(--green);color:#fff;}
+  .pcheck.pressed .pring{transform:scale(.86);}
+  .pcheck .pn{flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:16px;}
+  .pcheck.on .pt{color:var(--secondary);text-decoration:line-through;text-decoration-color:var(--tertiary);}
+  /* spring (damping 1.0 — no overshoot): new Pack tab + export modal only */
+  @keyframes springIn{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
+  #page-pack.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
+  @keyframes springUp{from{transform:translateY(40%);opacity:.6;}to{transform:none;opacity:1;}}
+
+  /* export */
+  .exportbtn{display:block;width:100%;margin-top:16px;font-size:16px;text-align:center;padding:13px;}
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;display:flex;align-items:flex-end;justify-content:center;}
+  .modal{background:var(--cell);border-radius:16px 16px 0 0;width:100%;max-width:640px;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:80vh;display:flex;flex-direction:column;gap:12px;animation:springUp .42s cubic-bezier(.22,1,.36,1);}
+  .modal h2{font-size:17px;font-weight:700;}
+  .modal textarea{height:45vh;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--sep);border-radius:10px;padding:10px;background:var(--bg);color:var(--label);resize:none;-webkit-user-select:text;user-select:text;overflow:auto;}
+  .modal .mbtns{display:flex;gap:8px;}
+  .modal .mbtns .btn{flex:1;text-align:center;}
 </style>
 </head>
 <body>
@@ -175,6 +206,27 @@
       <button class="chip" id="restoreBtn" type="button" style="display:none">Restore removed</button>
     </div>
     <div id="sortGroups"></div>
+  </div>
+
+  <!-- ================= PACK ================= -->
+  <div class="page" id="page-pack">
+    <div class="sign">
+      <div class="route">Car · Ship · Both</div>
+      <h1>Pack</h1>
+      <div class="sub">Check it off when it's in a box.</div>
+    </div>
+    <div class="roadbar">
+      <div class="row"><span class="lbl">Packed</span><span class="num" id="packNum">0 of 0 packed</span></div>
+      <div class="road"><div class="fill" id="packFill" style="background:var(--green)"></div></div>
+      <div class="packsub"><span id="packCar">Car 0/0</span><span id="packShip">Ship 0/0</span></div>
+    </div>
+    <div class="chips" id="packChips">
+      <button class="chip on" data-f="all" type="button">All</button>
+      <button class="chip" data-f="car" type="button">Car</button>
+      <button class="chip" data-f="ship" type="button">Ship</button>
+      <button class="chip" data-f="unpacked" type="button">Unpacked</button>
+    </div>
+    <div id="packGroups"></div>
   </div>
 
   <!-- ================= NUMBERS ================= -->
@@ -244,15 +296,17 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
       <a href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits"><span class="k">Parking</span><div class="n">SF residential parking permit</div><span class="ar">›</span></a>
       <a href="https://flybirdfitness.com"><span class="k">Rebuy</span><div class="n">FLYBIRD — bench, SF edition</div><span class="ar">›</span></a>
     </div>
+    <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v5 · Aug 20</div>
+  <div class="appver">SF Move · v6 · Aug 28</div>
 
 </div>
 
 <nav>
   <button id="nav-move" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M4 20V10.5L12 4l8 6.5V20"/><path d="M9.5 20v-6h5v6"/></svg>Move</button>
   <button id="nav-sort" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Sort</button>
+  <button id="nav-pack" type="button"><svg viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.3L12 12l8.7-4.7"/><path d="M12 22V12"/></svg>Pack</button>
   <button id="nav-numbers" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Numbers</button>
   <button id="nav-links" type="button"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1.5-1.5"/></svg>Links</button>
 </nav>
@@ -525,6 +579,7 @@ var ACCENTS = {
   state.custom=state.custom||{};
   state.removed=state.removed||{};
   state.collapsed=state.collapsed||{};
+  state.packed=state.packed||{};   /* pack tab — additive, everything starts unpacked */
 
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function el(tag,cls,htmlc){var e=document.createElement(tag);if(cls)e.className=cls;if(htmlc!==undefined)e.innerHTML=htmlc;return e;}
@@ -683,19 +738,153 @@ var ACCENTS = {
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,ok);}else{ok();}
   });
 
+  /* ---------- PACK ---------- */
+  var packFilter="all";
+  var packCards=[];
+  function packLive(g){
+    var custom=(state.custom[g.id]||[]).map(function(c){return{id:c.id,t:c.t};});
+    return g.items.filter(function(x){return !x.sub;}).map(function(x){return{id:x.id,t:x.t};}).concat(custom)
+      .filter(function(it){return !state.removed[it.id];});
+  }
+  function packTotals(){
+    var t={tot:0,pk:0,carT:0,carP:0,shipT:0,shipP:0};
+    SORT.forEach(function(g){
+      packLive(g).forEach(function(it){
+        var d=state.disp[it.id];
+        if(d!=="car"&&d!=="ship"&&d!=="both")return;
+        var p=!!state.packed[it.id];
+        t.tot++;if(p)t.pk++;
+        if(d==="car"||d==="both"){t.carT++;if(p)t.carP++;}
+        if(d==="ship"||d==="both"){t.shipT++;if(p)t.shipP++;}
+      });
+    });
+    return t;
+  }
+  function refreshPackCounts(){
+    var t=packTotals();
+    document.getElementById("packNum").textContent=t.pk+" of "+t.tot+" packed";
+    document.getElementById("packFill").style.width=(t.tot?Math.round(t.pk/t.tot*100):0)+"%";
+    document.getElementById("packCar").textContent="Car "+t.carP+"/"+t.carT;
+    document.getElementById("packShip").textContent="Ship "+t.shipP+"/"+t.shipT;
+    packCards.forEach(function(pc){
+      var n=pc.items.filter(function(it){return state.packed[it.id];}).length;
+      pc.m.innerHTML=n+"/"+pc.items.length+' <span class="chev">▼</span>';
+    });
+  }
+  function renderPack(){
+    var wrap=document.getElementById("packGroups");wrap.innerHTML="";
+    packCards=[];
+    var undecided=[];
+    SORT.forEach(function(g){
+      packLive(g).forEach(function(it){if(state.disp[it.id]==="undecided")undecided.push(it);});
+    });
+    if(undecided.length){
+      var dc=el("div","card");
+      dc.appendChild(el("div","sec-head",'<span class="t">Decide these first</span><span class="m">'+undecided.length+'</span>'));
+      var db=el("div","sec-body");
+      undecided.forEach(function(it){
+        db.appendChild(el("div","prow",'<span class="pt">'+esc(it.t)+'</span><span class="pill undecided">Undecided</span>'));
+      });
+      dc.appendChild(db);wrap.appendChild(dc);
+    }
+    SORT.forEach(function(g){
+      var show=packLive(g).filter(function(it){
+        var d=state.disp[it.id];
+        if(d!=="car"&&d!=="ship"&&d!=="both")return false;
+        if(packFilter==="car")return d==="car"||d==="both";
+        if(packFilter==="ship")return d==="ship"||d==="both";
+        if(packFilter==="unpacked")return !state.packed[it.id];
+        return true;
+      });
+      if(!show.length)return;
+      var card=el("div","card"+(state.collapsed["pk-"+g.id]?" closed":""));
+      var head=el("div","sec-head");
+      head.setAttribute("role","button");head.setAttribute("tabindex","0");
+      head.innerHTML='<span class="t">'+esc(g.title)+'</span><span class="m"></span>';
+      packCards.push({m:head.querySelector(".m"),items:show});
+      function togC(){state.collapsed["pk-"+g.id]=!state.collapsed["pk-"+g.id];save(state);renderPack();}
+      head.addEventListener("click",togC);
+      head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
+      card.appendChild(head);
+      var body=el("div","sec-body");
+      show.forEach(function(it){
+        var d=state.disp[it.id];
+        var row=el("div","pcheck"+(state.packed[it.id]?" on":""),
+          '<span class="pring">✓</span><span class="pn"><span class="pt">'+esc(it.t)+'</span><span class="pill '+d+'">'+TLAB[d]+'</span></span>');
+        row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");
+        row.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
+        function togP(){
+          state.packed[it.id]=!state.packed[it.id];save(state);
+          row.classList.toggle("on",!!state.packed[it.id]);
+          row.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
+          row.classList.add("pressed");
+          setTimeout(function(){row.classList.remove("pressed");},180);
+          refreshPackCounts();
+          if(packFilter==="unpacked"&&state.packed[it.id]){setTimeout(renderPack,240);}
+        }
+        /* respond on pointer-down (apple-design) */
+        row.addEventListener("pointerdown",function(e){if(e.isPrimary===false||e.button>0)return;togP();});
+        row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togP();}});
+        body.appendChild(row);
+      });
+      card.appendChild(body);
+      wrap.appendChild(card);
+    });
+    refreshPackCounts();
+  }
+  document.querySelectorAll("#packChips .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      packFilter=ch.getAttribute("data-f");
+      document.querySelectorAll("#packChips .chip").forEach(function(c){c.classList.toggle("on",c===ch);});
+      renderPack();
+    });
+  });
+
+  /* ---------- EXPORT ---------- */
+  function exportJSON(){
+    var raw=null;
+    try{raw=window.localStorage.getItem(KEY);}catch(e){}
+    var obj;
+    try{obj=raw?JSON.parse(raw):state;}catch(e2){obj=state;}
+    return JSON.stringify(obj,null,2);
+  }
+  function showExportModal(txt){
+    var back=el("div","modal-back",
+      '<div class="modal"><h2>App data — sfMoveApp_v1</h2>'+
+      '<textarea readonly></textarea>'+
+      '<div class="mbtns">'+
+      (navigator.share?'<button class="btn go" id="shareData" type="button">Share</button>':'')+
+      '<button class="btn" id="closeModal" type="button">Done</button></div></div>');
+    back.querySelector("textarea").value=txt;
+    back.addEventListener("click",function(e){if(e.target===back)back.remove();});
+    back.querySelector("#closeModal").addEventListener("click",function(){back.remove();});
+    var sh=back.querySelector("#shareData");
+    if(sh)sh.addEventListener("click",function(){navigator.share({title:"SF Move data",text:txt}).catch(function(){});});
+    document.body.appendChild(back);
+  }
+  document.getElementById("exportBtn").addEventListener("click",function(){
+    var btn=this,txt=exportJSON();
+    function ok(){btn.textContent="Copied ✓";setTimeout(function(){btn.textContent="Export app data";},1500);}
+    function fail(){showExportModal(txt);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok,fail);
+    }else{fail();}
+  });
+
   /* ---------- tabs ---------- */
-  var pages=["move","sort","numbers","links"];
+  var pages=["move","sort","pack","numbers","links"];
   pages.forEach(function(p){
     document.getElementById("nav-"+p).addEventListener("click",function(){
       pages.forEach(function(q){
         document.getElementById("nav-"+q).classList.toggle("active",q===p);
         document.getElementById("page-"+q).classList.toggle("active",q===p);
       });
+      if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
       window.scrollTo(0,0);
     });
   });
 
-  renderMove();renderSort();
+  renderMove();renderSort();renderPack();
 </script>
 </body>
 </html>
