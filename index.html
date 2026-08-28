@@ -142,11 +142,12 @@
   .prow{display:flex;align-items:center;gap:10px;padding:12px 16px;position:relative;font-size:16px;}
   .prow + .prow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
   .prow .pt{flex:1;}
-  .pcheck{display:flex;align-items:center;gap:12px;padding:12px 16px;position:relative;cursor:pointer;user-select:none;-webkit-user-select:none;}
+  .pcheck{display:flex;align-items:center;gap:12px;padding:12px 16px;position:relative;user-select:none;-webkit-user-select:none;}
   .pcheck + .pcheck::before{content:"";position:absolute;left:56px;right:0;top:0;height:.5px;background:var(--sep);}
-  .pcheck .pring{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--tertiary);display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700;font-size:15px;transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .pcheck .pring{flex:none;position:relative;cursor:pointer;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--tertiary);display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700;font-size:15px;transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .pcheck .pring::after{content:"";position:absolute;inset:-10px;border-radius:50%;}  /* 48px invisible hit area */
   .pcheck.on .pring{background:var(--green);border-color:var(--green);color:#fff;}
-  .pcheck.pressed .pring{transform:scale(.86);}
+  .pcheck .pring.pressed{transform:scale(.86);}
   .pcheck .pn{flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:16px;}
   .pcheck.on .pt{color:var(--secondary);text-decoration:line-through;text-decoration-color:var(--tertiary);}
   /* spring (damping 1.0 — no overshoot): new Pack tab + export modal only */
@@ -299,7 +300,7 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v6 · Aug 28</div>
+  <div class="appver">SF Move · v7 · Aug 28</div>
 
 </div>
 
@@ -811,20 +812,43 @@ var ACCENTS = {
         var d=state.disp[it.id];
         var row=el("div","pcheck"+(state.packed[it.id]?" on":""),
           '<span class="pring">✓</span><span class="pn"><span class="pt">'+esc(it.t)+'</span><span class="pill '+d+'">'+TLAB[d]+'</span></span>');
-        row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");
-        row.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
+        var ring=row.querySelector(".pring");
+        ring.setAttribute("role","checkbox");ring.setAttribute("tabindex","0");
+        ring.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
+        ring.setAttribute("aria-label",it.t);
         function togP(){
           state.packed[it.id]=!state.packed[it.id];save(state);
           row.classList.toggle("on",!!state.packed[it.id]);
-          row.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
-          row.classList.add("pressed");
-          setTimeout(function(){row.classList.remove("pressed");},180);
+          ring.setAttribute("aria-checked",state.packed[it.id]?"true":"false");
           refreshPackCounts();
           if(packFilter==="unpacked"&&state.packed[it.id]){setTimeout(renderPack,240);}
         }
-        /* respond on pointer-down (apple-design) */
-        row.addEventListener("pointerdown",function(e){if(e.isPrimary===false||e.button>0)return;togP();});
-        row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togP();}});
+        /* circle only: pressed on pointer-down, commit on release, >10px move = scroll cancel */
+        var pd=null;
+        ring.addEventListener("pointerdown",function(e){
+          if(e.isPrimary===false||e.button>0)return;
+          pd={x:e.clientX,y:e.clientY,id:e.pointerId};
+          try{ring.setPointerCapture(e.pointerId);}catch(err){}
+          ring.classList.add("pressed");
+        });
+        ring.addEventListener("pointermove",function(e){
+          if(!pd||e.pointerId!==pd.id)return;
+          if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)>10){pd=null;ring.classList.remove("pressed");}
+        });
+        ring.addEventListener("pointerup",function(e){
+          if(!pd||e.pointerId!==pd.id)return;
+          pd=null;ring.classList.remove("pressed");
+          togP();
+        });
+        ring.addEventListener("pointercancel",function(){pd=null;ring.classList.remove("pressed");});
+        ring.addEventListener("keydown",function(e){
+          if(e.key==="Enter"||e.key===" "){
+            e.preventDefault();
+            ring.classList.add("pressed");
+            setTimeout(function(){ring.classList.remove("pressed");},180);
+            togP();
+          }
+        });
         body.appendChild(row);
       });
       card.appendChild(body);
