@@ -60,6 +60,7 @@
   .check .ct{font-size:16px;}
   .check .cd{font-size:13px;color:var(--secondary);margin-top:1px;}
   .check.on .ct{color:var(--secondary);text-decoration:line-through;text-decoration-color:var(--tertiary);}
+  .check .xdel{flex:none;align-self:center;margin-left:auto;width:26px;height:26px;font-size:15px;line-height:1;color:var(--red);border:1px solid var(--red);background:none;border-radius:999px;cursor:pointer;font-family:inherit;}
 
   /* sort rows */
   .item{padding:11px 16px;position:relative;}
@@ -288,7 +289,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v8 · Aug 28</div>
+  <div class="appver">SF Move · v9 · Aug 28</div>
 
 </div>
 
@@ -586,6 +587,7 @@ var ACCENTS = {
   state.removed=state.removed||{};
   state.collapsed=state.collapsed||{};
   state.packed=state.packed||{};   /* pack tab — additive, everything starts unpacked */
+  state.customTasks=state.customTasks||{};   /* move tab custom tasks, keyed by card — additive */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -603,7 +605,7 @@ var ACCENTS = {
     var wrap=document.getElementById("phaseGroups");wrap.innerHTML="";
     var total=0,dn=0;
     PHASES.forEach(function(ph){
-      var ids=ph.items.map(function(i){return i.id;});
+      var ids=ph.items.map(function(i){return i.id;}).concat((state.customTasks[ph.id]||[]).map(function(c){return c.id;}));
       var pdone=ids.filter(function(id){return state.done[id];}).length;
       total+=ids.length;dn+=pdone;
       var card=el("div","card"+(state.collapsed["ph-"+ph.id]?" closed":""));
@@ -626,6 +628,31 @@ var ACCENTS = {
         row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
         body.appendChild(row);
       });
+      (state.customTasks[ph.id]||[]).forEach(function(it){
+        var row=el("div","check"+(state.done[it.id]?" on":""),
+          '<span class="ring">✓</span><span><span class="ct">'+esc(it.t)+'</span></span><button class="xdel" type="button" aria-label="Delete">×</button>');
+        row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");
+        row.setAttribute("aria-checked",state.done[it.id]?"true":"false");
+        function tog(){state.done[it.id]=!state.done[it.id];save(state);renderMove();}
+        row.addEventListener("click",tog);
+        row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
+        row.querySelector(".xdel").addEventListener("click",function(e){
+          e.stopPropagation();
+          state.customTasks[ph.id]=(state.customTasks[ph.id]||[]).filter(function(c){return c.id!==it.id;});
+          delete state.done[it.id];
+          save(state);renderMove();
+        });
+        body.appendChild(row);
+      });
+      var add=el("div","addrow",'<input type="text" placeholder="Add to '+esc(ph.title)+'…" enterkeyhint="done">');
+      add.querySelector("input").addEventListener("keydown",function(e){
+        if(e.key==="Enter"&&this.value.trim()){
+          state.customTasks[ph.id]=(state.customTasks[ph.id]||[]);
+          state.customTasks[ph.id].push({id:"ct-"+ph.id+"-"+Date.now(),t:this.value.trim()});
+          save(state);renderMove();
+        }
+      });
+      body.appendChild(add);
       card.appendChild(body);
       wrap.appendChild(card);
     });
@@ -878,24 +905,47 @@ var ACCENTS = {
   function showExportModal(txt){
     var back=el("div","modal-back",
       '<div class="modal"><h2>App data — sfMoveApp_v1</h2>'+
+      '<div class="mbtns"><button class="btn" id="selectAll" type="button">Select all</button></div>'+
       '<textarea readonly></textarea>'+
       '<div class="mbtns">'+
-      (navigator.share?'<button class="btn go" id="shareData" type="button">Share</button>':'')+
+      '<button class="btn go" id="copyData" type="button">Copy</button>'+
+      (navigator.share?'<button class="btn" id="shareData" type="button">Share</button>':'')+
       '<button class="btn" id="closeModal" type="button">Done</button></div></div>');
-    back.querySelector("textarea").value=txt;
+    var ta=back.querySelector("textarea");ta.value=txt;
     back.addEventListener("click",function(e){if(e.target===back)back.remove();});
     back.querySelector("#closeModal").addEventListener("click",function(){back.remove();});
+    back.querySelector("#selectAll").addEventListener("click",function(){
+      ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
+    });
+    back.querySelector("#copyData").addEventListener("click",function(){
+      var b=this;
+      /* "Copied" only when the clipboard promise actually resolves */
+      function ok(){b.textContent="Copied ✓";setTimeout(function(){b.textContent="Copy";},1500);}
+      function no(){b.textContent="Copy failed — Select all";setTimeout(function(){b.textContent="Copy";},2000);}
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,no);}else{no();}
+    });
     var sh=back.querySelector("#shareData");
     if(sh)sh.addEventListener("click",function(){navigator.share({title:"SF Move data",text:txt}).catch(function(){});});
     document.body.appendChild(back);
   }
   document.getElementById("exportBtn").addEventListener("click",function(){
-    var btn=this,txt=exportJSON();
-    function ok(){btn.textContent="Copied ✓";setTimeout(function(){btn.textContent="Export app data";},1500);}
-    function fail(){showExportModal(txt);}
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(ok,fail);
-    }else{fail();}
+    var txt=exportJSON();
+    if(navigator.share){
+      var shared=null;
+      try{
+        var f=new File([txt],"sf-move-export.json",{type:"application/json"});
+        if(navigator.canShare&&navigator.canShare({files:[f]})){
+          shared=navigator.share({files:[f],title:"SF Move data"});
+        }
+      }catch(e){}
+      if(!shared){shared=navigator.share({title:"SF Move data",text:txt});}
+      shared.catch(function(err){
+        /* user closing the sheet (AbortError) is not a failure; anything else falls back */
+        if(!(err&&err.name==="AbortError"))showExportModal(txt);
+      });
+    }else{
+      showExportModal(txt);
+    }
   });
 
   /* ---------- tabs ---------- */
