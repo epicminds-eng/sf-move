@@ -14,7 +14,7 @@
   :root{
     --bg:#F2F2F7; --cell:#FFFFFF; --label:#000000; --secondary:#6C6C70; --tertiary:#AEAEB2;
     --sep:#C6C6C8; --blue:#007AFF; --green:#34C759; --orange:#FF9500; --red:#FF3B30;
-    --teal:#30B0C7; --amber:#FFCC00; --brown:#A2845E; --fill:#E9E9EB;
+    --teal:#30B0C7; --amber:#FFCC00; --brown:#A2845E; --purple:#AF52DE; --fill:#E9E9EB;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{background:#F2F2F7 !important;}
@@ -71,7 +71,7 @@
   .tag.on{color:#fff;border-color:transparent;}
   .tag.car.on{background:var(--green);}
   .tag.ship.on{background:var(--blue);}
-  .tag.both.on{background:var(--teal);}
+  .tag.joey.on{background:var(--purple);}
   .tag.undecided.on{background:var(--orange);}
   .tag.leave.on{background:var(--brown);}
   .tag.sell.on{background:var(--red);}
@@ -136,7 +136,7 @@
   .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;color:#fff;flex:none;}
   .pill.car{background:var(--green);}
   .pill.ship{background:var(--blue);}
-  .pill.both{background:var(--teal);}
+  .pill.joey{background:var(--purple);}
   .pill.undecided{background:var(--orange);}
   .packsub{display:flex;gap:16px;font-size:13px;font-weight:600;color:var(--secondary);margin-top:9px;}
   .prow{display:flex;align-items:center;gap:10px;padding:12px 16px;position:relative;font-size:16px;}
@@ -188,14 +188,14 @@
   <!-- ================= SORT ================= -->
   <div class="page" id="page-sort">
     <div class="sign">
-      <div class="route">114 items · 8 categories</div>
+      <div class="route">116 items · 8 categories</div>
       <h1>Pack &amp; Sort</h1>
-      <div class="sub">Car · Ship · Both · Undecided · Leave · Sell — ✎ leaves me a note.</div>
+      <div class="sub">Ship = to Joey's, ships after I land · Joey = stays with Joey.</div>
     </div>
     <div class="tally" id="tally">
       <div class="cellbox"><div class="n" style="color:var(--green)" id="t-car">0</div><div class="k">Car</div></div>
       <div class="cellbox"><div class="n" style="color:var(--blue)" id="t-ship">0</div><div class="k">Ship</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--teal)" id="t-both">0</div><div class="k">Both</div></div>
+      <div class="cellbox"><div class="n" style="color:var(--purple)" id="t-joey">0</div><div class="k">Joey</div></div>
       <div class="cellbox"><div class="n" style="color:var(--orange)" id="t-undecided">0</div><div class="k">Undecided</div></div>
       <div class="cellbox"><div class="n" style="color:var(--brown)" id="t-leave">0</div><div class="k">Leave</div></div>
       <div class="cellbox"><div class="n" style="color:var(--red)" id="t-sell">0</div><div class="k">Sell</div></div>
@@ -212,19 +212,20 @@
   <!-- ================= PACK ================= -->
   <div class="page" id="page-pack">
     <div class="sign">
-      <div class="route">Car · Ship · Both</div>
+      <div class="route">Car · Ship · Joey</div>
       <h1>Pack</h1>
-      <div class="sub">Check it off when it's in a box.</div>
+      <div class="sub">Check it off when it's boxed — or staged for Joey.</div>
     </div>
     <div class="roadbar">
       <div class="row"><span class="lbl">Packed</span><span class="num" id="packNum">0 of 0 packed</span></div>
       <div class="road"><div class="fill" id="packFill" style="background:var(--green)"></div></div>
-      <div class="packsub"><span id="packCar">Car 0/0</span><span id="packShip">Ship 0/0</span></div>
+      <div class="packsub"><span id="packCar">Car 0/0</span><span id="packShip">Ship 0/0</span><span id="packJoey">Joey 0/0</span></div>
     </div>
     <div class="chips" id="packChips">
       <button class="chip on" data-f="all" type="button">All</button>
       <button class="chip" data-f="car" type="button">Car</button>
       <button class="chip" data-f="ship" type="button">Ship</button>
+      <button class="chip" data-f="joey" type="button">Joey</button>
       <button class="chip" data-f="unpacked" type="button">Unpacked</button>
     </div>
     <div id="packGroups"></div>
@@ -239,11 +240,10 @@
     </div>
 
     <div class="card">
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Golf — Ship Sticks</span><span class="m"><span class="chev">▼</span></span></div>
+      <div class="sec-head" role="button" tabindex="0"><span class="t">Ship via Joey</span><span class="m"><span class="chev">▼</span></span></div>
       <div class="sec-body">
-        <div class="fact"><strong>Standard ground, one bag, CHI → SF: ~$60–90.</strong><span class="vg">Entry pricing starts ~$39–45 short-haul; cross-country standard runs higher. Exact quote = zip-to-zip on shipsticks.com (2 min). Insurance included: $1,000 loss + $200 consequential; up to $10k cheap.</span>
-        <span class="verdict tbd">DECISION: gamers ship (~$75) vs ride free in car</span></div>
-        <div class="fact">Set A stays home · Set B → uncle's. Only the gamers move — if car space survives the load test, they ride; if not, $75 well spent.</div>
+        <div class="fact"><strong>3 pieces via Ship Sticks: ~$60–90/piece standard, CHI → SF.</strong><span class="vg">Two suitcases + golf travel bag stay at Joey's — he schedules the Ship Sticks pickup from his address after you land. Golf bag can run higher.</span></div>
+        <div class="btns"><a class="btn go" href="https://www.shipsticks.com">Ship Sticks — exact quote</a></div>
       </div>
     </div>
 
@@ -256,18 +256,6 @@
         <span class="verdict sell">SELL / DONATE</span></div>
         <div class="fact"><strong>Steel mace:</strong> new ~$40–60 · used ~$20–30. <strong>Kettlebell:</strong> ~$1–2/lb new, resale ~half.<span class="vg">Dense + small = they can ride in the car floor as ballast if you like them; zero shipping logic.</span>
         <span class="verdict keep">CAR IF LOVED, ELSE SELL</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Movers — round two</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>Full-service CHI → SF frame: ~$5–10k</strong> for a 2–3BR load, Oct/Nov timing.<span class="vg">Van lines (United/Mayflower/Allied) + one broker-free carrier for comparison. Get 3 in-home/video surveys — email below, copy-paste per company.</span>
-        <span class="verdict tbd">BOOK SURVEYS THIS WEEK</span></div>
-        <div class="copyblock">Subject: Quote request — Chicago suburbs → San Francisco, Oct/Nov
-
-Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (flexible dates). Partial household: bedroom set, office/studio equipment, boxes; no appliances. Requesting a video or in-home survey for a binding estimate. Please include: packing options, storage-in-transit pricing, and delivery window to SF (street parking — may need shuttle). Thanks, Chad</div>
-        <div class="btns"><a class="btn" id="copyEmail" href="#">Copy email</a></div>
       </div>
     </div>
 
@@ -300,7 +288,7 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v7 · Aug 28</div>
+  <div class="appver">SF Move · v8 · Aug 28</div>
 
 </div>
 
@@ -338,6 +326,19 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
       ]
     },
     {
+      id:"joey", title:"Joey Handoff", tag:"TWO SUITCASES + GOLF BAG \u2014 SHIPS AFTER LANDING",
+      items:[
+        {id:"jh-suitcase1", t:"Suitcase 1 \u2192 Joey's", d:""},
+        {id:"jh-suitcase2", t:"Suitcase 2 \u2192 Joey's", d:""},
+        {id:"jh-golfbag", t:"Golf travel bag \u2192 Joey's", d:""},
+        {id:"jh-items", t:"Joey-tagged items delivered", d:""},
+        {id:"jh-key", t:"House key (18 Freeman Rd) \u2192 Joey", d:""},
+        {id:"jh-garage", t:"Garage door opener \u2192 Joey", d:""},
+        {id:"jh-plan", t:"Walk Joey through the ship plan", d:"Ship Sticks pickup from his address"},
+        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:""}
+      ]
+    },
+    {
       id:"biz", title:"Business \u2014 Epic Minds Setup", tag:"MAKE IT OFFICIAL",
       items:[
         {id:"biz-structure", t:"Pick the structure with an accountant: sole prop vs LLC", d:"CA LLC = ~$800/yr franchise tax; forming fresh in CA after the move means no IL paperwork to unwind"},
@@ -355,6 +356,8 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
         {id:"covered-ca", t:"Apply via Covered California", d:"Move = 60-day Special Enrollment Period \u2014 apply up to 60 days ahead so coverage starts the 1st after landing"},
         {id:"il-plan-end", t:"Set IL health plan end date \u2014 no gap", d:"End it the day before CA coverage starts; don't let it lapse early (SEP needs prior coverage)"},
         {id:"mail", t:"USPS mail forwarding", d:"Then update bank, cards, insurance, subscriptions"},
+        {id:"addr-changes", t:"Address changes: bank, insurance, Tesla", d:""},
+        {id:"ipass", t:"I-PASS / tolls for the drive", d:""},
         {id:"car", t:"Car: CA registration + license + insurance", d:"Registration within 20 days, license within 10 days of residency"},
         {id:"utilities", t:"Utilities: PG&E + internet at the new place", d:"Live before you arrive; no IL shutoff rush \u2014 family owns the place"},
         {id:"renters", t:"Renters insurance for the SF place", d:""}
@@ -527,7 +530,9 @@ Hi — I'm moving from South Barrington, IL to San Francisco, CA in Oct/Nov (fle
         {id:"h-firstnight", t:"First-night toiletry bag \u2014 packed separately", note:"Not buried in the load"},
         {id:"h-rx", t:"Prescriptions refilled before the drive", note:"90-day if possible"},
         {id:"h-bags", t:"Clear plastic zip bags (packing supply)", note:"For clothes/soft goods \u2014 not kitchen"},
-        {id:"h-bedding", t:"Bedding \u2014 DON'T pack", note:"Buying on arrival once you see the bed"}
+        {id:"h-bedding", t:"Bedding \u2014 DON'T pack", note:"Buying on arrival once you see the bed"},
+        {id:"h-suitcase1", t:"Suitcase 1 (to Joey)", note:""},
+        {id:"h-suitcase2", t:"Suitcase 2 (to Joey)", note:""}
       ]
     },
     {
@@ -581,6 +586,8 @@ var ACCENTS = {
   state.removed=state.removed||{};
   state.collapsed=state.collapsed||{};
   state.packed=state.packed||{};   /* pack tab — additive, everything starts unpacked */
+  /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
+  Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function el(tag,cls,htmlc){var e=document.createElement(tag);if(cls)e.className=cls;if(htmlc!==undefined)e.innerHTML=htmlc;return e;}
@@ -627,8 +634,8 @@ var ACCENTS = {
   }
 
   /* ---------- SORT ---------- */
-  var DISPO=["car","ship","both","undecided","leave","sell"];
-  var TLAB={car:"Car",ship:"Ship",both:"Both",undecided:"Undecided",leave:"Leave",sell:"Sell"};
+  var DISPO=["car","ship","joey","undecided","leave","sell"];
+  var TLAB={car:"Car",ship:"Ship",joey:"Joey",undecided:"Undecided",leave:"Leave",sell:"Sell"};
   var hideTagged=false;
   function renderSort(){
     var wrap=document.getElementById("sortGroups");wrap.innerHTML="";
@@ -699,7 +706,7 @@ var ACCENTS = {
     updateTally();syncChips();
   }
   function updateTally(){
-    var c={car:0,ship:0,both:0,undecided:0,leave:0,sell:0,todo:0},noted=0;
+    var c={car:0,ship:0,joey:0,undecided:0,leave:0,sell:0,todo:0},noted=0;
     SORT.forEach(function(g){
       var ids=g.items.filter(function(x){return !x.sub;}).map(function(x){return x.id;})
         .concat((state.custom[g.id]||[]).map(function(x){return x.id;}))
@@ -710,7 +717,7 @@ var ACCENTS = {
         if(state.notes[id])noted++;
       });
     });
-    ["car","ship","both","undecided","leave","sell","todo"].forEach(function(k){
+    ["car","ship","joey","undecided","leave","sell","todo"].forEach(function(k){
       document.getElementById("t-"+k).textContent=c[k];
     });
     document.getElementById("t-noted").textContent=noted;
@@ -731,13 +738,6 @@ var ACCENTS = {
     hd.addEventListener("click",tog);
     hd.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
   });
-  document.getElementById("copyEmail").addEventListener("click",function(e){
-    e.preventDefault();
-    var t=document.querySelector(".copyblock").textContent;
-    var btn=this;
-    function ok(){btn.textContent="Copied \u2713";setTimeout(function(){btn.textContent="Copy email";},1500);}
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,ok);}else{ok();}
-  });
 
   /* ---------- PACK ---------- */
   var packFilter="all";
@@ -748,15 +748,16 @@ var ACCENTS = {
       .filter(function(it){return !state.removed[it.id];});
   }
   function packTotals(){
-    var t={tot:0,pk:0,carT:0,carP:0,shipT:0,shipP:0};
+    var t={tot:0,pk:0,carT:0,carP:0,shipT:0,shipP:0,joeyT:0,joeyP:0};
     SORT.forEach(function(g){
       packLive(g).forEach(function(it){
         var d=state.disp[it.id];
-        if(d!=="car"&&d!=="ship"&&d!=="both")return;
+        if(d!=="car"&&d!=="ship"&&d!=="joey")return;
         var p=!!state.packed[it.id];
         t.tot++;if(p)t.pk++;
-        if(d==="car"||d==="both"){t.carT++;if(p)t.carP++;}
-        if(d==="ship"||d==="both"){t.shipT++;if(p)t.shipP++;}
+        if(d==="car"){t.carT++;if(p)t.carP++;}
+        if(d==="ship"){t.shipT++;if(p)t.shipP++;}
+        if(d==="joey"){t.joeyT++;if(p)t.joeyP++;}
       });
     });
     return t;
@@ -767,6 +768,7 @@ var ACCENTS = {
     document.getElementById("packFill").style.width=(t.tot?Math.round(t.pk/t.tot*100):0)+"%";
     document.getElementById("packCar").textContent="Car "+t.carP+"/"+t.carT;
     document.getElementById("packShip").textContent="Ship "+t.shipP+"/"+t.shipT;
+    document.getElementById("packJoey").textContent="Joey "+t.joeyP+"/"+t.joeyT;
     packCards.forEach(function(pc){
       var n=pc.items.filter(function(it){return state.packed[it.id];}).length;
       pc.m.innerHTML=n+"/"+pc.items.length+' <span class="chev">▼</span>';
@@ -791,9 +793,10 @@ var ACCENTS = {
     SORT.forEach(function(g){
       var show=packLive(g).filter(function(it){
         var d=state.disp[it.id];
-        if(d!=="car"&&d!=="ship"&&d!=="both")return false;
-        if(packFilter==="car")return d==="car"||d==="both";
-        if(packFilter==="ship")return d==="ship"||d==="both";
+        if(d!=="car"&&d!=="ship"&&d!=="joey")return false;
+        if(packFilter==="car")return d==="car";
+        if(packFilter==="ship")return d==="ship";
+        if(packFilter==="joey")return d==="joey";
         if(packFilter==="unpacked")return !state.packed[it.id];
         return true;
       });
