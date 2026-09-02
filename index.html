@@ -211,6 +211,7 @@
   .tripstop .btns.two{display:flex;gap:8px;}
   .tripstop .btns.two .btn{flex:1;text-align:center;}
   .tripstop .dogs{font-size:12px;color:var(--secondary);padding:0 16px 13px;}
+  .tripstop .lnk{font-size:13px;font-weight:600;color:var(--blue);text-decoration:none;margin-left:14px;}
   .bk{fill:#F5F3EE;stroke:#9AA0A6;stroke-width:1.2;}
   .bl{font-size:8px;font-weight:500;fill:#8E8E93;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:2.5;stroke-linejoin:round;}
 </style>
@@ -407,7 +408,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v14 · Sep 2</div>
+  <div class="appver">SF Move · v15 · Sep 2</div>
 
 </div>
 
@@ -1086,7 +1087,10 @@ var ACCENTS = {
       hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
     {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"2 nights", home:true},
-    {id:"la",      day:"Optional", name:"Los Angeles, CA",      short:"LA",         lat:34.0522,  lng:-118.2437, mi:380, q:"Tesla%20Supercharger%20Los%20Angeles%20CA", note:"cousin stop", opt:true},
+    {id:"la",      day:"Overnight",name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380,
+      addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
+      url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
+      sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20Los%20Angeles%20CA"},
     {id:"sf",      day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
   ];
   /* backups for Day 1\u20133: drawn as small hollow gray nodes, never part of progress math */
@@ -1117,7 +1121,7 @@ var ACCENTS = {
     {n:"Payson",          lat:34.2309, lng:-111.3251},   /* AZ-87 through Payson: waypoint only, no stop */
     {n:"Mom\u0027s",       lat:33.22721,lng:-111.88610,stop:"moms"},
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
-    {n:"Los Angeles",     lat:34.0522, lng:-118.2437, stop:"la"},
+    {n:"Los Angeles",     lat:34.0525, lng:-118.3720, stop:"la"},   /* Seychelle\u0027s, 1127 S Hayworth Ave */
     {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
     {n:"San Francisco",   lat:37.7749, lng:-122.4194, stop:"sf"}
   ];
@@ -1185,7 +1189,7 @@ var ACCENTS = {
       if(b.lbl){var bt=svgEl("text",{"class":"bl",x:(p.x+b.lbl[0]).toFixed(2),y:(p.y+b.lbl[1]).toFixed(2),"text-anchor":"middle"});bt.textContent=b.name.split(",")[0];ng.appendChild(bt);}
     });
     STOPS.forEach(function(s,k){
-      var p=PTS[STOPW[k]],o=LBL[k],bold=(k===1||k===2||k===3||k===4||k===6);
+      var p=PTS[STOPW[k]],o=LBL[k],bold=(k>0);
       var r=s.id==="start"?3.6:s.opt?4.2:4.6;
       var n=svgEl("circle",{"class":"nd"+(s.id==="start"?" start":"")+(s.home?" home":"")+(s.opt?" opt":""),cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:r});
       ng.appendChild(n);tripUI.nodes.push(n);
@@ -1221,6 +1225,7 @@ var ACCENTS = {
       var card=el("div","card tripstop"+(arr?" done":""),
         '<div class="sh"><span class="day">'+esc(s.day)+(s.night?' \u00b7 '+esc(s.night):'')+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up Sept 4')+'</span></div>'+
         '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">\u00b7 '+esc(s.note)+'</span>':'')+'</div>'+
+        (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
         (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
         (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
         '<div class="rule">'+TRIP_RULE+'</div>');
@@ -1237,7 +1242,7 @@ var ACCENTS = {
         if(s.dogs)card.appendChild(el("div","dogs","Dog-friendly: "+esc(s.dogs)));
       }else{
         var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
-        if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'));
+        if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'+(s.sc2?'<a class="lnk" href="'+s.sc2+'">Supercharger</a>':'')));
       }
       wrap.appendChild(card);
     });
