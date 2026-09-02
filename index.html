@@ -202,7 +202,6 @@
   .tripstop .mi{font-size:13px;font-weight:600;color:var(--secondary);}
   .tripstop .nm{font-size:17px;font-weight:700;padding:2px 16px 0;}
   .tripstop .nm .note{font-size:13px;font-weight:400;color:var(--secondary);}
-  .tripstop .rule{font-size:12px;color:var(--secondary);padding:3px 16px 6px;}
   .tripstop .alt{display:inline-block;font-size:12px;font-weight:600;background:var(--fill);color:var(--secondary);border-radius:999px;padding:4px 10px;margin:4px 16px 2px;}
   .tripstop.done .nm{color:var(--secondary);}
   .tripstop .sc{font-size:13px;color:var(--secondary);padding:3px 16px 0;}
@@ -408,7 +407,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v15 · Sep 2</div>
+  <div class="appver">SF Move · v16 · Sep 2</div>
 
 </div>
 
@@ -1086,7 +1085,7 @@ var ACCENTS = {
       night:"Sept 6", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
       hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
-    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"2 nights", home:true},
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"1 night", home:true},
     {id:"la",      day:"Overnight",name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380,
       addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
       url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
@@ -1099,7 +1098,6 @@ var ACCENTS = {
     {id:"okc",      name:"Oklahoma City, OK", lat:35.4676, lng:-97.5164,  q:"Tesla%20Supercharger%20Oklahoma%20City%20OK"},
     {id:"santarosa",name:"Santa Rosa, NM",    lat:34.9381, lng:-104.6825, q:"Tesla%20Supercharger%20Santa%20Rosa%20NM", lbl:[0,11]}   /* label only where it can\u0027t collide */
   ];
-  var TRIP_RULE="Max 8-hr days incl. charging · never below 20%";
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
   var CUM=[];(function(){var a=0;STOPS.forEach(function(s){a+=s.mi;CUM.push(a);});})();   /* miles through stop i */
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
@@ -1228,7 +1226,7 @@ var ACCENTS = {
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
         (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
         (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
-        '<div class="rule">'+TRIP_RULE+'</div>');
+        '');
       var row=el("div","check"+(arr?" on":""),'<span class="ring">\u2713</span><span><span class="ct">Arrived</span></span>');
       row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");row.setAttribute("aria-checked",arr?"true":"false");
       function tog(){state.trip.arrived[s.id]=!state.trip.arrived[s.id];save(state);renderTripStops();updateTripMap();}
