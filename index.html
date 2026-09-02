@@ -170,17 +170,25 @@
 
   /* trip — motion is transform/opacity only, ease-out (spring, damping 1.0, no overshoot) */
   #page-trip.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
-  .tripmap{background:var(--cell);border-radius:14px;padding:10px 8px 6px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
-  .tripmap svg{width:100%;height:auto;display:block;}
-  .tripmap .route-bg{fill:none;stroke:var(--fill);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
-  .tripmap .route-done{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
-  .tripmap .node{fill:var(--cell);stroke:var(--tertiary);stroke-width:2;}
-  .tripmap .node.done{fill:var(--blue);stroke:var(--blue);}
-  .tripmap .node.opt{stroke-dasharray:3 2.5;}
-  .tripmap .node.home{stroke:var(--purple);}
-  .tripmap .node.home.done{fill:var(--purple);}
-  .tripmap .lbl{font-size:9.5px;font-weight:600;fill:var(--secondary);font-family:inherit;}
-  .tripmap .pos{fill:var(--green);stroke:#fff;stroke-width:2;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .3s ease-out;}
+  .tripmap{background:var(--cell);border-radius:14px;padding:8px 8px 4px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .tripmap svg{width:100%;height:auto;display:block;border-radius:12px;}
+  .mp-state{fill:#F5F3EE;stroke:#DCD8CF;stroke-width:.7;stroke-linejoin:round;}
+  .mp-abbr{font-size:8px;fill:#B5B1A8;font-family:inherit;font-weight:600;}
+  .rt-case{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;}
+  .rt-base{fill:none;stroke:#BFC6D1;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;}
+  .rt-done{fill:none;stroke:#0A7AFF;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;}
+  .nd{fill:#fff;stroke:#0A7AFF;stroke-width:2;}
+  .nd.start{fill:#0A7AFF;}
+  .nd.home{stroke:#AF52DE;}
+  .nd.opt{fill:#F5F3EE;stroke-width:1.4;stroke-dasharray:2 1.6;}
+  .nd.via{stroke-width:1.5;}
+  .nd.done{fill:#0A7AFF;}
+  .nd.home.done{fill:#AF52DE;}
+  .nl{font-size:9.5px;font-weight:500;fill:#1C1C1E;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:3;stroke-linejoin:round;}
+  .nl.b{font-weight:700;}
+  .posg{transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .3s ease-out;}   /* critically-damped spring, no overshoot */
+  .posg .halo{fill:#0A7AFF;opacity:.18;}
+  .posg .dot{fill:#0A7AFF;stroke:#fff;stroke-width:2;}
   .tripstat{text-align:center;font-size:14px;font-weight:600;color:var(--secondary);padding:8px 0 4px;}
   .tripstat strong{color:var(--label);font-weight:800;}
   .triptoggle{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--cell);border-radius:14px;padding:12px 16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
@@ -274,7 +282,65 @@
       <div class="sub">Rolla · OKC · Santa Rosa · Payson · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
-      <svg id="tripSvg" viewBox="0 0 400 180" role="img" aria-label="Route map"></svg>
+      <svg id="tripSvg" viewBox="0 62 380 168" role="img" aria-label="Route map">
+        <rect x="0" y="0" width="380" height="300" fill="#BFDDF3"/>
+        <!-- outlines lifted verbatim from sf-move-map-options.html (option B): Mexico + 31 states, projected lon -125.5→-84.5 / lat 25→49.5 onto 380×300.
+             The mockup's Canada/Alaska path is omitted: every vertex lies outside this 0 62 380 168 crop, so it paints nothing. -->
+        <g id="mapStates" class="mp-state">
+          <path d="M262.8 289.3 257.6 308.9 256.1 331.3 257.7 338.0 260.5 343.9 262.4 353.4 268.5 362.6 274.3 375.6 284.2 378.8 288.0 383.9 316.0 375.0 321.9 370.0 326.4 349.0 342.5 342.9 356.3 342.3 358.6 344.9 358.3 350.8 353.3 358.1 351.1 365.6 352.8 367.7 349.1 382.5 346.7 379.4 343.0 379.8 339.7 387.1 338.0 385.7 337.0 388.1 319.7 387.9 319.7 394.8 315.5 394.9 325.0 405.2 324.7 409.4 312.8 409.4 308.4 419.4 309.7 421.7 308.4 428.1 293.1 410.9 285.5 407.7 280.4 408.6 268.2 414.4 228.7 395.9 218.6 386.7 203.9 382.1 200.0 376.5 190.1 369.6 183.2 355.9 186.3 354.7 185.4 351.2 187.5 348.0 187.5 343.8 180.5 327.3 158.5 297.9 150.5 292.9 148.8 289.9 150.2 282.3 140.0 273.5 137.7 265.0 132.7 264.0 123.0 251.6 122.6 247.8 114.3 229.1 114.5 224.4 107.8 219.6 104.7 220.1 99.4 216.7 97.9 221.7 100.3 236.8 113.3 254.0 114.6 258.2 116.2 258.1 118.1 266.0 128.7 279.6 131.8 291.0 137.1 302.1 137.6 308.6 142.1 309.0 149.1 320.0 145.0 326.7 143.4 326.7 140.9 319.2 134.9 312.2 123.4 303.2 122.3 287.6 111.5 278.3 110.3 279.9 108.0 276.7 102.3 273.8 96.8 266.7 101.3 266.4 104.7 261.9 105.1 256.3 97.9 247.6 92.5 244.2 77.6 207.7 99.9 205.5 99.0 207.9 134.2 222.4 160.0 222.3 160.0 217.3 176.0 217.3 189.7 230.9 195.0 244.0 199.8 247.7 207.5 251.4 213.4 241.7 220.9 241.5 227.5 246.4 235.3 261.9 240.8 268.9 245.4 283.2 259.2 289.7 262.8 289.3Z"/>
+          <path d="M353.5 177.5 369.7 177.7 373.7 203.8 376.4 211.1 374.1 216.2 375.3 226.5 351.3 226.6 353.4 233.5 350.8 235.7 348.4 233.7 347.5 230.4 346.3 234.9 343.9 234.3 343.2 215.6 346.6 178.9 345.7 177.6 353.5 177.5Z"/>
+          <path d="M152.5 153.1 152.5 222.5 133.7 222.5 99.0 208.3 99.9 205.5 102.2 204.0 101.7 201.7 100.5 201.6 99.8 197.1 101.7 195.3 101.6 190.6 105.3 186.1 100.7 179.1 99.7 164.1 103.1 163.6 105.2 165.0 106.1 153.1 152.5 153.1Z"/>
+          <path d="M287.6 159.2 327.6 159.2 328.4 161.6 325.5 165.3 331.5 165.3 331.2 167.6 327.8 172.2 328.0 175.1 323.6 182.2 323.8 184.6 320.2 188.1 320.8 189.5 317.6 195.2 319.2 196.8 318.2 202.0 291.6 201.8 291.6 195.3 288.4 195.4 287.5 194.2 288.0 172.7 286.2 159.2 287.6 159.2Z"/>
+          <path d="M21.0 91.8 51.0 91.9 51.0 128.6 100.7 177.5 105.3 186.1 101.6 190.6 101.7 195.3 99.8 197.1 101.7 205.0 77.6 207.7 74.4 198.4 67.8 192.7 65.7 193.0 64.3 189.3 62.1 189.8 58.2 188.0 55.1 184.7 46.6 184.3 45.0 182.7 45.1 176.3 33.4 161.4 33.0 157.5 34.4 155.5 33.1 153.3 31.5 153.6 28.6 150.1 27.7 143.5 29.4 143.5 28.7 139.0 27.8 141.7 25.9 142.1 23.7 140.4 22.0 135.3 16.3 129.1 15.3 118.4 10.6 113.2 10.1 110.9 12.4 105.6 13.3 98.7 11.5 94.5 11.9 91.8 21.0 91.8Z"/>
+          <path d="M162.9 104.0 217.3 104.0 217.4 153.1 152.5 153.1 152.5 104.1 162.9 104.0Z"/>
+          <path d="M87.6 6.1 87.6 18.7 90.6 22.1 90.7 25.4 94.3 27.4 100.9 35.0 103.6 35.0 102.0 42.4 103.0 44.3 101.3 45.6 101.5 48.2 103.5 49.5 106.7 46.5 108.4 47.7 109.0 51.1 111.7 54.4 111.6 56.8 114.6 57.9 116.9 62.5 122.9 60.4 128.7 60.6 130.8 58.1 134.0 61.5 134.0 91.8 78.5 91.8 78.5 69.4 79.7 65.4 77.2 64.2 76.5 62.5 83.8 47.6 80.8 45.0 78.3 38.6 78.5 6.1 87.6 6.1Z"/>
+          <path d="M323.1 85.6 349.4 85.8 349.1 88.1 352.0 95.4 351.9 124.3 350.9 126.5 352.2 131.3 348.0 137.4 346.1 145.0 347.0 147.2 343.1 148.3 343.7 151.2 342.5 152.2 338.0 150.4 337.1 153.3 335.6 153.1 333.5 149.6 333.5 144.6 325.7 138.2 328.0 130.5 322.9 129.5 322.3 125.4 316.3 119.7 315.2 115.9 316.0 109.5 318.6 108.1 320.1 105.0 320.3 102.9 318.7 101.2 319.3 99.0 325.8 96.9 327.4 94.2 327.5 90.3 323.1 85.6Z"/>
+          <path d="M366.2 94.8 377.2 94.8 377.1 131.2 373.8 132.4 371.4 131.9 371.5 134.3 367.7 137.4 365.7 141.3 363.3 138.8 361.3 140.3 361.4 141.7 359.3 142.1 358.7 140.9 355.6 143.4 351.3 141.1 347.3 143.3 348.0 137.4 352.2 131.3 350.9 126.5 351.9 124.3 352.0 95.4 355.7 96.2 358.5 94.8 366.2 94.8Z"/>
+          <path d="M316.3 73.5 317.8 73.5 319.2 76.5 318.1 77.9 319.1 82.6 322.4 84.0 327.7 91.8 325.8 96.9 319.3 99.0 318.7 101.2 320.3 102.9 320.1 105.0 318.6 108.1 316.0 109.5 315.9 111.7 313.0 108.8 275.6 109.1 272.2 92.2 267.6 83.2 269.4 78.1 268.0 73.7 316.3 73.5Z"/>
+          <path d="M218.7 116.3 279.8 116.3 283.8 118.4 281.7 121.9 284.3 126.0 286.3 126.6 286.2 153.1 217.4 153.1 217.3 116.3 218.7 116.3Z"/>
+          <path d="M385.5 131.4 387.6 133.1 389.1 132.2 392.6 133.1 394.9 131.5 395.3 133.6 397.7 135.6 398.5 141.7 400.5 144.9 403.4 146.5 396.5 151.6 392.6 156.2 387.5 158.2 346.9 157.0 347.1 159.2 334.4 159.2 334.9 157.7 336.3 158.2 336.6 152.6 338.0 150.4 342.5 152.2 343.7 151.2 343.1 148.3 347.0 147.2 346.1 145.0 348.2 142.1 351.3 141.1 355.6 143.4 358.7 140.9 359.3 142.1 361.4 141.7 361.3 140.3 363.3 138.8 365.7 141.3 367.7 137.4 371.5 134.3 371.4 131.9 373.8 132.4 377.1 131.2 377.1 127.3 380.6 127.3 382.6 130.9 385.5 131.4Z"/>
+          <path d="M295.6 201.8 318.2 202.0 319.9 211.6 316.0 218.9 315.1 218.6 313.9 226.6 331.4 226.6 330.5 230.6 333.4 236.6 330.5 239.4 332.7 240.2 333.7 238.3 335.6 240.2 334.4 242.5 332.3 241.9 331.8 244.7 338.3 248.8 336.8 250.9 330.4 247.2 330.4 245.1 328.7 245.8 328.1 249.2 323.8 247.6 321.6 250.0 318.9 248.7 317.7 245.7 314.8 244.5 314.0 242.0 311.6 242.3 311.5 240.8 307.6 244.5 299.1 241.5 293.4 242.6 292.6 241.4 294.8 237.0 294.5 231.7 296.3 227.3 293.6 217.0 291.6 214.4 291.6 201.8 295.6 201.8Z"/>
+          <path d="M389.7 95.1 358.5 94.8 362.8 88.7 364.2 83.0 361.2 72.3 361.5 66.4 363.6 63.1 363.8 58.9 369.7 53.5 369.5 58.0 370.5 58.2 371.8 52.2 375.1 50.7 374.3 48.0 375.9 45.8 382.6 47.3 383.8 49.0 389.4 50.7 391.0 53.3 389.7 54.7 391.4 58.6 390.8 63.2 388.9 64.3 388.5 66.7 386.2 67.5 385.5 71.4 387.7 72.4 391.5 67.7 394.7 66.5 397.2 69.2 399.3 79.9 398.4 84.3 396.8 85.0 396.8 83.4 395.8 83.8 389.7 95.1ZM370.7 46.2 370.8 47.6 369.6 47.9 370.7 46.2ZM351.4 53.9 349.9 52.7 350.8 50.9 348.6 50.7 349.6 46.8 346.6 43.8 327.9 38.7 325.2 35.9 338.3 30.7 345.9 25.0 348.0 25.9 343.4 30.9 343.5 33.2 345.3 31.5 348.5 31.7 351.0 32.9 353.2 36.3 359.6 37.5 364.6 34.7 374.8 33.5 375.1 37.0 379.5 37.7 383.4 36.4 383.5 40.7 384.7 42.5 386.5 42.9 386.7 41.7 388.5 41.7 389.5 43.0 388.7 43.9 381.2 43.7 378.5 42.2 378.1 44.7 370.7 41.7 369.2 43.3 364.2 43.3 362.8 45.4 359.9 46.5 360.1 44.9 358.8 44.5 358.3 46.2 355.2 47.0 351.4 53.9ZM340.1 18.7 336.5 20.4 336.6 19.1 342.5 16.2 340.1 18.7Z"/>
+          <path d="M310.4 34.2 307.8 34.7 307.8 41.9 302.4 46.3 302.3 48.0 304.5 49.7 303.0 58.2 315.7 67.4 317.5 70.1 317.8 73.5 269.2 73.5 269.2 51.5 265.5 47.7 268.0 45.1 267.9 38.8 266.0 34.8 265.5 23.2 262.9 16.6 263.2 10.0 262.0 6.1 281.3 6.1 281.3 1.4 283.1 1.6 286.5 9.6 293.4 10.7 293.9 12.0 301.4 10.7 305.8 12.9 307.1 15.6 310.0 14.0 314.5 17.9 321.3 15.4 322.1 17.3 327.7 17.0 330.2 18.5 332.6 18.3 322.2 23.0 309.6 33.2 310.4 34.2Z"/>
+          <path d="M343.2 177.6 345.7 177.6 346.6 178.9 343.2 215.6 343.9 234.3 339.7 233.7 333.4 236.6 330.5 230.6 331.4 226.6 313.9 226.6 315.1 218.6 316.0 218.9 319.9 211.6 319.7 208.0 318.3 206.4 319.2 196.8 317.6 195.2 320.8 189.5 320.2 188.1 323.8 184.6 323.6 182.2 326.7 178.7 326.1 177.6 343.2 177.6Z"/>
+          <path d="M312.0 108.9 315.9 111.7 315.2 115.9 316.3 119.7 322.3 125.4 322.9 129.5 328.0 130.5 325.7 138.2 333.5 144.6 333.5 149.6 335.6 153.1 337.1 153.3 336.3 158.2 334.9 157.7 333.3 159.2 333.3 162.2 331.5 165.3 325.5 165.3 328.4 161.6 327.6 159.2 286.2 159.2 286.3 126.6 284.3 126.0 281.7 121.9 283.8 118.4 280.8 117.4 275.6 109.1 312.0 108.9Z"/>
+          <path d="M198.8 6.1 198.9 55.1 133.9 55.1 134.0 61.5 130.8 58.1 128.7 60.6 122.9 60.4 116.9 62.5 114.6 57.9 111.6 56.8 111.7 54.4 109.0 51.1 108.4 47.7 106.7 46.5 103.5 49.5 101.5 48.2 101.3 45.6 103.0 44.3 102.0 42.4 103.6 35.0 100.9 35.0 94.3 27.4 90.7 25.4 90.6 22.1 87.6 18.7 87.6 6.1 198.8 6.1Z"/>
+          <path d="M205.5 79.6 250.2 79.6 255.3 82.4 256.4 81.2 262.1 81.5 267.0 83.8 267.6 85.5 269.3 85.9 271.0 91.4 272.2 92.2 272.5 97.5 274.2 98.5 274.5 107.5 279.8 116.3 217.3 116.3 217.3 104.0 198.8 104.0 198.8 79.6 205.5 79.6Z"/>
+          <path d="M78.5 91.8 106.2 91.9 106.1 162.9 105.2 165.0 103.1 163.6 99.7 164.1 100.7 177.5 51.0 128.6 51.0 91.9 78.5 91.8Z"/>
+          <path d="M167.6 153.1 208.5 153.1 207.9 214.3 175.0 214.3 175.8 216.9 160.2 216.9 160.2 222.5 152.5 222.5 152.5 153.1 167.6 153.1Z"/>
+          <path d="M262.0 6.1 263.2 10.0 262.9 16.6 265.5 23.2 266.0 34.8 267.9 38.8 268.2 43.7 198.8 43.5 198.8 6.1 262.0 6.1Z"/>
+          <path d="M416.9 92.1 416.9 108.5 415.5 109.2 416.1 112.4 414.0 119.9 410.4 123.8 408.2 123.5 406.1 125.2 404.2 130.1 402.8 128.2 400.1 135.4 397.7 135.6 395.3 133.6 394.9 131.5 392.6 133.1 389.1 132.2 387.6 133.1 382.6 130.9 380.6 127.3 377.1 127.3 377.2 95.6 389.7 95.1 394.5 97.8 395.4 96.9 398.7 99.4 405.6 98.1 416.9 92.1Z"/>
+          <path d="M235.5 153.1 286.2 153.1 288.0 172.7 287.5 194.2 280.6 190.3 280.0 191.4 277.1 190.6 272.0 191.8 270.2 193.6 265.5 191.7 264.9 190.3 262.5 193.0 261.8 191.5 260.7 192.0 257.7 190.0 256.1 191.6 253.3 188.4 251.5 187.9 250.4 189.0 243.9 187.2 243.2 184.8 239.1 185.1 236.3 182.9 236.3 159.2 208.5 159.2 208.5 153.1 235.5 153.1Z"/>
+          <path d="M21.2 40.7 24.1 41.9 25.4 47.0 30.1 48.4 34.2 46.4 40.0 47.7 45.1 46.0 49.0 46.2 60.3 42.9 79.5 42.9 83.0 45.9 83.8 47.6 76.5 62.5 77.2 64.2 79.7 65.4 78.5 69.4 78.5 91.8 11.9 91.8 10.6 90.4 10.0 83.7 8.8 81.6 12.3 69.7 14.0 43.5 14.4 41.5 18.1 39.7 21.2 40.7Z"/>
+          <path d="M198.8 43.5 268.2 43.7 265.5 47.7 269.2 51.5 269.2 73.5 268.0 73.7 269.4 78.1 267.6 83.2 269.3 85.9 262.1 81.5 256.4 81.2 255.3 82.4 250.2 79.6 198.8 79.6 198.8 43.5Z"/>
+          <path d="M347.1 159.2 346.9 157.0 406.1 158.1 405.7 161.0 402.8 163.9 401.2 163.4 397.5 165.7 397.3 164.5 394.0 168.1 389.3 170.6 386.7 170.7 383.8 174.5 381.9 174.8 381.7 177.7 326.1 177.6 333.3 162.2 333.3 159.2 347.1 159.2Z"/>
+          <path d="M219.5 159.2 236.3 159.2 236.3 182.9 239.1 185.1 243.2 184.8 243.9 187.2 250.4 189.0 251.5 187.9 253.3 188.4 256.1 191.6 257.7 190.0 260.7 192.0 261.8 191.5 262.5 193.0 264.9 190.3 265.5 191.7 270.2 193.6 272.0 191.8 277.1 190.6 280.0 191.4 280.6 190.3 288.4 195.4 291.6 195.3 291.6 214.4 293.6 217.0 296.3 227.3 294.5 231.7 294.8 237.0 292.6 241.4 293.4 242.6 287.1 244.3 285.4 243.4 285.1 241.4 283.0 242.5 282.5 244.2 283.7 247.2 279.1 252.6 273.5 255.9 269.0 255.9 267.3 254.7 269.7 257.9 266.2 258.3 260.4 271.4 259.4 271.1 259.1 272.7 260.2 272.3 258.9 277.5 262.1 287.9 259.3 289.1 258.1 287.5 253.0 287.1 248.7 284.8 244.0 281.2 241.5 275.2 241.2 269.6 233.6 259.8 230.1 249.8 223.2 241.8 214.7 240.4 214.2 241.7 212.0 242.1 207.5 251.2 205.9 251.2 194.6 243.2 191.0 231.8 178.8 220.8 174.8 215.5 175.0 214.3 207.9 214.3 208.2 159.2 219.5 159.2Z"/>
+          <path d="M123.6 91.9 134.0 91.8 134.0 104.1 152.5 104.1 152.5 153.1 106.1 153.1 106.2 91.9 123.6 91.9Z"/>
+          <path d="M78.5 6.1 78.3 38.6 79.5 42.9 60.3 42.9 49.0 46.2 45.1 46.0 40.0 47.7 34.2 46.4 30.1 48.4 25.4 47.0 24.9 43.3 22.1 40.6 19.7 41.1 18.1 39.7 13.3 38.8 14.9 36.3 13.0 33.8 9.9 21.5 8.1 19.7 7.4 16.1 8.4 13.7 14.1 16.4 25.0 17.3 26.5 20.0 27.7 19.8 28.5 26.7 29.4 26.4 28.8 20.8 30.3 18.0 29.1 16.8 27.9 9.1 25.1 7.5 25.4 6.1 78.5 6.1ZM25.8 14.6 27.0 14.0 26.8 16.5 25.3 15.6 25.8 14.6ZM22.9 11.2 24.0 9.6 25.3 11.6 24.9 13.2 22.8 12.8 22.9 11.2Z"/>
+          <path d="M325.2 35.9 327.9 38.7 346.6 43.8 349.6 46.8 348.6 50.7 350.8 50.9 349.9 52.7 351.4 53.9 351.0 55.4 349.2 55.7 347.2 60.4 348.2 60.8 354.6 53.1 356.5 52.4 350.0 68.8 348.4 76.5 349.4 85.8 323.1 85.6 322.4 84.0 319.1 82.6 318.1 77.9 319.2 76.5 317.9 75.3 317.5 70.1 315.7 67.4 303.0 58.2 304.5 49.7 302.3 48.0 302.4 46.3 307.8 41.9 307.8 34.7 309.6 33.7 312.4 34.4 321.3 31.1 322.1 32.0 320.8 33.6 325.2 35.9Z"/>
+          <path d="M152.2 55.1 198.7 55.1 198.8 104.0 134.0 104.1 133.9 55.1 152.2 55.1Z"/>
+        </g>
+        <g id="mapAbbr" class="mp-abbr">
+          <text x="103.8" y="217.7" text-anchor="middle" letter-spacing="0.5">AZ</text>
+          <text x="308.9" y="180.6" text-anchor="middle" letter-spacing="0.5">AR</text>
+          <text x="53.7" y="157.7" text-anchor="middle" letter-spacing="0.5">CA</text>
+          <text x="184.9" y="128.6" text-anchor="middle" letter-spacing="0.5">CO</text>
+          <text x="333.7" y="119.4" text-anchor="middle" letter-spacing="0.5">IL</text>
+          <text x="297.6" y="92.6" text-anchor="middle" letter-spacing="0.5">IA</text>
+          <text x="251.8" y="134.7" text-anchor="middle" letter-spacing="0.5">KS</text>
+          <text x="306.3" y="137.1" text-anchor="middle" letter-spacing="0.5">MO</text>
+          <text x="239.3" y="97.9" text-anchor="middle" letter-spacing="0.5">NE</text>
+          <text x="78.6" y="138.7" text-anchor="middle" letter-spacing="0.5">NV</text>
+          <text x="180.5" y="201.8" text-anchor="middle" letter-spacing="0.5">NM</text>
+          <text x="254.2" y="164.6" text-anchor="middle" letter-spacing="0.5">OK</text>
+          <text x="235.6" y="218.1" text-anchor="middle" letter-spacing="0.5">TX</text>
+          <text x="129.3" y="122.4" text-anchor="middle" letter-spacing="0.5">UT</text>
+          <text x="166.3" y="79.6" text-anchor="middle" letter-spacing="0.5">WY</text>
+        </g>
+        <g id="routeG"></g>
+        <g id="nodeG"></g>
+        <g id="posG" class="posg" opacity="0"><circle class="halo" r="9"/><circle class="dot" r="4.5"/></g>
+      </svg>
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
     </div>
     <div class="triptoggle">
@@ -334,7 +400,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v10 · Sep 1</div>
+  <div class="appver">SF Move · v11 · Sep 1</div>
 
 </div>
 
@@ -1010,26 +1076,40 @@ var ACCENTS = {
   var TRIP_RULE="Max 8-hr days incl. charging · never below 20%";
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
   var CUM=[];(function(){var a=0;STOPS.forEach(function(s){a+=s.mi;CUM.push(a);});})();   /* miles through stop i */
-  var LBL=[[-8,4,"end"],[0,15,"middle"],[0,15,"middle"],[0,-9,"middle"],[0,-9,"middle"],[2,16,"middle"],[0,16,"middle"],[0,-9,"middle"]];
+  /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
+  var WAYPTS=[
+    {n:"South Barrington",lat:42.0914, lng:-88.1562,  stop:"start"},
+    {n:"Springfield IL",  lat:39.7817, lng:-89.6501},
+    {n:"St. Louis",       lat:38.6270, lng:-90.1994},
+    {n:"Rolla",           lat:37.9514, lng:-91.7713,  stop:"rolla"},
+    {n:"Springfield MO",  lat:37.2090, lng:-93.2923},
+    {n:"Tulsa",           lat:36.1540, lng:-95.9928},
+    {n:"OKC",             lat:35.4676, lng:-97.5164,  stop:"okc"},
+    {n:"Amarillo",        lat:35.2220, lng:-101.8313},
+    {n:"Santa Rosa",      lat:34.9381, lng:-104.6825, stop:"santarosa"},
+    {n:"Albuquerque",     lat:35.0844, lng:-106.6504},
+    {n:"Holbrook",        lat:34.9022, lng:-110.1582},
+    {n:"Payson",          lat:34.2309, lng:-111.3251, stop:"payson"},
+    {n:"Mom's",           lat:33.22721,lng:-111.88610,stop:"moms"},
+    {n:"Blythe",          lat:33.6103, lng:-114.5964},
+    {n:"Los Angeles",     lat:34.0522, lng:-118.2437, stop:"la"},
+    {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
+    {n:"San Francisco",   lat:37.7749, lng:-122.4194, stop:"sf"}
+  ];
+  var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
+  /* node label placement: [dx, dy, anchor] per stop */
+  var LBL=[[-6,-4,"end"],[4,12,"start"],[-2,13,"middle"],[0,-8,"middle"],[2,-8,"middle"],[0,14,"middle"],[0,14,"middle"],[0,-8,"middle"]];   /* option B label offsets */
 
-  /* equirectangular projection into the viewBox */
-  var VW=400,VH=180,PAD=30;
-  var proj=(function(){
-    var lat0=STOPS.reduce(function(a,s){return a+s.lat;},0)/STOPS.length*Math.PI/180,k=Math.cos(lat0);
-    var xs=STOPS.map(function(s){return s.lng*k;}),ys=STOPS.map(function(s){return s.lat;});
-    var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
-    var sc=Math.min((VW-2*PAD)/(maxX-minX),(VH-2*PAD)/(maxY-minY));
-    var ox=(VW-(maxX-minX)*sc)/2,oy=(VH-(maxY-minY)*sc)/2;
-    return function(lat,lng){return{x:ox+(lng*k-minX)*sc,y:oy+(maxY-lat)*sc};};
-  })();
-  var PTS=STOPS.map(function(s){return proj(s.lat,s.lng);});
-  function segD(i){   /* Catmull-Rom → cubic Bézier, stop i → i+1 */
+  /* mockup projection (verbatim): lon -125.5→-84.5, lat 25→49.5 onto 380×300; viewBox crops y 62–230 */
+  function proj(lat,lng){return{x:(lng+125.5)/41*380,y:(49.5-lat)/24.5*300};}
+  var PTS=WAYPTS.map(function(w){return proj(w.lat,w.lng);});
+  function segD(i){   /* Catmull-Rom → cubic Bézier, waypoint i → i+1 */
     var p0=PTS[Math.max(i-1,0)],p1=PTS[i],p2=PTS[i+1],p3=PTS[Math.min(i+2,PTS.length-1)];
-    return "C"+(p1.x+(p2.x-p0.x)/6).toFixed(1)+" "+(p1.y+(p2.y-p0.y)/6).toFixed(1)+" "+
-      (p2.x-(p3.x-p1.x)/6).toFixed(1)+" "+(p2.y-(p3.y-p1.y)/6).toFixed(1)+" "+p2.x.toFixed(1)+" "+p2.y.toFixed(1);
+    return "C"+(p1.x+(p2.x-p0.x)/6).toFixed(2)+" "+(p1.y+(p2.y-p0.y)/6).toFixed(2)+" "+
+      (p2.x-(p3.x-p1.x)/6).toFixed(2)+" "+(p2.y-(p3.y-p1.y)/6).toFixed(2)+" "+p2.x.toFixed(2)+" "+p2.y.toFixed(2);
   }
-  var ROUTE_M="M"+PTS[0].x.toFixed(1)+" "+PTS[0].y.toFixed(1);
-  var ROUTE_D=ROUTE_M+STOPS.slice(1).map(function(_,i){return segD(i);}).join("");
+  var ROUTE_M="M"+PTS[0].x.toFixed(2)+" "+PTS[0].y.toFixed(2);
+  var ROUTE_D=ROUTE_M+WAYPTS.slice(1).map(function(_,i){return segD(i);}).join("");
 
   /* geo helpers */
   var R_MI=3958.8;
@@ -1038,16 +1118,23 @@ var ACCENTS = {
     var h=s*s+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*t*t;
     return 2*R_MI*Math.asin(Math.sqrt(h));
   }
-  function locate(p){   /* nearest point on the route polyline → {seg,t,dist,miles} */
+  /* polyline chord lengths per waypoint segment, and per stop-leg totals (for fraction-of-leg interpolation) */
+  var CHORD=[];for(var ci=0;ci<WAYPTS.length-1;ci++)CHORD.push(hav(WAYPTS[ci],WAYPTS[ci+1]));
+  function legOf(i){for(var k=0;k<STOPS.length-1;k++){if(i>=STOPW[k]&&i<STOPW[k+1])return k;}return STOPS.length-2;}
+  function locate(p){   /* nearest point on the highway polyline → {seg,t,dist,miles,leg} */
     var best=null;
-    for(var i=0;i<STOPS.length-1;i++){
-      var A=STOPS[i],B=STOPS[i+1],k=Math.cos((A.lat+B.lat)/2*Math.PI/180);
+    for(var i=0;i<WAYPTS.length-1;i++){
+      var A=WAYPTS[i],B=WAYPTS[i+1],k=Math.cos((A.lat+B.lat)/2*Math.PI/180);
       var ax=A.lng*k,ay=A.lat,bx=B.lng*k,by=B.lat,px=p.lng*k,py=p.lat;
       var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
       var t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=Math.max(0,Math.min(1,t));
       var d=hav(p,{lat:ay+dy*t,lng:(ax+dx*t)/k});
-      if(!best||d<best.dist)best={seg:i,t:t,dist:d,miles:CUM[i]+t*B.mi};
+      if(!best||d<best.dist)best={seg:i,t:t,dist:d};
     }
+    var leg=legOf(best.seg),a0=STOPW[leg],a1=STOPW[leg+1],legLen=0,posLen=0;
+    for(var j=a0;j<a1;j++){legLen+=CHORD[j];if(j<best.seg)posLen+=CHORD[j];}
+    posLen+=best.t*CHORD[best.seg];
+    best.leg=leg;best.miles=CUM[leg]+(legLen?posLen/legLen:0)*STOPS[leg+1].mi;
     return best;
   }
 
@@ -1055,37 +1142,41 @@ var ACCENTS = {
   function svgEl(t,attrs){var e=document.createElementNS(NS,t);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
   var tripUI={L:0},SEGLEN=[],tripPos=null,tripWatch=null;
   function buildTripMap(){
-    var svg=document.getElementById("tripSvg");svg.innerHTML="";
-    var bg=svgEl("path",{"class":"route-bg",d:ROUTE_D});svg.appendChild(bg);
-    var done=svgEl("path",{"class":"route-done",d:ROUTE_D});svg.appendChild(done);
-    SEGLEN=[0];var tmp=svgEl("path",{d:ROUTE_M}),d=ROUTE_M;svg.appendChild(tmp);
-    for(var i=0;i<STOPS.length-1;i++){d+=segD(i);tmp.setAttribute("d",d);SEGLEN.push(tmp.getTotalLength());}
-    svg.removeChild(tmp);
-    var L=bg.getTotalLength();
+    var rg=document.getElementById("routeG"),ng=document.getElementById("nodeG");rg.innerHTML="";ng.innerHTML="";
+    var svg=document.getElementById("tripSvg");
+    var caseP=svgEl("path",{"class":"rt-case",d:ROUTE_D});rg.appendChild(caseP);
+    var base=svgEl("path",{"class":"rt-base",d:ROUTE_D});rg.appendChild(base);
+    var done=svgEl("path",{"class":"rt-done",d:ROUTE_D});rg.appendChild(done);
+    /* cumulative path length at every waypoint, so the driven portion lands exactly on the gray route */
+    SEGLEN=[0];var tmp=svgEl("path",{d:ROUTE_M}),d=ROUTE_M;rg.appendChild(tmp);
+    for(var i=0;i<WAYPTS.length-1;i++){d+=segD(i);tmp.setAttribute("d",d);SEGLEN.push(tmp.getTotalLength());}
+    rg.removeChild(tmp);
+    var L=base.getTotalLength();
     done.setAttribute("stroke-dasharray",L);done.setAttribute("stroke-dashoffset",L);
-    tripUI={L:L,bg:bg,done:done,nodes:[]};
-    STOPS.forEach(function(s,i){
-      var p=PTS[i],o=LBL[i];
-      var n=svgEl("circle",{"class":"node"+(s.opt?" opt":"")+(s.home?" home":""),cx:p.x.toFixed(1),cy:p.y.toFixed(1),r:5.5});
-      svg.appendChild(n);tripUI.nodes.push(n);
-      var t=svgEl("text",{"class":"lbl",x:(p.x+o[0]).toFixed(1),y:(p.y+o[1]).toFixed(1),"text-anchor":o[2]});
-      t.textContent=s.short;svg.appendChild(t);
+    tripUI={L:L,bg:base,done:done,nodes:[],pos:document.getElementById("posG")};
+    STOPS.forEach(function(s,k){
+      var p=PTS[STOPW[k]],o=LBL[k],bold=(k===1||k===2||k===3||k===5||k===7);
+      var r=s.id==="start"?3.6:s.id==="payson"?3:s.opt?4.2:4.6;
+      var n=svgEl("circle",{"class":"nd"+(s.id==="start"?" start":"")+(s.id==="payson"?" via":"")+(s.home?" home":"")+(s.opt?" opt":""),cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:r});
+      ng.appendChild(n);tripUI.nodes.push(n);
+      var t=svgEl("text",{"class":"nl"+(bold?" b":""),x:(p.x+o[0]).toFixed(2),y:(p.y+o[1]).toFixed(2),"text-anchor":o[2]});
+      t.textContent=s.short;ng.appendChild(t);
     });
-    var pos=svgEl("circle",{"class":"pos",cx:0,cy:0,r:6,opacity:0});svg.appendChild(pos);tripUI.pos=pos;
+    svg.appendChild(tripUI.pos);   /* keep the live dot above everything */
   }
   function tripProgress(){
     if(tripPos){var l=locate(tripPos);return{miles:l.miles,seg:l.seg,t:l.t,live:true};}
     var last=0;STOPS.forEach(function(s,i){if(state.trip.arrived[s.id])last=i;});
-    return last>=STOPS.length-1?{miles:CUM[last],seg:STOPS.length-2,t:1,live:false}:{miles:CUM[last],seg:last,t:0,live:false};
+    return{miles:CUM[last],seg:STOPW[last],t:0,live:false};
   }
   function updateTripMap(){
     if(!tripUI.L)return;
     var pr=tripProgress();
-    var len=SEGLEN[pr.seg]+pr.t*(SEGLEN[pr.seg+1]-SEGLEN[pr.seg]);
+    var len=pr.seg>=SEGLEN.length-1?SEGLEN[SEGLEN.length-1]:SEGLEN[pr.seg]+pr.t*(SEGLEN[pr.seg+1]-SEGLEN[pr.seg]);
     tripUI.done.setAttribute("stroke-dashoffset",(tripUI.L-len).toFixed(2));
     tripUI.nodes.forEach(function(n,i){n.classList.toggle("done",!!state.trip.arrived[STOPS[i].id]||(pr.live&&CUM[i]<=pr.miles+0.5));});
     var pt=tripUI.bg.getPointAtLength(len);
-    tripUI.pos.style.transform="translate("+pt.x.toFixed(1)+"px,"+pt.y.toFixed(1)+"px)";
+    tripUI.pos.style.transform="translate("+pt.x.toFixed(2)+"px,"+pt.y.toFixed(2)+"px)";
     tripUI.pos.setAttribute("opacity",pr.live?1:(pr.miles>0?.55:0));
     var next=-1;for(var i=0;i<STOPS.length;i++){if(CUM[i]>pr.miles+0.5){next=i;break;}}
     document.getElementById("tripStat").innerHTML='<strong>'+Math.round(pr.miles)+'</strong> of '+TOTAL_MI+' mi'+
