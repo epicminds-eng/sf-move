@@ -414,7 +414,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v17 · Sep 2</div>
+  <div class="appver">SF Move · v18 · Sep 2</div>
 
 </div>
 </div>
@@ -1247,13 +1247,18 @@ var ACCENTS = {
         (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
         (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
         '');
+      card.setAttribute("data-stop",s.id);
       if(s.id==="start"){
         var dr=el("div","daterow",'<label for="departDate">Wheels up</label><input type="date" id="departDate">');
         var inp=dr.querySelector("input");inp.value=state.trip.departDate;
-        inp.addEventListener("change",function(){
-          if(!/^\d{4}-\d{2}-\d{2}$/.test(this.value))return;
-          state.trip.departDate=this.value;save(state);renderDates();renderTripStops();
-        });
+        function onDate(){
+          var v=inp.value;
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v===state.trip.departDate)return;
+          state.trip.departDate=v;save(state);
+          refreshTripDates();   /* in place: the input the user is editing is never replaced */
+        }
+        inp.addEventListener("input",onDate);
+        inp.addEventListener("change",onDate);
         card.appendChild(dr);
       }
       var row=el("div","check"+(arr?" on":""),'<span class="ring">\u2713</span><span><span class="ct">Arrived</span></span>');
@@ -1272,6 +1277,17 @@ var ACCENTS = {
         if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'+(s.sc2?'<a class="lnk" href="'+s.sc2+'">Supercharger</a>':'')));
       }
       wrap.appendChild(card);
+    });
+  }
+  function refreshTripDates(){
+    renderDates();
+    STOPS.forEach(function(s,i){
+      var card=document.querySelector('#tripStops .card[data-stop="'+s.id+'"]');if(!card)return;
+      var dt=addDays(departDate(),s.off||0);
+      card.querySelector(".day").textContent=s.day+" \u00b7 "+fmtDay(dt);
+      if(i===0)card.querySelector(".mi").textContent="wheels up "+fmtShort(dt);
+      var go=card.querySelector(".btns.two a.go");
+      if(go&&s.hotelDest)go.setAttribute("href",orbitzUrl(s.hotelDest,dt));
     });
   }
   /* live tracking — never blocks the UI */
