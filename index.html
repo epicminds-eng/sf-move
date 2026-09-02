@@ -287,7 +287,7 @@
     <div class="sign">
       <div class="route">Southern route · wheels up Sept 4</div>
       <h1>Trip</h1>
-      <div class="sub">St. Robert · Calumet · Milan · Payson · Mom's · LA · SF</div>
+      <div class="sub">St. Robert · Weatherford · Milan · Payson · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
       <svg id="tripSvg" viewBox="0 62 380 168" role="img" aria-label="Route map">
@@ -408,7 +408,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v12 · Sep 2</div>
+  <div class="appver">SF Move · v13 · Sep 2</div>
 
 </div>
 
@@ -710,7 +710,7 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
-  ["rolla","okc","santarosa"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
+  ["rolla","okc","santarosa","calumet"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -1078,11 +1078,11 @@ var ACCENTS = {
       night:"Sept 4", sc:"Casey\u0027s, 325 kW", backup:"rolla",
       hotel:"https://www.orbitz.com/Hotel-Search?destination=Saint%20Robert%2C%20Missouri&startDate=2026-09-04&endDate=2026-09-05&d1=2026-09-04&d2=2026-09-05&adults=1",
       dogs:"Hampton Inn St. Robert \u00b7 Sleep Inn St. Robert"},
-    {id:"calumet", day:"Day 2",    name:"Calumet, OK",          short:"Calumet",    lat:35.5045,  lng:-98.1315,  mi:385, q:"Tesla%20Supercharger%20Calumet%20OK",
-      night:"Sept 5", sc:"Cherokee Trading Post (Francis Energy, 300 kW)", note:"overnight in El Reno, OK (10 mi east)", backup:"okc",
-      hotel:"https://www.orbitz.com/Hotel-Search?destination=El%20Reno%2C%20Oklahoma&startDate=2026-09-05&endDate=2026-09-06&d1=2026-09-05&d2=2026-09-06&adults=1",
-      dogs:"Hampton Inn El Reno \u00b7 Home2 Suites El Reno"},
-    {id:"milan",   day:"Day 3",    name:"Milan, NM",            short:"Milan",      lat:35.1697,  lng:-107.8909, mi:580, q:"Tesla%20Supercharger%20Milan%20NM",
+    {id:"weatherford",day:"Day 2",  name:"Weatherford, OK",      short:"Weatherford",lat:35.5262,  lng:-98.7076,  mi:415, q:"Tesla%20Supercharger%20Weatherford%20OK",
+      night:"Sept 5", sc:"Lucille\u0027s Road House, 150 kW", backup:"okc",
+      hotel:"https://www.orbitz.com/Hotel-Search?destination=Weatherford%2C%20Oklahoma&startDate=2026-09-05&endDate=2026-09-06&d1=2026-09-05&d2=2026-09-06&adults=1",
+      dogs:"Home2 Suites Weatherford \u00b7 La Quinta Weatherford"},
+    {id:"milan",   day:"Day 3",    name:"Milan, NM",            short:"Milan",      lat:35.1697,  lng:-107.8909, mi:550, q:"Tesla%20Supercharger%20Milan%20NM",
       night:"Sept 6", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
       hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
@@ -1110,7 +1110,7 @@ var ACCENTS = {
     {n:"Springfield MO",  lat:37.2090, lng:-93.2923},
     {n:"Tulsa",           lat:36.1540, lng:-95.9928},
     {n:"OKC",             lat:35.4676, lng:-97.5164},
-    {n:"Calumet",         lat:35.5045, lng:-98.1315,  stop:"calumet"},
+    {n:"Weatherford",     lat:35.5262, lng:-98.7076,  stop:"weatherford"},
     {n:"Amarillo",        lat:35.2220, lng:-101.8313},
     {n:"Santa Rosa",      lat:34.9381, lng:-104.6825},
     {n:"Albuquerque",     lat:35.0844, lng:-106.6504},
