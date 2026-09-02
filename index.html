@@ -206,6 +206,14 @@
   .tripstop .rule{font-size:12px;color:var(--secondary);padding:3px 16px 6px;}
   .tripstop .alt{display:inline-block;font-size:12px;font-weight:600;background:var(--fill);color:var(--secondary);border-radius:999px;padding:4px 10px;margin:4px 16px 2px;}
   .tripstop.done .nm{color:var(--secondary);}
+  .tripstop .sc{font-size:13px;color:var(--secondary);padding:3px 16px 0;}
+  .tripstop .bkrow{display:flex;align-items:center;gap:8px;padding:6px 16px 0;font-size:12px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
+  .tripstop .bkrow .alt{margin:0;text-transform:none;letter-spacing:0;text-decoration:none;}
+  .tripstop .btns.two{display:flex;gap:8px;}
+  .tripstop .btns.two .btn{flex:1;text-align:center;}
+  .tripstop .dogs{font-size:12px;color:var(--secondary);padding:0 16px 13px;}
+  .bk{fill:#F5F3EE;stroke:#9AA0A6;stroke-width:1.2;}
+  .bl{font-size:8px;font-weight:500;fill:#8E8E93;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:2.5;stroke-linejoin:round;}
 </style>
 </head>
 <body>
@@ -279,7 +287,7 @@
     <div class="sign">
       <div class="route">Southern route · wheels up Sept 4</div>
       <h1>Trip</h1>
-      <div class="sub">Rolla · OKC · Santa Rosa · Payson · Mom's · LA · SF</div>
+      <div class="sub">St. Robert · Calumet · Milan · Payson · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
       <svg id="tripSvg" viewBox="0 62 380 168" role="img" aria-label="Route map">
@@ -400,7 +408,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v11 · Sep 1</div>
+  <div class="appver">SF Move · v12 · Sep 2</div>
 
 </div>
 
@@ -702,6 +710,7 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
+  ["rolla","okc","santarosa"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -1064,14 +1073,29 @@ var ACCENTS = {
 
   /* ---------- TRIP ---------- */
   var STOPS=[
-    {id:"start",    day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0},
-    {id:"rolla",    day:"Day 1",    name:"Rolla, MO",            short:"Rolla",      lat:37.9514,  lng:-91.7713,  mi:410, q:"Tesla%20Supercharger%20Rolla%20MO"},
-    {id:"okc",      day:"Day 2",    name:"Oklahoma City, OK",    short:"OKC",        lat:35.4676,  lng:-97.5164,  mi:375, q:"Tesla%20Supercharger%20Oklahoma%20City%20OK"},
-    {id:"santarosa",day:"Day 3",    name:"Santa Rosa, NM",       short:"Santa Rosa", lat:34.9381,  lng:-104.6825, mi:430, q:"Tesla%20Supercharger%20Santa%20Rosa%20NM", alt:"alt: Holbrook, AZ"},
-    {id:"payson",   day:"Via",      name:"Payson, AZ",           short:"Payson",     lat:34.2309,  lng:-111.3251, mi:485, q:"Tesla%20Supercharger%20Payson%20AZ", note:"charge stop, not overnight"},
-    {id:"moms",     day:"Mom's",name:"Sun Lakes, AZ",       short:"Mom's", lat:33.22721, lng:-111.88610,mi:95,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom's house in Apple Maps", note:"2 nights", home:true},
-    {id:"la",       day:"Optional", name:"Los Angeles, CA",      short:"LA",         lat:34.0522,  lng:-118.2437, mi:380, q:"Tesla%20Supercharger%20Los%20Angeles%20CA", note:"cousin stop", opt:true},
-    {id:"sf",       day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
+    {id:"start",   day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0},
+    {id:"strobert",day:"Day 1",    name:"Saint Robert, MO",     short:"St. Robert", lat:37.8284,  lng:-92.1502,  mi:440, q:"Tesla%20Supercharger%20Saint%20Robert%20MO",
+      night:"Sept 4", sc:"Casey\u0027s, 325 kW", backup:"rolla",
+      hotel:"https://www.orbitz.com/Hotel-Search?destination=Saint%20Robert%2C%20Missouri&startDate=2026-09-04&endDate=2026-09-05&d1=2026-09-04&d2=2026-09-05&adults=1",
+      dogs:"Hampton Inn St. Robert \u00b7 Sleep Inn St. Robert"},
+    {id:"calumet", day:"Day 2",    name:"Calumet, OK",          short:"Calumet",    lat:35.5045,  lng:-98.1315,  mi:385, q:"Tesla%20Supercharger%20Calumet%20OK",
+      night:"Sept 5", sc:"Cherokee Trading Post (Francis Energy, 300 kW)", note:"overnight in El Reno, OK (10 mi east)", backup:"okc",
+      hotel:"https://www.orbitz.com/Hotel-Search?destination=El%20Reno%2C%20Oklahoma&startDate=2026-09-05&endDate=2026-09-06&d1=2026-09-05&d2=2026-09-06&adults=1",
+      dogs:"Hampton Inn El Reno \u00b7 Home2 Suites El Reno"},
+    {id:"milan",   day:"Day 3",    name:"Milan, NM",            short:"Milan",      lat:35.1697,  lng:-107.8909, mi:580, q:"Tesla%20Supercharger%20Milan%20NM",
+      night:"Sept 6", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
+      hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
+      dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
+    {id:"payson",  day:"Via",      name:"Payson, AZ",           short:"Payson",     lat:34.2309,  lng:-111.3251, mi:290, q:"Tesla%20Supercharger%20Payson%20AZ", note:"charge stop, not overnight"},
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:95,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"2 nights", home:true},
+    {id:"la",      day:"Optional", name:"Los Angeles, CA",      short:"LA",         lat:34.0522,  lng:-118.2437, mi:380, q:"Tesla%20Supercharger%20Los%20Angeles%20CA", note:"cousin stop", opt:true},
+    {id:"sf",      day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
+  ];
+  /* backups for Day 1\u20133: drawn as small hollow gray nodes, never part of progress math */
+  var BACKUPS=[
+    {id:"rolla",    name:"Rolla, MO",         lat:37.9514, lng:-91.7713,  q:"Tesla%20Supercharger%20Rolla%20MO"},
+    {id:"okc",      name:"Oklahoma City, OK", lat:35.4676, lng:-97.5164,  q:"Tesla%20Supercharger%20Oklahoma%20City%20OK"},
+    {id:"santarosa",name:"Santa Rosa, NM",    lat:34.9381, lng:-104.6825, q:"Tesla%20Supercharger%20Santa%20Rosa%20NM", lbl:[0,11]}   /* label only where it can\u0027t collide */
   ];
   var TRIP_RULE="Max 8-hr days incl. charging · never below 20%";
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
@@ -1081,16 +1105,19 @@ var ACCENTS = {
     {n:"South Barrington",lat:42.0914, lng:-88.1562,  stop:"start"},
     {n:"Springfield IL",  lat:39.7817, lng:-89.6501},
     {n:"St. Louis",       lat:38.6270, lng:-90.1994},
-    {n:"Rolla",           lat:37.9514, lng:-91.7713,  stop:"rolla"},
+    {n:"Rolla",           lat:37.9514, lng:-91.7713},
+    {n:"Saint Robert",    lat:37.8284, lng:-92.1502,  stop:"strobert"},
     {n:"Springfield MO",  lat:37.2090, lng:-93.2923},
     {n:"Tulsa",           lat:36.1540, lng:-95.9928},
-    {n:"OKC",             lat:35.4676, lng:-97.5164,  stop:"okc"},
+    {n:"OKC",             lat:35.4676, lng:-97.5164},
+    {n:"Calumet",         lat:35.5045, lng:-98.1315,  stop:"calumet"},
     {n:"Amarillo",        lat:35.2220, lng:-101.8313},
-    {n:"Santa Rosa",      lat:34.9381, lng:-104.6825, stop:"santarosa"},
+    {n:"Santa Rosa",      lat:34.9381, lng:-104.6825},
     {n:"Albuquerque",     lat:35.0844, lng:-106.6504},
+    {n:"Milan",           lat:35.1697, lng:-107.8909, stop:"milan"},
     {n:"Holbrook",        lat:34.9022, lng:-110.1582},
     {n:"Payson",          lat:34.2309, lng:-111.3251, stop:"payson"},
-    {n:"Mom's",           lat:33.22721,lng:-111.88610,stop:"moms"},
+    {n:"Mom\u0027s",       lat:33.22721,lng:-111.88610,stop:"moms"},
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
     {n:"Los Angeles",     lat:34.0522, lng:-118.2437, stop:"la"},
     {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
@@ -1154,6 +1181,11 @@ var ACCENTS = {
     var L=base.getTotalLength();
     done.setAttribute("stroke-dasharray",L);done.setAttribute("stroke-dashoffset",L);
     tripUI={L:L,bg:base,done:done,nodes:[],pos:document.getElementById("posG")};
+    BACKUPS.forEach(function(b){
+      var p=proj(b.lat,b.lng);
+      ng.appendChild(svgEl("circle",{"class":"bk",cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:3}));
+      if(b.lbl){var bt=svgEl("text",{"class":"bl",x:(p.x+b.lbl[0]).toFixed(2),y:(p.y+b.lbl[1]).toFixed(2),"text-anchor":"middle"});bt.textContent=b.name.split(",")[0];ng.appendChild(bt);}
+    });
     STOPS.forEach(function(s,k){
       var p=PTS[STOPW[k]],o=LBL[k],bold=(k===1||k===2||k===3||k===5||k===7);
       var r=s.id==="start"?3.6:s.id==="payson"?3:s.opt?4.2:4.6;
@@ -1187,19 +1219,28 @@ var ACCENTS = {
     var wrap=document.getElementById("tripStops");wrap.innerHTML="";
     STOPS.forEach(function(s,i){
       var arr=!!state.trip.arrived[s.id];
+      var bk=s.backup?BACKUPS.filter(function(b){return b.id===s.backup;})[0]:null;
       var card=el("div","card tripstop"+(arr?" done":""),
-        '<div class="sh"><span class="day">'+esc(s.day)+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up Sept 4')+'</span></div>'+
-        '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">· '+esc(s.note)+'</span>':'')+'</div>'+
-        (s.alt?'<span class="alt">'+esc(s.alt)+'</span>':'')+
+        '<div class="sh"><span class="day">'+esc(s.day)+(s.night?' \u00b7 '+esc(s.night):'')+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up Sept 4')+'</span></div>'+
+        '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">\u00b7 '+esc(s.note)+'</span>':'')+'</div>'+
+        (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
+        (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
         '<div class="rule">'+TRIP_RULE+'</div>');
-      var row=el("div","check"+(arr?" on":""),'<span class="ring">✓</span><span><span class="ct">Arrived</span></span>');
+      var row=el("div","check"+(arr?" on":""),'<span class="ring">\u2713</span><span><span class="ct">Arrived</span></span>');
       row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");row.setAttribute("aria-checked",arr?"true":"false");
       function tog(){state.trip.arrived[s.id]=!state.trip.arrived[s.id];save(state);renderTripStops();updateTripMap();}
       row.addEventListener("click",tog);
       row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
       card.appendChild(row);
-      var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
-      if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'));
+      if(s.hotel){
+        card.appendChild(el("div","btns two",
+          '<a class="btn" href="https://maps.apple.com/?q='+s.q+'">Supercharger</a>'+
+          '<a class="btn go" href="'+s.hotel+'">Hotels on Orbitz</a>'));
+        if(s.dogs)card.appendChild(el("div","dogs","Dog-friendly: "+esc(s.dogs)));
+      }else{
+        var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
+        if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'));
+      }
       wrap.appendChild(card);
     });
   }
