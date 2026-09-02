@@ -181,7 +181,6 @@
   .nd.start{fill:#0A7AFF;}
   .nd.home{stroke:#AF52DE;}
   .nd.opt{fill:#F5F3EE;stroke-width:1.4;stroke-dasharray:2 1.6;}
-  .nd.via{stroke-width:1.5;}
   .nd.done{fill:#0A7AFF;}
   .nd.home.done{fill:#AF52DE;}
   .nl{font-size:9.5px;font-weight:500;fill:#1C1C1E;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:3;stroke-linejoin:round;}
@@ -287,7 +286,7 @@
     <div class="sign">
       <div class="route">Southern route · wheels up Sept 4</div>
       <h1>Trip</h1>
-      <div class="sub">St. Robert · Weatherford · Milan · Payson · Mom's · LA · SF</div>
+      <div class="sub">St. Robert · Weatherford · Milan · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
       <svg id="tripSvg" viewBox="0 62 380 168" role="img" aria-label="Route map">
@@ -408,7 +407,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v13 · Sep 2</div>
+  <div class="appver">SF Move · v14 · Sep 2</div>
 
 </div>
 
@@ -710,7 +709,7 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
-  ["rolla","okc","santarosa","calumet"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
+  ["rolla","okc","santarosa","calumet","payson"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -1086,8 +1085,7 @@ var ACCENTS = {
       night:"Sept 6", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
       hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
-    {id:"payson",  day:"Via",      name:"Payson, AZ",           short:"Payson",     lat:34.2309,  lng:-111.3251, mi:290, q:"Tesla%20Supercharger%20Payson%20AZ", note:"charge stop, not overnight"},
-    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:95,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"2 nights", home:true},
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"2 nights", home:true},
     {id:"la",      day:"Optional", name:"Los Angeles, CA",      short:"LA",         lat:34.0522,  lng:-118.2437, mi:380, q:"Tesla%20Supercharger%20Los%20Angeles%20CA", note:"cousin stop", opt:true},
     {id:"sf",      day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
   ];
@@ -1116,7 +1114,7 @@ var ACCENTS = {
     {n:"Albuquerque",     lat:35.0844, lng:-106.6504},
     {n:"Milan",           lat:35.1697, lng:-107.8909, stop:"milan"},
     {n:"Holbrook",        lat:34.9022, lng:-110.1582},
-    {n:"Payson",          lat:34.2309, lng:-111.3251, stop:"payson"},
+    {n:"Payson",          lat:34.2309, lng:-111.3251},   /* AZ-87 through Payson: waypoint only, no stop */
     {n:"Mom\u0027s",       lat:33.22721,lng:-111.88610,stop:"moms"},
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
     {n:"Los Angeles",     lat:34.0522, lng:-118.2437, stop:"la"},
@@ -1125,7 +1123,7 @@ var ACCENTS = {
   ];
   var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
   /* node label placement: [dx, dy, anchor] per stop */
-  var LBL=[[-6,-4,"end"],[4,12,"start"],[-2,13,"middle"],[0,-8,"middle"],[2,-8,"middle"],[0,14,"middle"],[0,14,"middle"],[0,-8,"middle"]];   /* option B label offsets */
+  var LBL=[[-6,-4,"end"],[4,12,"start"],[-2,13,"middle"],[0,-8,"middle"],[0,14,"middle"],[0,14,"middle"],[0,-8,"middle"]];   /* option B label offsets */
 
   /* mockup projection (verbatim): lon -125.5→-84.5, lat 25→49.5 onto 380×300; viewBox crops y 62–230 */
   function proj(lat,lng){return{x:(lng+125.5)/41*380,y:(49.5-lat)/24.5*300};}
@@ -1187,9 +1185,9 @@ var ACCENTS = {
       if(b.lbl){var bt=svgEl("text",{"class":"bl",x:(p.x+b.lbl[0]).toFixed(2),y:(p.y+b.lbl[1]).toFixed(2),"text-anchor":"middle"});bt.textContent=b.name.split(",")[0];ng.appendChild(bt);}
     });
     STOPS.forEach(function(s,k){
-      var p=PTS[STOPW[k]],o=LBL[k],bold=(k===1||k===2||k===3||k===5||k===7);
-      var r=s.id==="start"?3.6:s.id==="payson"?3:s.opt?4.2:4.6;
-      var n=svgEl("circle",{"class":"nd"+(s.id==="start"?" start":"")+(s.id==="payson"?" via":"")+(s.home?" home":"")+(s.opt?" opt":""),cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:r});
+      var p=PTS[STOPW[k]],o=LBL[k],bold=(k===1||k===2||k===3||k===4||k===6);
+      var r=s.id==="start"?3.6:s.opt?4.2:4.6;
+      var n=svgEl("circle",{"class":"nd"+(s.id==="start"?" start":"")+(s.home?" home":"")+(s.opt?" opt":""),cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:r});
       ng.appendChild(n);tripUI.nodes.push(n);
       var t=svgEl("text",{"class":"nl"+(bold?" b":""),x:(p.x+o[0]).toFixed(2),y:(p.y+o[1]).toFixed(2),"text-anchor":o[2]});
       t.textContent=s.short;ng.appendChild(t);
