@@ -164,6 +164,40 @@
   .modal textarea{height:45vh;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--sep);border-radius:10px;padding:10px;background:var(--bg);color:var(--label);resize:none;-webkit-user-select:text;user-select:text;overflow:auto;}
   .modal .mbtns{display:flex;gap:8px;}
   .modal .mbtns .btn{flex:1;text-align:center;}
+
+  /* info: merged links */
+  .secttl{font-size:13px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;margin:22px 0 8px 4px;}
+
+  /* trip — motion is transform/opacity only, ease-out (spring, damping 1.0, no overshoot) */
+  #page-trip.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
+  .tripmap{background:var(--cell);border-radius:14px;padding:10px 8px 6px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .tripmap svg{width:100%;height:auto;display:block;}
+  .tripmap .route-bg{fill:none;stroke:var(--fill);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+  .tripmap .route-done{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+  .tripmap .node{fill:var(--cell);stroke:var(--tertiary);stroke-width:2;}
+  .tripmap .node.done{fill:var(--blue);stroke:var(--blue);}
+  .tripmap .node.opt{stroke-dasharray:3 2.5;}
+  .tripmap .node.home{stroke:var(--purple);}
+  .tripmap .node.home.done{fill:var(--purple);}
+  .tripmap .lbl{font-size:9.5px;font-weight:600;fill:var(--secondary);font-family:inherit;}
+  .tripmap .pos{fill:var(--green);stroke:#fff;stroke-width:2;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .3s ease-out;}
+  .tripstat{text-align:center;font-size:14px;font-weight:600;color:var(--secondary);padding:8px 0 4px;}
+  .tripstat strong{color:var(--label);font-weight:800;}
+  .triptoggle{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--cell);border-radius:14px;padding:12px 16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .triptoggle .tl{font-size:16px;font-weight:600;}
+  .triptoggle .ts{font-size:12px;color:var(--secondary);margin-top:2px;}
+  .sw{position:relative;width:51px;height:31px;border-radius:16px;background:var(--fill);border:none;cursor:pointer;flex:none;padding:0;}
+  .sw .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .sw.on{background:var(--green);}
+  .sw.on .knob{transform:translateX(20px);}
+  .tripstop .sh{display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px 0;}
+  .tripstop .day{font-size:12px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
+  .tripstop .mi{font-size:13px;font-weight:600;color:var(--secondary);}
+  .tripstop .nm{font-size:17px;font-weight:700;padding:2px 16px 0;}
+  .tripstop .nm .note{font-size:13px;font-weight:400;color:var(--secondary);}
+  .tripstop .rule{font-size:12px;color:var(--secondary);padding:3px 16px 6px;}
+  .tripstop .alt{display:inline-block;font-size:12px;font-weight:600;background:var(--fill);color:var(--secondary);border-radius:999px;padding:4px 10px;margin:4px 16px 2px;}
+  .tripstop.done .nm{color:var(--secondary);}
 </style>
 </head>
 <body>
@@ -232,12 +266,30 @@
     <div id="packGroups"></div>
   </div>
 
-  <!-- ================= NUMBERS ================= -->
-  <div class="page" id="page-numbers">
+  <!-- ================= TRIP ================= -->
+  <div class="page" id="page-trip">
     <div class="sign">
-      <div class="route">Research · Aug 20</div>
-      <h1>Numbers</h1>
-      <div class="sub">The dollar figures behind the Undecided tags.</div>
+      <div class="route">Southern route · wheels up Sept 4</div>
+      <h1>Trip</h1>
+      <div class="sub">Rolla · OKC · Santa Rosa · Payson · Mom's · LA · SF</div>
+    </div>
+    <div class="tripmap">
+      <svg id="tripSvg" viewBox="0 0 400 180" role="img" aria-label="Route map"></svg>
+      <div class="tripstat" id="tripStat">0 of 0 mi</div>
+    </div>
+    <div class="triptoggle">
+      <div><div class="tl">Track trip</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
+      <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Track trip"><span class="knob"></span></button>
+    </div>
+    <div id="tripStops"></div>
+  </div>
+
+  <!-- ================= INFO (numbers + links) ================= -->
+  <div class="page" id="page-info">
+    <div class="sign">
+      <div class="route">Numbers · Links · Export</div>
+      <h1>Info</h1>
+      <div class="sub">The dollar figures, the links, the backup.</div>
     </div>
 
     <div class="card">
@@ -270,15 +322,8 @@
       </div>
       <div class="diamond">Rule of thumb from the math: under ~$150 replacement value and heavy → sell here, rebuy there. Small + dense + loved → car. Only bulky-and-precious earns the mover.</div>
     </div>
-  </div>
 
-  <!-- ================= LINKS ================= -->
-  <div class="page" id="page-links">
-    <div class="sign">
-      <div class="route">One tap each</div>
-      <h1>Links</h1>
-      <div class="sub">The move's supporting cast.</div>
-    </div>
+    <div class="secttl">Links — one tap each</div>
     <div class="linkgrid">
       <a href="https://www.shipsticks.com"><span class="k">Golf</span><div class="n">Ship Sticks — exact quote</div><span class="ar">›</span></a>
       <a href="https://www.dmv.ca.gov/portal/dmv-online/"><span class="k">DMV</span><div class="n">CA DMV — 10/20-day clock</div><span class="ar">›</span></a>
@@ -289,7 +334,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v9 · Aug 28</div>
+  <div class="appver">SF Move · v10 · Sep 1</div>
 
 </div>
 
@@ -297,8 +342,8 @@
   <button id="nav-move" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M4 20V10.5L12 4l8 6.5V20"/><path d="M9.5 20v-6h5v6"/></svg>Move</button>
   <button id="nav-sort" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Sort</button>
   <button id="nav-pack" type="button"><svg viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.3L12 12l8.7-4.7"/><path d="M12 22V12"/></svg>Pack</button>
-  <button id="nav-numbers" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Numbers</button>
-  <button id="nav-links" type="button"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1.5-1.5"/></svg>Links</button>
+  <button id="nav-trip" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Trip</button>
+  <button id="nav-info" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>Info</button>
 </nav>
 
 <script>
@@ -588,6 +633,9 @@ var ACCENTS = {
   state.collapsed=state.collapsed||{};
   state.packed=state.packed||{};   /* pack tab — additive, everything starts unpacked */
   state.customTasks=state.customTasks||{};   /* move tab custom tasks, keyed by card — additive */
+  state.trip=state.trip||{};                 /* trip tab — additive */
+  state.trip.arrived=state.trip.arrived||{};
+  state.trip.tracking=!!state.trip.tracking;
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -760,7 +808,7 @@ var ACCENTS = {
   document.getElementById("restoreBtn").addEventListener("click",function(){state.removed={};save(state);renderSort();});
 
   /* ---------- NUMBERS: collapsible cards + copy ---------- */
-  document.querySelectorAll("#page-numbers .sec-head").forEach(function(hd){
+  document.querySelectorAll("#page-info .sec-head").forEach(function(hd){
     function tog(){hd.parentElement.classList.toggle("closed");}
     hd.addEventListener("click",tog);
     hd.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
@@ -948,8 +996,163 @@ var ACCENTS = {
     }
   });
 
+  /* ---------- TRIP ---------- */
+  var STOPS=[
+    {id:"start",    day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0},
+    {id:"rolla",    day:"Day 1",    name:"Rolla, MO",            short:"Rolla",      lat:37.9514,  lng:-91.7713,  mi:410, q:"Tesla%20Supercharger%20Rolla%20MO"},
+    {id:"okc",      day:"Day 2",    name:"Oklahoma City, OK",    short:"OKC",        lat:35.4676,  lng:-97.5164,  mi:375, q:"Tesla%20Supercharger%20Oklahoma%20City%20OK"},
+    {id:"santarosa",day:"Day 3",    name:"Santa Rosa, NM",       short:"Santa Rosa", lat:34.9381,  lng:-104.6825, mi:430, q:"Tesla%20Supercharger%20Santa%20Rosa%20NM", alt:"alt: Holbrook, AZ"},
+    {id:"payson",   day:"Via",      name:"Payson, AZ",           short:"Payson",     lat:34.2309,  lng:-111.3251, mi:485, q:"Tesla%20Supercharger%20Payson%20AZ", note:"charge stop, not overnight"},
+    {id:"moms",     day:"Mom's",name:"Sun Lakes, AZ",       short:"Mom's", lat:33.22721, lng:-111.88610,mi:95,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom's house in Apple Maps", note:"2 nights", home:true},
+    {id:"la",       day:"Optional", name:"Los Angeles, CA",      short:"LA",         lat:34.0522,  lng:-118.2437, mi:380, q:"Tesla%20Supercharger%20Los%20Angeles%20CA", note:"cousin stop", opt:true},
+    {id:"sf",       day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
+  ];
+  var TRIP_RULE="Max 8-hr days incl. charging · never below 20%";
+  var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
+  var CUM=[];(function(){var a=0;STOPS.forEach(function(s){a+=s.mi;CUM.push(a);});})();   /* miles through stop i */
+  var LBL=[[-8,4,"end"],[0,15,"middle"],[0,15,"middle"],[0,-9,"middle"],[0,-9,"middle"],[2,16,"middle"],[0,16,"middle"],[0,-9,"middle"]];
+
+  /* equirectangular projection into the viewBox */
+  var VW=400,VH=180,PAD=30;
+  var proj=(function(){
+    var lat0=STOPS.reduce(function(a,s){return a+s.lat;},0)/STOPS.length*Math.PI/180,k=Math.cos(lat0);
+    var xs=STOPS.map(function(s){return s.lng*k;}),ys=STOPS.map(function(s){return s.lat;});
+    var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
+    var sc=Math.min((VW-2*PAD)/(maxX-minX),(VH-2*PAD)/(maxY-minY));
+    var ox=(VW-(maxX-minX)*sc)/2,oy=(VH-(maxY-minY)*sc)/2;
+    return function(lat,lng){return{x:ox+(lng*k-minX)*sc,y:oy+(maxY-lat)*sc};};
+  })();
+  var PTS=STOPS.map(function(s){return proj(s.lat,s.lng);});
+  function segD(i){   /* Catmull-Rom → cubic Bézier, stop i → i+1 */
+    var p0=PTS[Math.max(i-1,0)],p1=PTS[i],p2=PTS[i+1],p3=PTS[Math.min(i+2,PTS.length-1)];
+    return "C"+(p1.x+(p2.x-p0.x)/6).toFixed(1)+" "+(p1.y+(p2.y-p0.y)/6).toFixed(1)+" "+
+      (p2.x-(p3.x-p1.x)/6).toFixed(1)+" "+(p2.y-(p3.y-p1.y)/6).toFixed(1)+" "+p2.x.toFixed(1)+" "+p2.y.toFixed(1);
+  }
+  var ROUTE_M="M"+PTS[0].x.toFixed(1)+" "+PTS[0].y.toFixed(1);
+  var ROUTE_D=ROUTE_M+STOPS.slice(1).map(function(_,i){return segD(i);}).join("");
+
+  /* geo helpers */
+  var R_MI=3958.8;
+  function hav(a,b){
+    var dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180,s=Math.sin(dLat/2),t=Math.sin(dLng/2);
+    var h=s*s+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*t*t;
+    return 2*R_MI*Math.asin(Math.sqrt(h));
+  }
+  function locate(p){   /* nearest point on the route polyline → {seg,t,dist,miles} */
+    var best=null;
+    for(var i=0;i<STOPS.length-1;i++){
+      var A=STOPS[i],B=STOPS[i+1],k=Math.cos((A.lat+B.lat)/2*Math.PI/180);
+      var ax=A.lng*k,ay=A.lat,bx=B.lng*k,by=B.lat,px=p.lng*k,py=p.lat;
+      var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+      var t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=Math.max(0,Math.min(1,t));
+      var d=hav(p,{lat:ay+dy*t,lng:(ax+dx*t)/k});
+      if(!best||d<best.dist)best={seg:i,t:t,dist:d,miles:CUM[i]+t*B.mi};
+    }
+    return best;
+  }
+
+  var NS="http://www.w3.org/2000/svg";
+  function svgEl(t,attrs){var e=document.createElementNS(NS,t);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
+  var tripUI={L:0},SEGLEN=[],tripPos=null,tripWatch=null;
+  function buildTripMap(){
+    var svg=document.getElementById("tripSvg");svg.innerHTML="";
+    var bg=svgEl("path",{"class":"route-bg",d:ROUTE_D});svg.appendChild(bg);
+    var done=svgEl("path",{"class":"route-done",d:ROUTE_D});svg.appendChild(done);
+    SEGLEN=[0];var tmp=svgEl("path",{d:ROUTE_M}),d=ROUTE_M;svg.appendChild(tmp);
+    for(var i=0;i<STOPS.length-1;i++){d+=segD(i);tmp.setAttribute("d",d);SEGLEN.push(tmp.getTotalLength());}
+    svg.removeChild(tmp);
+    var L=bg.getTotalLength();
+    done.setAttribute("stroke-dasharray",L);done.setAttribute("stroke-dashoffset",L);
+    tripUI={L:L,bg:bg,done:done,nodes:[]};
+    STOPS.forEach(function(s,i){
+      var p=PTS[i],o=LBL[i];
+      var n=svgEl("circle",{"class":"node"+(s.opt?" opt":"")+(s.home?" home":""),cx:p.x.toFixed(1),cy:p.y.toFixed(1),r:5.5});
+      svg.appendChild(n);tripUI.nodes.push(n);
+      var t=svgEl("text",{"class":"lbl",x:(p.x+o[0]).toFixed(1),y:(p.y+o[1]).toFixed(1),"text-anchor":o[2]});
+      t.textContent=s.short;svg.appendChild(t);
+    });
+    var pos=svgEl("circle",{"class":"pos",cx:0,cy:0,r:6,opacity:0});svg.appendChild(pos);tripUI.pos=pos;
+  }
+  function tripProgress(){
+    if(tripPos){var l=locate(tripPos);return{miles:l.miles,seg:l.seg,t:l.t,live:true};}
+    var last=0;STOPS.forEach(function(s,i){if(state.trip.arrived[s.id])last=i;});
+    return last>=STOPS.length-1?{miles:CUM[last],seg:STOPS.length-2,t:1,live:false}:{miles:CUM[last],seg:last,t:0,live:false};
+  }
+  function updateTripMap(){
+    if(!tripUI.L)return;
+    var pr=tripProgress();
+    var len=SEGLEN[pr.seg]+pr.t*(SEGLEN[pr.seg+1]-SEGLEN[pr.seg]);
+    tripUI.done.setAttribute("stroke-dashoffset",(tripUI.L-len).toFixed(2));
+    tripUI.nodes.forEach(function(n,i){n.classList.toggle("done",!!state.trip.arrived[STOPS[i].id]||(pr.live&&CUM[i]<=pr.miles+0.5));});
+    var pt=tripUI.bg.getPointAtLength(len);
+    tripUI.pos.style.transform="translate("+pt.x.toFixed(1)+"px,"+pt.y.toFixed(1)+"px)";
+    tripUI.pos.setAttribute("opacity",pr.live?1:(pr.miles>0?.55:0));
+    var next=-1;for(var i=0;i<STOPS.length;i++){if(CUM[i]>pr.miles+0.5){next=i;break;}}
+    document.getElementById("tripStat").innerHTML='<strong>'+Math.round(pr.miles)+'</strong> of '+TOTAL_MI+' mi'+
+      (next>=0?' · next: '+esc(STOPS[next].short)+' in ~'+Math.round(CUM[next]-pr.miles)+' mi':' · arrived SF');
+  }
+  function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();}
+  function renderTripStops(){
+    var wrap=document.getElementById("tripStops");wrap.innerHTML="";
+    STOPS.forEach(function(s,i){
+      var arr=!!state.trip.arrived[s.id];
+      var card=el("div","card tripstop"+(arr?" done":""),
+        '<div class="sh"><span class="day">'+esc(s.day)+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up Sept 4')+'</span></div>'+
+        '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">· '+esc(s.note)+'</span>':'')+'</div>'+
+        (s.alt?'<span class="alt">'+esc(s.alt)+'</span>':'')+
+        '<div class="rule">'+TRIP_RULE+'</div>');
+      var row=el("div","check"+(arr?" on":""),'<span class="ring">✓</span><span><span class="ct">Arrived</span></span>');
+      row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");row.setAttribute("aria-checked",arr?"true":"false");
+      function tog(){state.trip.arrived[s.id]=!state.trip.arrived[s.id];save(state);renderTripStops();updateTripMap();}
+      row.addEventListener("click",tog);
+      row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
+      card.appendChild(row);
+      var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
+      if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'));
+      wrap.appendChild(card);
+    });
+  }
+  /* live tracking — never blocks the UI */
+  function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
+  function onFix(p){
+    tripPos={lat:p.coords.latitude,lng:p.coords.longitude};
+    var changed=false;
+    STOPS.forEach(function(s){if(!state.trip.arrived[s.id]&&hav(tripPos,s)<5){state.trip.arrived[s.id]=true;changed=true;}});
+    if(changed){save(state);renderTripStops();}
+    var now=new Date();
+    setTrackStatus("Live — "+((now.getHours()+11)%12+1)+":"+("0"+now.getMinutes()).slice(-2)+(now.getHours()<12?" am":" pm"));
+    updateTripMap();
+  }
+  function onErr(e){
+    tripPos=null;
+    setTrackStatus(e&&e.code===1?"Location unavailable — permission denied":"Location unavailable — no fix yet");
+    updateTripMap();
+  }
+  function startTrack(){
+    if(!navigator.geolocation){setTrackStatus("Location unavailable on this device");return;}
+    if(tripWatch!==null)return;
+    setTrackStatus("Waiting for a fix…");
+    try{tripWatch=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:false,maximumAge:30000,timeout:20000});}
+    catch(err){tripWatch=null;setTrackStatus("Location unavailable");}
+  }
+  function stopTrack(){
+    if(tripWatch!==null&&navigator.geolocation){try{navigator.geolocation.clearWatch(tripWatch);}catch(err){}}
+    tripWatch=null;tripPos=null;
+    setTrackStatus("Off — progress from Arrived checks");
+    updateTripMap();
+  }
+  function syncTrackSw(){
+    var sw=document.getElementById("trackSw");
+    sw.classList.toggle("on",!!state.trip.tracking);
+    sw.setAttribute("aria-checked",state.trip.tracking?"true":"false");
+  }
+  document.getElementById("trackSw").addEventListener("click",function(){
+    state.trip.tracking=!state.trip.tracking;save(state);syncTrackSw();
+    if(state.trip.tracking)startTrack();else stopTrack();
+  });
+
   /* ---------- tabs ---------- */
-  var pages=["move","sort","pack","numbers","links"];
+  var pages=["move","sort","pack","trip","info"];
   pages.forEach(function(p){
     document.getElementById("nav-"+p).addEventListener("click",function(){
       pages.forEach(function(q){
@@ -957,11 +1160,14 @@ var ACCENTS = {
         document.getElementById("page-"+q).classList.toggle("active",q===p);
       });
       if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
+      if(p==="trip")ensureTripMap();
       window.scrollTo(0,0);
     });
   });
 
   renderMove();renderSort();renderPack();
+  renderTripStops();syncTrackSw();ensureTripMap();
+  if(state.trip.tracking)startTrack();
 </script>
 </body>
 </html>
