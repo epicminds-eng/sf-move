@@ -14,13 +14,16 @@
   :root{
     --bg:#F2F2F7; --cell:#FFFFFF; --label:#000000; --secondary:#6C6C70; --tertiary:#AEAEB2;
     --sep:#C6C6C8; --blue:#007AFF; --green:#34C759; --orange:#FF9500; --red:#FF3B30;
-    --teal:#30B0C7; --amber:#FFCC00; --brown:#A2845E; --purple:#AF52DE; --fill:#E9E9EB;
+    --teal:#30B0C7; --amber:#FFCC00; --brown:#A2845E; --purple:#AF52DE; --fill:#E9E9EB; --tabh:56px;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{background:#F2F2F7 !important;}
   body{color:var(--label);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
     font-size:17px;line-height:1.35;-webkit-font-smoothing:antialiased;
-    padding-bottom:calc(84px + env(safe-area-inset-bottom));}
+    margin:0;}
+  /* app shell: body never scrolls; one scroll container; tab bar is a body child with no transformed ancestors */
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+  #scroll{position:absolute;top:0;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
   .wrap{max-width:640px;margin:0 auto;padding:8px 16px 24px;}
   :focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
 
@@ -124,8 +127,8 @@
   .diamond{margin:0 16px 14px;background:#FFF8E1;border-radius:10px;padding:10px 12px;font-size:13px;color:#7A5B00;}
 
   /* nav */
-  nav{position:fixed;left:0;right:0;bottom:0;background:rgba(249,249,249,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
-    border-top:.5px solid var(--sep);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:20;}
+  nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--tabh) + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(249,249,249,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    border-top:.5px solid var(--sep);display:flex;justify-content:space-around;align-items:flex-start;padding:6px 0 env(safe-area-inset-bottom);z-index:20;}
   nav button{flex:1;background:none;border:none;font-family:inherit;font-size:10px;font-weight:600;color:var(--secondary);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
   nav button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
   nav button.active{color:var(--blue);}
@@ -211,11 +214,15 @@
   .tripstop .btns.two .btn{flex:1;text-align:center;}
   .tripstop .dogs{font-size:12px;color:var(--secondary);padding:0 16px 13px;}
   .tripstop .lnk{font-size:13px;font-weight:600;color:var(--blue);text-decoration:none;margin-left:14px;}
+  .daterow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 4px;}
+  .daterow label{font-size:16px;font-weight:600;}
+  .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .bk{fill:#F5F3EE;stroke:#9AA0A6;stroke-width:1.2;}
   .bl{font-size:8px;font-weight:500;fill:#8E8E93;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:2.5;stroke-linejoin:round;}
 </style>
 </head>
 <body>
+<div id="scroll">
 <div class="wrap">
 
   <!-- ================= MOVE ================= -->
@@ -223,14 +230,14 @@
     <div class="sign">
       <div class="route">Chicago → San Francisco</div>
       <h1>SF Move</h1>
-      <div class="sub">Assembly through Sept 3 · drive out Sept 4.</div>
+      <div class="sub" id="moveSub"></div>
     </div>
     <div class="roadbar">
       <div class="row"><span class="lbl"><span id="cdDays">–</span> days to wheels up</span><span class="num" id="moveNum">0 / 0</span></div>
       <div class="road"><div class="fill" id="moveFill"></div></div>
     </div>
     <div class="chipsrow">
-      <span>Jamaica ✓</span><span class="hot">Assembly Aug 20 – Sept 3</span><span>Drive Sept 4</span>
+      <span>Jamaica ✓</span><span class="hot" id="chipAssembly"></span><span id="chipDrive"></span>
     </div>
     <div id="phaseGroups"></div>
   </div>
@@ -284,7 +291,7 @@
   <!-- ================= TRIP ================= -->
   <div class="page" id="page-trip">
     <div class="sign">
-      <div class="route">Southern route · wheels up Sept 4</div>
+      <div class="route" id="tripRoute">Southern route</div>
       <h1>Trip</h1>
       <div class="sub">St. Robert · Weatherford · Milan · Mom's · LA · SF</div>
     </div>
@@ -407,8 +414,9 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v16 · Sep 2</div>
+  <div class="appver">SF Move · v17 · Sep 2</div>
 
+</div>
 </div>
 
 <nav>
@@ -709,6 +717,7 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
+  state.trip.departDate=state.trip.departDate||"2026-09-04";   /* additive: single source for every stop date */
   ["rolla","okc","santarosa","calumet","payson"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
@@ -716,11 +725,24 @@ var ACCENTS = {
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function el(tag,cls,htmlc){var e=document.createElement(tag);if(cls)e.className=cls;if(htmlc!==undefined)e.innerHTML=htmlc;return e;}
 
-  /* ---------- countdown ---------- */
-  (function(){
-    var days=Math.ceil((new Date(2026,8,4)-new Date())/86400000);
+  /* ---------- dates: everything derives from trip.departDate ---------- */
+  var WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MO=["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
+  function parseYMD(s){var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+  function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+  function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+  function fmtShort(d){return MO[d.getMonth()]+" "+d.getDate();}
+  function fmtDay(d){return WD[d.getDay()]+" "+fmtShort(d);}
+  function departDate(){return parseYMD(state.trip.departDate||"2026-09-04");}
+  function orbitzUrl(dest,d){var a=ymd(d),b=ymd(addDays(d,1));return "https://www.orbitz.com/Hotel-Search?destination="+dest+"&startDate="+a+"&endDate="+b+"&d1="+a+"&d2="+b+"&adults=1";}
+  function renderDates(){
+    var d0=departDate(),eve=addDays(d0,-1);
+    var days=Math.ceil((d0-new Date())/86400000);
     document.getElementById("cdDays").textContent=days>0?days:"GO —";
-  })();
+    document.getElementById("moveSub").textContent="Assembly through "+fmtShort(eve)+" · drive out "+fmtShort(d0)+".";
+    document.getElementById("chipAssembly").textContent="Assembly Aug 20 – "+fmtShort(eve);
+    document.getElementById("chipDrive").textContent="Drive "+fmtShort(d0);
+    document.getElementById("tripRoute").textContent="Southern route · wheels up "+fmtShort(d0);
+  }
 
   /* ---------- MOVE: phases ---------- */
   function renderMove(){
@@ -1072,25 +1094,22 @@ var ACCENTS = {
 
   /* ---------- TRIP ---------- */
   var STOPS=[
-    {id:"start",   day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0},
+    {id:"start",   day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0, off:0},
     {id:"strobert",day:"Day 1",    name:"Saint Robert, MO",     short:"St. Robert", lat:37.8284,  lng:-92.1502,  mi:440, q:"Tesla%20Supercharger%20Saint%20Robert%20MO",
-      night:"Sept 4", sc:"Casey\u0027s, 325 kW", backup:"rolla",
-      hotel:"https://www.orbitz.com/Hotel-Search?destination=Saint%20Robert%2C%20Missouri&startDate=2026-09-04&endDate=2026-09-05&d1=2026-09-04&d2=2026-09-05&adults=1",
+      off:0, hotelDest:"Saint%20Robert%2C%20Missouri", sc:"Casey\u0027s, 325 kW", backup:"rolla",
       dogs:"Hampton Inn St. Robert \u00b7 Sleep Inn St. Robert"},
     {id:"weatherford",day:"Day 2",  name:"Weatherford, OK",      short:"Weatherford",lat:35.5262,  lng:-98.7076,  mi:415, q:"Tesla%20Supercharger%20Weatherford%20OK",
-      night:"Sept 5", sc:"Lucille\u0027s Road House, 150 kW", backup:"okc",
-      hotel:"https://www.orbitz.com/Hotel-Search?destination=Weatherford%2C%20Oklahoma&startDate=2026-09-05&endDate=2026-09-06&d1=2026-09-05&d2=2026-09-06&adults=1",
+      off:1, hotelDest:"Weatherford%2C%20Oklahoma", sc:"Lucille\u0027s Road House, 150 kW", backup:"okc",
       dogs:"Home2 Suites Weatherford \u00b7 La Quinta Weatherford"},
     {id:"milan",   day:"Day 3",    name:"Milan, NM",            short:"Milan",      lat:35.1697,  lng:-107.8909, mi:550, q:"Tesla%20Supercharger%20Milan%20NM",
-      night:"Sept 6", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
-      hotel:"https://www.orbitz.com/Hotel-Search?destination=Grants%2C%20New%20Mexico&startDate=2026-09-06&endDate=2026-09-07&d1=2026-09-06&d2=2026-09-07&adults=1",
+      off:2, hotelDest:"Grants%2C%20New%20Mexico", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
-    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"1 night", home:true},
-    {id:"la",      day:"Overnight",name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380,
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"1 night", home:true, off:3},
+    {id:"la",      day:"LA",       name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380, off:4,
       addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
       url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
       sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20Los%20Angeles%20CA"},
-    {id:"sf",      day:"End",      name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385}
+    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385, off:5}
   ];
   /* backups for Day 1\u20133: drawn as small hollow gray nodes, never part of progress math */
   var BACKUPS=[
@@ -1220,23 +1239,33 @@ var ACCENTS = {
     STOPS.forEach(function(s,i){
       var arr=!!state.trip.arrived[s.id];
       var bk=s.backup?BACKUPS.filter(function(b){return b.id===s.backup;})[0]:null;
+      var dt=addDays(departDate(),s.off||0);
       var card=el("div","card tripstop"+(arr?" done":""),
-        '<div class="sh"><span class="day">'+esc(s.day)+(s.night?' \u00b7 '+esc(s.night):'')+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up Sept 4')+'</span></div>'+
+        '<div class="sh"><span class="day">'+esc(s.day)+' \u00b7 '+esc(fmtDay(dt))+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up '+esc(fmtShort(dt)))+'</span></div>'+
         '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">\u00b7 '+esc(s.note)+'</span>':'')+'</div>'+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
         (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
         (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
         '');
+      if(s.id==="start"){
+        var dr=el("div","daterow",'<label for="departDate">Wheels up</label><input type="date" id="departDate">');
+        var inp=dr.querySelector("input");inp.value=state.trip.departDate;
+        inp.addEventListener("change",function(){
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(this.value))return;
+          state.trip.departDate=this.value;save(state);renderDates();renderTripStops();
+        });
+        card.appendChild(dr);
+      }
       var row=el("div","check"+(arr?" on":""),'<span class="ring">\u2713</span><span><span class="ct">Arrived</span></span>');
       row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");row.setAttribute("aria-checked",arr?"true":"false");
       function tog(){state.trip.arrived[s.id]=!state.trip.arrived[s.id];save(state);renderTripStops();updateTripMap();}
       row.addEventListener("click",tog);
       row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
       card.appendChild(row);
-      if(s.hotel){
+      if(s.hotelDest){
         card.appendChild(el("div","btns two",
           '<a class="btn" href="https://maps.apple.com/?q='+s.q+'">Supercharger</a>'+
-          '<a class="btn go" href="'+s.hotel+'">Hotels on Orbitz</a>'));
+          '<a class="btn go" href="'+orbitzUrl(s.hotelDest,dt)+'">Hotels on Orbitz</a>'));
         if(s.dogs)card.appendChild(el("div","dogs","Dog-friendly: "+esc(s.dogs)));
       }else{
         var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
@@ -1286,19 +1315,21 @@ var ACCENTS = {
 
   /* ---------- tabs ---------- */
   var pages=["move","sort","pack","trip","info"];
+  var scrollEl=document.getElementById("scroll"),scrollPos={},curPage="move";
   pages.forEach(function(p){
     document.getElementById("nav-"+p).addEventListener("click",function(){
+      scrollPos[curPage]=scrollEl.scrollTop;
       pages.forEach(function(q){
         document.getElementById("nav-"+q).classList.toggle("active",q===p);
         document.getElementById("page-"+q).classList.toggle("active",q===p);
       });
       if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
       if(p==="trip")ensureTripMap();
-      window.scrollTo(0,0);
+      curPage=p;scrollEl.scrollTop=scrollPos[p]||0;
     });
   });
 
-  renderMove();renderSort();renderPack();
+  renderDates();renderMove();renderSort();renderPack();
   renderTripStops();syncTrackSw();ensureTripMap();
   if(state.trip.tracking)startTrack();
 </script>
