@@ -239,12 +239,11 @@
   .add .note{flex:1 1 0;width:0;font-size:15px;padding:14px 12px;}
   .kwh{margin-top:8px;}
   .kwh input{width:100%;border:0;background:var(--bg);border-radius:12px;color:var(--label);font-family:inherit;font-size:15px;padding:12px;outline:none;}
-  .kwh[hidden],.daypick[hidden]{display:none;}
+  .kwh[hidden]{display:none;}
   .chips2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
   .chip2{font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--bg);color:var(--secondary);border:0;font-family:inherit;cursor:pointer;}
   .chip2.on{background:var(--blue);color:#fff;}
   .addbtn{margin-top:12px;width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:var(--blue);color:#fff;font-family:inherit;cursor:pointer;}
-  .daypick{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
   .dayh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
   .dayh h2{font-size:17px;font-weight:700;margin:0;}
   .dayh h2 small{font-weight:500;color:var(--secondary);font-size:13px;margin-left:6px;}
@@ -253,13 +252,18 @@
   .sprow:first-of-type{border-top:0;}
   .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:0 0 34px;}
   .sprow .t{flex:1;min-width:0;}
-  .sprow .t div{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sprow .t div{font-size:15px;font-weight:600;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}   /* wrap to two lines so tags never clip */
   .sprow .t span{font-size:12px;color:#8E8E93;}
   .sprow .a{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;flex:none;}
   .sprow.plan{opacity:.62;}
   .sprow.plan .a{color:var(--secondary);font-weight:600;}
   .sprow.plan .ic{outline:1.5px dashed #8E8E93;outline-offset:-1.5px;background:transparent!important;}
   .sprow.new{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
+  .addsec{border-top:1px solid #E5E5EA;margin-top:4px;padding-top:12px;}
+  .addrow2{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:4px 0;font-family:inherit;font-size:15px;font-weight:600;color:var(--blue);cursor:pointer;text-align:left;}
+  .addrow2 .plus{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:18px;line-height:1;flex:none;}
+  .addform.new,.addrow2.new{animation:springIn .38s cubic-bezier(.22,1,.36,1);}   /* expand/collapse: transform + opacity only */
+  .now{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:var(--blue);color:#fff;border-radius:6px;padding:2px 6px;margin-left:8px;vertical-align:2px;}
   .sptag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:var(--bg);color:#8E8E93;margin-left:6px;vertical-align:1px;}
   .ch{background:#E5F0FF;}.ho{background:#F3E8FF;}.fo{background:#FFF1E0;}.gr{background:#E0F5F7;}.ka{background:#E6F8EA;}.mi{background:#EEF0F3;}
   .est{font-size:13px;color:var(--secondary);margin:0;line-height:1.45;}
@@ -435,14 +439,6 @@
       </div>
       <p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span></p>
     </div>
-    <div class="card spc">
-      <div class="add"><input class="amt" type="text" inputmode="decimal" id="spAmt" placeholder="$" aria-label="Amount"><input class="note" type="text" id="spNote" placeholder="What was it? (optional)" aria-label="Note"></div>
-      <div class="chips2" id="spCats"></div>
-      <div class="kwh" id="spKwhRow" hidden><input type="text" inputmode="decimal" id="spKwh" placeholder="kWh charged" aria-label="kWh"></div>
-      <button class="addbtn" id="spAdd" type="button">Add</button>
-      <div class="daypick" id="spDayPick" hidden></div>
-      <p class="hint">Day and stop auto-fill from where you are. Tap Add with no amount to pick another day.</p>
-    </div>
     <div id="spendDays"></div>
     <div class="card spc">
       <div class="dayh"><h2>Projection</h2><b>~<span id="spProj2">$0</span></b></div>
@@ -450,7 +446,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v23 · Sep 3</div>
+  <div class="appver">SF Move · v24 · Sep 3</div>
 
 </div>
 </div>
@@ -1506,30 +1502,37 @@ var ACCENTS = {
     });
     row.appendChild(ed);inp.focus();
   });
-  var spCat="charging",spDay=null;   /* spDay null = follow the trip */
-  function renderAddRow(){
-    var cc=$("spCats");cc.innerHTML="";
-    CATS.forEach(function(c){
-      var b=el("button","chip2"+(spCat===c.id?" on":""),c.e+" "+c.l);b.type="button";
-      b.addEventListener("click",function(){spCat=c.id;renderAddRow();});cc.appendChild(b);
-    });
-    $("spKwhRow").hidden=spCat!=="charging";
-    var d=spDay===null?currentDay():spDay;
-    $("spAdd").textContent="Add to "+dayLabel(d);
-    var pk=$("spDayPick");pk.innerHTML="";
-    for(var i=0;i<=TRIP_DAYS;i++){(function(i){var b=el("button","chip2"+(d===i?" on":""),dayLabel(i));b.type="button";
-      b.addEventListener("click",function(){spDay=i;pk.hidden=true;renderAddRow();});pk.appendChild(b);})(i);}
+  var spCat="charging";   /* last chosen category carries across cards */
+  function syncNow(){   /* default open = the current day; reasserts whenever the current day changes */
+    var cd=currentDay(),ch=false;
+    if(state.spend.nowDay!==cd){state.spend.nowDay=cd;state.spend.openDay=cd;ch=true;}
+    if(typeof state.spend.openDay!=="number"){state.spend.openDay=cd;ch=true;}
+    if(ch)save(state);
   }
-  $("spAdd").addEventListener("click",function(){
-    var amt=parseFloat(String($("spAmt").value).replace(/[^0-9.]/g,""));
-    if(!(amt>0)){var pk=$("spDayPick");pk.hidden=!pk.hidden;return;}   /* no amount → pick another day */
-    var d=spDay===null?currentDay():spDay,s=stopForDay(d);
-    var e={id:"e"+Date.now(),amount:amt,cat:spCat,note:$("spNote").value.trim(),day:d,stopId:s?s.id:null,ts:Date.now(),planned:false,billsLater:false};
-    if(spCat==="charging"){var k=parseFloat(String($("spKwh").value).replace(/[^0-9.]/g,""));if(k>0)e.kwh=k;}
-    state.spend.entries.push(e);save(state);
-    $("spAmt").value="";$("spNote").value="";$("spKwh").value="";$("spDayPick").hidden=true;
-    renderSpend(e.id);
-  });
+  function buildAddForm(d){
+    var f=el("div","addform",
+      '<div class="add"><input class="amt" type="text" inputmode="decimal" placeholder="$" aria-label="Amount"><input class="note" type="text" placeholder="What was it? (optional)" aria-label="Note"></div>'+
+      '<div class="chips2"></div><div class="kwh" hidden><input type="text" inputmode="decimal" placeholder="kWh charged" aria-label="kWh"></div>'+
+      '<button class="addbtn" type="button"></button>');
+    var chips=f.querySelector(".chips2"),kwh=f.querySelector(".kwh"),btn=f.querySelector(".addbtn");
+    function paint(){
+      chips.innerHTML="";
+      CATS.forEach(function(c){var b=el("button","chip2"+(spCat===c.id?" on":""),c.e+" "+c.l);b.type="button";b.addEventListener("click",function(){spCat=c.id;paint();});chips.appendChild(b);});
+      kwh.hidden=spCat!=="charging";
+    }
+    paint();
+    btn.textContent=d>0?"Add to "+dayLabel(d):"Add to Pre-trip";
+    btn.addEventListener("click",function(){
+      var amtEl=f.querySelector(".amt"),amt=parseFloat(String(amtEl.value).replace(/[^0-9.]/g,""));
+      if(!(amt>0)){amtEl.focus();return;}
+      var s=stopForDay(d);
+      var e={id:"e"+Date.now(),amount:amt,cat:spCat,note:f.querySelector(".note").value.trim(),day:d,stopId:s?s.id:null,ts:Date.now(),planned:false,billsLater:false};
+      if(spCat==="charging"){var k=parseFloat(String(kwh.querySelector("input").value).replace(/[^0-9.]/g,""));if(k>0)e.kwh=k;}
+      state.spend.entries.push(e);save(state);
+      renderSpendTop();renderSpendDays(e.id);   /* the row springs into this card; the form comes back cleared and open */
+    });
+    return f;
+  }
   function spendRow(e,isNew){
     var c=CATMAP[e.cat]||CATMAP.misc,sub;
     if(e.planned)sub=e.billsLater?"confirm from your statement — could be after arrival":"tap to confirm actual";
@@ -1567,20 +1570,30 @@ var ACCENTS = {
     });
     inp.addEventListener("click",function(ev){ev.stopPropagation();});
   }
-  function renderSpendDays(newId){
+  function renderSpendDays(newId,openAnim,closeAnim){
     var wrap=$("spendDays");wrap.innerHTML="";
-    var byDay={0:[]};state.spend.entries.forEach(function(e){(byDay[e.day]=byDay[e.day]||[]).push(e);});   /* Pre-trip card always present */
-    Object.keys(byDay).map(Number).sort(function(a,b){return b-a;}).forEach(function(d){
-      var list=byDay[d].slice().sort(function(a,b){return b.ts-a.ts;}),act=0;
+    var cd=currentDay(),byDay={};
+    state.spend.entries.forEach(function(e){(byDay[e.day]=byDay[e.day]||[]).push(e);});
+    /* order: current day, then future days ascending, then past days descending, Pre-trip last */
+    var order=[cd],i;for(i=cd+1;i<=TRIP_DAYS;i++)order.push(i);for(i=cd-1;i>=1;i--)order.push(i);if(cd!==0)order.push(0);
+    order.forEach(function(d){
+      var list=(byDay[d]||[]).slice().sort(function(a,b){return b.ts-a.ts;}),act=0;
       list.forEach(function(e){if(!e.planned)act+=e.amount;});
-      var card=el("div","card spc"),s=stopForDay(d);
-      card.appendChild(el("div","dayh",'<h2>'+(d>0?'Day '+d+'<small>'+esc(fmtDay(addDays(departDate(),d-1)))+(s?' · '+esc(s.short):'')+'</small>':'Pre-trip')+'</h2><b>'+money(act)+'</b>'));
-      if(!list.length)card.appendChild(el("p","est","Ship Sticks (3 pieces) and Kane road kit land here when you log them — anything with a receipt before wheels-up."));
+      var card=el("div","card spc spday"),s=stopForDay(d);card.setAttribute("data-day",d);
+      card.appendChild(el("div","dayh",'<h2>'+(d>0?'Day '+d+'<small>'+esc(fmtDay(addDays(departDate(),d-1)))+(s?' · '+esc(s.short):'')+'</small>':'Pre-trip')+(d===cd?'<span class="now">Now</span>':'')+'</h2><b>'+money(act)+'</b>'));
       list.forEach(function(e){card.appendChild(spendRow(e,e.id===newId));});
-      wrap.appendChild(card);
+      var sec=el("div","addsec");
+      if(state.spend.openDay===d){var f=buildAddForm(d);if(openAnim===d)f.classList.add("new");sec.appendChild(f);}
+      else{
+        var r=el("button","addrow2",'<span class="plus">+</span>'+(d>0?"Add to Day "+d:"Add to Pre-trip"));r.type="button";
+        if(closeAnim===d)r.classList.add("new");
+        r.addEventListener("click",function(){var prev=state.spend.openDay;state.spend.openDay=d;save(state);renderSpendDays(undefined,d,prev);});
+        sec.appendChild(r);
+      }
+      card.appendChild(sec);wrap.appendChild(card);
     });
   }
-  function renderSpend(newId){seedSpend();renderAddRow();renderSpendTop();renderSpendDays(newId);}
+  function renderSpend(newId){seedSpend();syncNow();renderSpendTop();renderSpendDays(newId);}
 
   /* ---------- tabs ---------- */
   var pages=["move","sort","pack","trip","spend"];
