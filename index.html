@@ -112,20 +112,14 @@
   .verdict.sell{background:#FFE5E3;color:#C0392B;}
   .verdict.keep{background:#E2F7E8;color:#1D7A4C;}
   .verdict.tbd{background:#FFF3D6;color:#A06B00;}
-  .copyblock{margin:10px 16px 14px;background:var(--bg);border-radius:10px;padding:12px;font-size:13px;color:#3A3A3C;white-space:pre-wrap;}
   .btns{padding:4px 16px 14px;}
   .btn{display:inline-block;font-size:15px;font-weight:600;padding:10px 14px;border-radius:10px;border:none;background:var(--fill);color:var(--blue);cursor:pointer;font-family:inherit;text-decoration:none;}
   .btn.go{background:var(--blue);color:#fff;}
 
-  /* links */
-  .linkgrid{background:var(--cell);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;}
-  .linkgrid a{display:flex;align-items:center;gap:6px;padding:13px 16px;text-decoration:none;color:var(--label);position:relative;font-size:16px;}
-  .linkgrid a + a::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
-  .linkgrid .k{font-size:12px;font-weight:700;color:var(--secondary);text-transform:uppercase;width:86px;flex:none;}
-  .linkgrid .n{flex:1;}
-  .linkgrid .ar{color:var(--tertiary);}
-
   .diamond{margin:0 16px 14px;background:#FFF8E1;border-radius:10px;padding:10px 12px;font-size:13px;color:#7A5B00;}
+  .refblock{border-top:.5px solid var(--sep);margin-top:6px;padding-top:2px;}
+  .refblock .rt{font-size:12px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;padding:12px 16px 0;}
+  .btns.wrap{display:flex;flex-wrap:wrap;gap:8px;}
 
   /* nav */
   nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--tabh) + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(249,249,249,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
@@ -168,9 +162,6 @@
   .modal textarea{height:45vh;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--sep);border-radius:10px;padding:10px;background:var(--bg);color:var(--label);resize:none;-webkit-user-select:text;user-select:text;overflow:auto;}
   .modal .mbtns{display:flex;gap:8px;}
   .modal .mbtns .btn{flex:1;text-align:center;}
-
-  /* info: merged links */
-  .secttl{font-size:13px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;margin:22px 0 8px 4px;}
 
   /* trip — motion is transform/opacity only, ease-out (spring, damping 1.0, no overshoot) */
   #page-trip.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
@@ -242,6 +233,7 @@
       <span>Jamaica ✓</span><span class="hot" id="chipAssembly"></span><span id="chipDrive"></span>
     </div>
     <div id="phaseGroups"></div>
+    <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
   <!-- ================= SORT ================= -->
@@ -366,57 +358,7 @@
     <div id="tripStops"></div>
   </div>
 
-  <!-- ================= INFO (numbers + links) ================= -->
-  <div class="page" id="page-info">
-    <div class="sign">
-      <div class="route">Numbers · Links · Export</div>
-      <h1>Info</h1>
-      <div class="sub">The dollar figures, the links, the backup.</div>
-    </div>
-
-    <div class="card">
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Ship via Joey</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>3 pieces via Ship Sticks: ~$60–90/piece standard, CHI → SF.</strong><span class="vg">Two suitcases + golf travel bag stay at Joey's — he schedules the Ship Sticks pickup from his address after you land. Golf bag can run higher.</span></div>
-        <div class="btns"><a class="btn go" href="https://www.shipsticks.com">Ship Sticks — exact quote</a></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Workout gear</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>FLYBIRD bench:</strong> new $117–162 depending on model (~$150 typical) · used resale ~$50–80.<span class="vg">Sell here + rebuy in SF ≈ net $70–100 — about what shipping a 30 lb bench costs anyway.</span>
-        <span class="verdict sell">SELL + REBUY IN SF</span></div>
-        <div class="fact"><strong>Merach ab trainer:</strong> new $60–90 · used ~$25–40.<span class="vg">Never worth freight.</span>
-        <span class="verdict sell">SELL / DONATE</span></div>
-        <div class="fact"><strong>Steel mace:</strong> new ~$40–60 · used ~$20–30. <strong>Kettlebell:</strong> ~$1–2/lb new, resale ~half.<span class="vg">Dense + small = they can ride in the car floor as ballast if you like them; zero shipping logic.</span>
-        <span class="verdict keep">CAR IF LOVED, ELSE SELL</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="sec-head" role="button" tabindex="0"><span class="t">Desk / misc — quick calls</span><span class="m"><span class="chev">▼</span></span></div>
-      <div class="sec-body">
-        <div class="fact"><strong>iMac + monitor:</strong> ride in car (blankets, trunk) — never movers.<span class="verdict keep">CAR</span></div>
-        <div class="fact"><strong>Printer:</strong> ~$60–120 to replace; heavy, ink leaks in transit.<span class="verdict sell">LEAVE / SELL</span></div>
-        <div class="fact"><strong>Mirror + Hue lights:</strong> mirror = mover item (crate) or leave; Hue is small — car box.<span class="verdict tbd">HUE CAR · MIRROR TBD</span></div>
-        <div class="fact"><strong>Coolers:</strong> the good one rides (drive snacks/Kane water), rest leave.<span class="verdict keep">ONE RIDES</span></div>
-      </div>
-      <div class="diamond">Rule of thumb from the math: under ~$150 replacement value and heavy → sell here, rebuy there. Small + dense + loved → car. Only bulky-and-precious earns the mover.</div>
-    </div>
-
-    <div class="secttl">Links — one tap each</div>
-    <div class="linkgrid">
-      <a href="https://www.shipsticks.com"><span class="k">Golf</span><div class="n">Ship Sticks — exact quote</div><span class="ar">›</span></a>
-      <a href="https://www.dmv.ca.gov/portal/dmv-online/"><span class="k">DMV</span><div class="n">CA DMV — 10/20-day clock</div><span class="ar">›</span></a>
-      <a href="https://www.coveredca.com"><span class="k">Health</span><div class="n">Covered California — 60-day SEP</div><span class="ar">›</span></a>
-      <a href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits"><span class="k">Parking</span><div class="n">SF residential parking permit</div><span class="ar">›</span></a>
-      <a href="https://flybirdfitness.com"><span class="k">Rebuy</span><div class="n">FLYBIRD — bench, SF edition</div><span class="ar">›</span></a>
-    </div>
-    <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
-  </div>
-
-  <div class="appver">SF Move · v20 · Sep 3</div>
+  <div class="appver">SF Move · v21 · Sep 3</div>
 
 </div>
 </div>
@@ -426,7 +368,6 @@
   <button id="nav-sort" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Sort</button>
   <button id="nav-pack" type="button"><svg viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.3L12 12l8.7-4.7"/><path d="M12 22V12"/></svg>Pack</button>
   <button id="nav-trip" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Trip</button>
-  <button id="nav-info" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>Info</button>
 </nav>
 
 <script>
@@ -703,6 +644,28 @@ var ACCENTS = {
     docs:      ["#7A6236", "#EFEAE0"]
   };
 
+  /* reference blocks folded in from the old Info tab — every link stays a tappable button */
+  var EXTRA={
+    joey:'<div class="refblock"><div class="rt">Ship via Joey</div>'+
+      '<div class="fact"><strong>3 pieces via Ship Sticks: ~$60–90/piece standard, CHI → SF.</strong><span class="vg">Two suitcases + golf travel bag stay at Joey\u0027s — he schedules the Ship Sticks pickup from his address after you land. Golf bag can run higher.</span></div>'+
+      '<div class="btns"><a class="btn go" href="https://www.shipsticks.com">Ship Sticks — exact quote</a></div></div>',
+    logistics:'<div class="refblock"><div class="rt">Workout gear — sell vs ship</div>'+
+      '<div class="fact"><strong>FLYBIRD bench:</strong> new $117–162 depending on model (~$150 typical) · used resale ~$50–80.<span class="vg">Sell here + rebuy in SF ≈ net $70–100 — about what shipping a 30 lb bench costs anyway.</span><span class="verdict sell">SELL + REBUY IN SF</span></div>'+
+      '<div class="fact"><strong>Merach ab trainer:</strong> new $60–90 · used ~$25–40.<span class="vg">Never worth freight.</span><span class="verdict sell">SELL / DONATE</span></div>'+
+      '<div class="fact"><strong>Steel mace:</strong> new ~$40–60 · used ~$20–30. <strong>Kettlebell:</strong> ~$1–2/lb new, resale ~half.<span class="vg">Dense + small = they can ride in the car floor as ballast if you like them; zero shipping logic.</span><span class="verdict keep">CAR IF LOVED, ELSE SELL</span></div>'+
+      '<div class="rt">Links</div><div class="btns wrap">'+
+      '<a class="btn" href="https://www.dmv.ca.gov/portal/dmv-online/">CA DMV — 10/20-day clock</a>'+
+      '<a class="btn" href="https://www.coveredca.com">Covered California — 60-day SEP</a>'+
+      '<a class="btn" href="https://flybirdfitness.com">FLYBIRD — bench, SF edition</a></div></div>',
+    landing:'<div class="refblock"><div class="rt">Links</div><div class="btns wrap">'+
+      '<a class="btn" href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits">SF residential parking permit</a></div></div>',
+    ref:'<div class="fact"><strong>iMac + monitor:</strong> ride in car (blankets, trunk) — never movers.<span class="verdict keep">CAR</span></div>'+
+      '<div class="fact"><strong>Printer:</strong> ~$60–120 to replace; heavy, ink leaks in transit.<span class="verdict sell">LEAVE / SELL</span></div>'+
+      '<div class="fact"><strong>Mirror + Hue lights:</strong> mirror = mover item (crate) or leave; Hue is small — car box.<span class="verdict tbd">HUE CAR · MIRROR TBD</span></div>'+
+      '<div class="fact"><strong>Coolers:</strong> the good one rides (drive snacks/Kane water), rest leave.<span class="verdict keep">ONE RIDES</span></div>'+
+      '<div class="diamond">Rule of thumb from the math: under ~$150 replacement value and heavy → sell here, rebuy there. Small + dense + loved → car. Only bulky-and-precious earns the mover.</div>'
+  };
+
   var KEY="sfMoveApp_v1";
   var mem=null;
   function load(){try{var r=window.localStorage.getItem(KEY);return r?JSON.parse(r):mem;}catch(e){return mem;}}
@@ -812,9 +775,19 @@ var ACCENTS = {
         }
       });
       body.appendChild(add);
+      if(EXTRA[ph.id])body.appendChild(el("div",null,EXTRA[ph.id]));
       card.appendChild(body);
       wrap.appendChild(card);
     });
+    /* Reference — everything from the old Info tab that fits no checklist */
+    var rc=el("div","card"+(state.collapsed["ph-ref"]?" closed":""));
+    var rh=el("div","sec-head");rh.setAttribute("role","button");rh.setAttribute("tabindex","0");
+    rh.innerHTML='<span class="t">Reference</span><span class="m"><span class="chev">\u25BC</span></span>';
+    function togR(){state.collapsed["ph-ref"]=!state.collapsed["ph-ref"];save(state);renderMove();}
+    rh.addEventListener("click",togR);
+    rh.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togR();}});
+    rc.appendChild(rh);rc.appendChild(el("div","sec-note","DESK / MISC — QUICK CALLS"));rc.appendChild(el("div","sec-body",EXTRA.ref));
+    wrap.appendChild(rc);
     document.getElementById("moveNum").textContent=dn+" / "+total;
     document.getElementById("moveFill").style.width=(total?Math.round(dn/total*100):0)+"%";
   }
@@ -917,13 +890,6 @@ var ACCENTS = {
   }
   document.getElementById("hideTagged").addEventListener("click",function(){hideTagged=!hideTagged;renderSort();});
   document.getElementById("restoreBtn").addEventListener("click",function(){state.removed={};save(state);renderSort();});
-
-  /* ---------- NUMBERS: collapsible cards + copy ---------- */
-  document.querySelectorAll("#page-info .sec-head").forEach(function(hd){
-    function tog(){hd.parentElement.classList.toggle("closed");}
-    hd.addEventListener("click",tog);
-    hd.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
-  });
 
   /* ---------- PACK ---------- */
   var packFilter="all";
@@ -1354,7 +1320,7 @@ var ACCENTS = {
   });
 
   /* ---------- tabs ---------- */
-  var pages=["move","sort","pack","trip","info"];
+  var pages=["move","sort","pack","trip"];
   var scrollEl=document.getElementById("scroll"),scrollPos={},curPage="move";
   pages.forEach(function(p){
     document.getElementById("nav-"+p).addEventListener("click",function(){
