@@ -32,6 +32,7 @@
   .sign .route{font-size:13px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
   .sign h1{font-size:34px;font-weight:800;letter-spacing:.2px;margin:2px 0 4px;}
   .sign .sub{font-size:15px;color:var(--secondary);}
+  .sign .departline{font-size:15px;font-weight:600;color:var(--blue);margin:0 0 3px;}
 
   /* countdown bar */
   .roadbar{background:var(--cell);border-radius:14px;padding:14px 16px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
@@ -230,6 +231,7 @@
     <div class="sign">
       <div class="route">Chicago → San Francisco</div>
       <h1>SF Move</h1>
+      <div class="departline" id="moveDepart"></div>
       <div class="sub" id="moveSub"></div>
     </div>
     <div class="roadbar">
@@ -414,7 +416,7 @@
     <button class="btn go exportbtn" id="exportBtn" type="button">Export app data</button>
   </div>
 
-  <div class="appver">SF Move · v18 · Sep 2</div>
+  <div class="appver">SF Move · v19 · Sep 3</div>
 
 </div>
 </div>
@@ -431,7 +433,7 @@
   "use strict";
   var PHASES = [
     {
-      id:"now", title:"Back from Jamaica \u2014 Aug 20\u201331", tag:"LOCK IT DOWN",
+      id:"now", title:function(){return "Back from Jamaica \u2014 "+fmtShort(parseYMD(ASSEMBLY_START))+" \u2013 "+fmtShort(addDays(departDate(),-1));}, tag:"LOCK IT DOWN",
       items:[
         {id:"decide-place", t:"Decide on the SF spot (or line up 2\u20133 backups)", d:"Sign the lease \u2014 confirm small dogs allowed, in writing; confirm what furniture it comes with"},
         {id:"car-service", t:"Tesla pre-trip check: tire rotation + tread/pressure", d:"2,100 mi \u2014 also worth a quick check of wipers and cabin filter"},
@@ -717,7 +719,16 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
-  state.trip.departDate=state.trip.departDate||"2026-09-04";   /* additive: single source for every stop date */
+  /* departure date: the single source for every date in the app */
+  (function(){
+    var changed=false;
+    if(!state.trip.departDate){state.trip.departDate="2026-09-05";changed=true;}
+    if(!state.trip.dateMigratedV1){
+      if(state.trip.departDate==="2026-09-04"){state.trip.departDate="2026-09-05";}   /* one-time move Fri → Sat; never again once flagged */
+      state.trip.dateMigratedV1=true;changed=true;
+    }
+    if(changed)save(state);
+  })();
   ["rolla","okc","santarosa","calumet","payson"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
@@ -726,20 +737,23 @@ var ACCENTS = {
   function el(tag,cls,htmlc){var e=document.createElement(tag);if(cls)e.className=cls;if(htmlc!==undefined)e.innerHTML=htmlc;return e;}
 
   /* ---------- dates: everything derives from trip.departDate ---------- */
+  var ASSEMBLY_START="2026-08-20";   /* the day back from Jamaica — a fixed past event, not derived from departure */
   var WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MO=["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
   function parseYMD(s){var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
   function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
   function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
   function fmtShort(d){return MO[d.getMonth()]+" "+d.getDate();}
   function fmtDay(d){return WD[d.getDay()]+" "+fmtShort(d);}
-  function departDate(){return parseYMD(state.trip.departDate||"2026-09-04");}
+  function departDate(){return parseYMD(state.trip.departDate||"2026-09-05");}
   function orbitzUrl(dest,d){var a=ymd(d),b=ymd(addDays(d,1));return "https://www.orbitz.com/Hotel-Search?destination="+dest+"&startDate="+a+"&endDate="+b+"&d1="+a+"&d2="+b+"&adults=1";}
   function renderDates(){
     var d0=departDate(),eve=addDays(d0,-1);
-    var days=Math.ceil((d0-new Date())/86400000);
-    document.getElementById("cdDays").textContent=days>0?days:"GO —";
+    var now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var n=Math.round((d0-today)/86400000);   /* whole days from today to departure */
+    document.getElementById("cdDays").textContent=n>0?n:"GO —";
+    document.getElementById("moveDepart").textContent="Departs "+fmtDay(d0)+" · "+(n>0?"in "+n+(n===1?" day":" days"):n===0?"today":"on the road · day "+(1-n));
     document.getElementById("moveSub").textContent="Assembly through "+fmtShort(eve)+" · drive out "+fmtShort(d0)+".";
-    document.getElementById("chipAssembly").textContent="Assembly Aug 20 – "+fmtShort(eve);
+    document.getElementById("chipAssembly").textContent="Assembly "+fmtShort(parseYMD(ASSEMBLY_START))+" – "+fmtShort(eve);
     document.getElementById("chipDrive").textContent="Drive "+fmtShort(d0);
     document.getElementById("tripRoute").textContent="Southern route · wheels up "+fmtShort(d0);
   }
@@ -749,13 +763,14 @@ var ACCENTS = {
     var wrap=document.getElementById("phaseGroups");wrap.innerHTML="";
     var total=0,dn=0;
     PHASES.forEach(function(ph){
+      var pt=typeof ph.title==="function"?ph.title():ph.title;
       var ids=ph.items.map(function(i){return i.id;}).concat((state.customTasks[ph.id]||[]).map(function(c){return c.id;}));
       var pdone=ids.filter(function(id){return state.done[id];}).length;
       total+=ids.length;dn+=pdone;
       var card=el("div","card"+(state.collapsed["ph-"+ph.id]?" closed":""));
       var head=el("div","sec-head");
       head.setAttribute("role","button");head.setAttribute("tabindex","0");
-      head.innerHTML='<span class="t">'+esc(ph.title)+'</span><span class="m">'+pdone+'/'+ids.length+' <span class="chev">\u25BC</span></span>';
+      head.innerHTML='<span class="t">'+esc(pt)+'</span><span class="m">'+pdone+'/'+ids.length+' <span class="chev">\u25BC</span></span>';
       function togC(){state.collapsed["ph-"+ph.id]=!state.collapsed["ph-"+ph.id];save(state);renderMove();}
       head.addEventListener("click",togC);
       head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
@@ -788,7 +803,7 @@ var ACCENTS = {
         });
         body.appendChild(row);
       });
-      var add=el("div","addrow",'<input type="text" placeholder="Add to '+esc(ph.title)+'…" enterkeyhint="done">');
+      var add=el("div","addrow",'<input type="text" placeholder="Add to '+esc(pt)+'…" enterkeyhint="done">');
       add.querySelector("input").addEventListener("keydown",function(e){
         if(e.key==="Enter"&&this.value.trim()){
           state.customTasks[ph.id]=(state.customTasks[ph.id]||[]);
@@ -1104,7 +1119,7 @@ var ACCENTS = {
     {id:"milan",   day:"Day 3",    name:"Milan, NM",            short:"Milan",      lat:35.1697,  lng:-107.8909, mi:550, q:"Tesla%20Supercharger%20Milan%20NM",
       off:2, hotelDest:"Grants%2C%20New%20Mexico", sc:"Marathon, 250 kW", note:"overnight in Grants/Milan", backup:"santarosa",
       dogs:"Holiday Inn Express Grants\u2013Milan \u00b7 Best Western Grants Inn"},
-    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", note:"1 night", home:true, off:3},
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:385,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
     {id:"la",      day:"LA",       name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380, off:4,
       addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
       url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
@@ -1240,9 +1255,11 @@ var ACCENTS = {
       var arr=!!state.trip.arrived[s.id];
       var bk=s.backup?BACKUPS.filter(function(b){return b.id===s.backup;})[0]:null;
       var dt=addDays(departDate(),s.off||0);
+      var note=s.note;
+      if(s.home&&STOPS[i+1]){var nn=STOPS[i+1].off-s.off;note=nn+(nn===1?" night":" nights");}   /* stay length from the offsets */
       var card=el("div","card tripstop"+(arr?" done":""),
         '<div class="sh"><span class="day">'+esc(s.day)+' \u00b7 '+esc(fmtDay(dt))+'</span><span class="mi">'+(i?s.mi+' mi from '+esc(STOPS[i-1].short):'wheels up '+esc(fmtShort(dt)))+'</span></div>'+
-        '<div class="nm">'+esc(s.name)+(s.note?' <span class="note">\u00b7 '+esc(s.note)+'</span>':'')+'</div>'+
+        '<div class="nm">'+esc(s.name)+(note?' <span class="note">\u00b7 '+esc(note)+'</span>':'')+'</div>'+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
         (s.sc?'<div class="sc">Supercharger: '+esc(s.sc)+'</div>':'')+
         (bk?'<div class="bkrow"><span>Backup</span><a class="alt" href="https://maps.apple.com/?q='+bk.q+'">'+esc(bk.name)+' \u203a</a></div>':'')+
@@ -1280,7 +1297,7 @@ var ACCENTS = {
     });
   }
   function refreshTripDates(){
-    renderDates();
+    renderDates();renderMove();   /* Move hero + phase title; Info carries no dates */
     STOPS.forEach(function(s,i){
       var card=document.querySelector('#tripStops .card[data-stop="'+s.id+'"]');if(!card)return;
       var dt=addDays(departDate(),s.off||0);
