@@ -211,6 +211,60 @@
   .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .bk{fill:#F5F3EE;stroke:#9AA0A6;stroke-width:1.2;}
   .bl{font-size:8px;font-weight:500;fill:#8E8E93;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:2.5;stroke-linejoin:round;}
+
+  /* spend — motion is transform/opacity only, critically damped */
+  #page-spend.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
+  .spendtop{padding:14px 16px 12px;}
+  .st-big{font-size:28px;font-weight:800;letter-spacing:.2px;line-height:1.1;}
+  .st-big span{font-size:15px;font-weight:600;color:var(--secondary);}
+  .st-proj{font-size:15px;font-weight:600;color:var(--secondary);margin-top:3px;}
+  .segbar{position:relative;height:10px;border-radius:5px;background:var(--fill);overflow:hidden;display:flex;margin:12px 0 10px;}
+  .segbar .seg{height:100%;}
+  .segbar .over{position:absolute;top:0;height:100%;background:var(--orange);}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:13px;color:var(--secondary);}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
+  .legend b{color:var(--label);font-weight:600;}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+  .kpi{background:var(--bg);border-radius:10px;padding:8px 4px;text-align:center;}
+  .kpi .n{font-size:16px;font-weight:800;}
+  .kpi .k{font-size:10px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.03em;margin-top:1px;}
+  .budgetrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;font-size:14px;font-weight:600;min-height:24px;}
+  .budgetrow a{color:var(--blue);text-decoration:none;}
+  .budgetrow .bo{color:var(--secondary);}
+  .budgetrow .bo.over{color:var(--orange);}
+  .budgetrow input{width:110px;font-family:inherit;font-size:16px;padding:7px 10px;border:1px solid var(--sep);border-radius:10px;}
+  .budgetrow .btn{padding:8px 12px;font-size:14px;}
+  .addcard{padding:12px 16px 14px;}
+  .addgrid{display:grid;grid-template-columns:118px 1fr;gap:8px;}
+  .addcard input{width:100%;font-family:inherit;font-size:17px;padding:10px 12px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);outline:none;}
+  .addcard input:focus{border-color:var(--blue);}
+  .catchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .catchips .tag.on{color:#fff;border-color:transparent;}
+  .kwhrow{margin-top:8px;}
+  .addsplit{display:flex;gap:6px;margin-top:12px;}
+  .addsplit .btn{text-align:center;}
+  .addsplit .main{flex:1;}
+  .addsplit .caret{flex:none;width:48px;}
+  .daypick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .daypick[hidden],.kwhrow[hidden]{display:none;}   /* author display rules must not defeat the hidden attribute */
+  .spday .sec-head .m .pl{font-size:12px;color:var(--tertiary);}
+  .sprow{display:flex;align-items:center;gap:12px;padding:11px 16px;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .sprow + .sprow::before{content:"";position:absolute;left:40px;right:0;top:0;height:.5px;background:var(--sep);}
+  .sprow .dot{flex:none;width:12px;height:12px;border-radius:50%;}
+  .sprow .sp-main{flex:1;min-width:0;}
+  .sprow .sp-t{font-size:16px;}
+  .sprow .sp-s{font-size:12px;color:var(--secondary);margin-top:1px;}
+  .sprow .sp-amt{font-size:16px;font-weight:700;flex:none;}
+  .sprow.planned .sp-t,.sprow.planned .sp-amt{color:var(--secondary);}
+  .sprow.planned .sp-amt{font-weight:600;}
+  .sprow.new{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
+  .sp-conf{display:flex;align-items:center;gap:8px;width:100%;font-size:14px;}
+  .sp-conf span{flex:1;}
+  .sp-conf .btn{padding:8px 12px;font-size:14px;}
+  .sp-conf .btn.del{background:var(--red);color:#fff;}
+  .sp-edit{display:flex;gap:6px;align-items:center;}
+  .sp-edit input{width:92px;font-family:inherit;font-size:16px;padding:7px 9px;border:1px solid var(--sep);border-radius:10px;}
+  .sp-edit .btn{padding:8px 12px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -358,7 +412,40 @@
     <div id="tripStops"></div>
   </div>
 
-  <div class="appver">SF Move · v21 · Sep 3</div>
+  <!-- ================= SPEND ================= -->
+  <div class="page" id="page-spend">
+    <div class="sign">
+      <div class="route">Trip costs</div>
+      <h1>Spend</h1>
+      <div class="sub">Planned amounts feed the projection, never "so far".</div>
+    </div>
+    <div class="card spendtop">
+      <div class="st-big"><span id="spSoFar" style="font-size:inherit;color:var(--label)">$0</span> <span>so far</span></div>
+      <div class="st-proj">~<span id="spProj">$0</span> projected</div>
+      <div class="segbar" id="spBar"></div>
+      <div class="legend" id="spLegend"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="n" id="kMile">–</div><div class="k">$/mile</div></div>
+        <div class="kpi"><div class="n" id="kDay">–</div><div class="k">$/day</div></div>
+        <div class="kpi"><div class="n" id="kMiles">0</div><div class="k">miles driven</div></div>
+        <div class="kpi"><div class="n" id="kKwh">–</div><div class="k">$/kWh</div></div>
+      </div>
+      <div class="budgetrow" id="budgetRow"><a href="#" id="budgetLink">Set budget</a><span class="bo" id="budgetOver"></span></div>
+    </div>
+    <div class="card addcard">
+      <div class="addgrid">
+        <input type="text" inputmode="decimal" id="spAmt" placeholder="$0.00" aria-label="Amount">
+        <input type="text" id="spNote" placeholder="Note (optional)" aria-label="Note">
+      </div>
+      <div class="catchips" id="spCats"></div>
+      <div class="kwhrow" id="spKwhRow" hidden><input type="text" inputmode="decimal" id="spKwh" placeholder="kWh charged" aria-label="kWh"></div>
+      <div class="addsplit"><button class="btn go main" id="spAdd" type="button">Add</button><button class="btn go caret" id="spDayBtn" type="button" aria-label="Pick day">▾</button></div>
+      <div class="daypick" id="spDayPick" hidden></div>
+    </div>
+    <div id="spendDays"></div>
+  </div>
+
+  <div class="appver">SF Move · v22 · Sep 3</div>
 
 </div>
 </div>
@@ -368,6 +455,7 @@
   <button id="nav-sort" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Sort</button>
   <button id="nav-pack" type="button"><svg viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.3L12 12l8.7-4.7"/><path d="M12 22V12"/></svg>Pack</button>
   <button id="nav-trip" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Trip</button>
+  <button id="nav-spend" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M14.8 9.6c0-1.3-1.2-2.1-2.8-2.1s-2.8.8-2.8 2c0 2.6 5.6 1.4 5.6 4.1 0 1.3-1.2 2.1-2.8 2.1s-2.8-.8-2.8-2.1"/></svg>Spend</button>
 </nav>
 
 <script>
@@ -693,6 +781,7 @@ var ACCENTS = {
     if(changed)save(state);
   })();
   ["rolla","okc","santarosa","calumet","payson","milan"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
+  state.spend=state.spend||{};state.spend.entries=state.spend.entries||[];   /* spend tab — additive */
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
 
@@ -1319,8 +1408,168 @@ var ACCENTS = {
     if(state.trip.tracking)startTrack();else stopTrack();
   });
 
+  /* ---------- SPEND ---------- */
+  var CATS=[
+    {id:"charging",l:"Charging",c:"#007AFF"},{id:"hotel",l:"Hotel",c:"#AF52DE"},{id:"food",l:"Food",c:"#FF9500"},
+    {id:"groceries",l:"Groceries",c:"#34C759"},{id:"kane",l:"Kane",c:"#A2845E"},{id:"tolls",l:"Tolls",c:"#30B0C7"},
+    {id:"parking",l:"Parking",c:"#FFCC00"},{id:"misc",l:"Misc",c:"#8E8E93"}];
+  var CATMAP={};CATS.forEach(function(c){CATMAP[c.id]=c;});
+  var TRIP_DAYS=STOPS[STOPS.length-1].off+1;
+  var KWH_PER_MI=0.27,KWH_FALLBACK=0.40,FOOD_FALLBACK=45,MISC_TAIL=40;
+  function $(id){return document.getElementById(id);}
+  function money(v){return (v<0?"-$":"$")+Math.round(Math.abs(v)).toLocaleString();}
+  function money2(v){return "$"+(Math.round(v*100)/100).toLocaleString(undefined,{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});}
+  function stopForDay(d){if(d<=0)return null;for(var i=1;i<STOPS.length;i++)if(STOPS[i].off===d-1)return STOPS[i];return STOPS[STOPS.length-1];}
+  function dayLabel(d){if(d<=0)return "Pre-trip";var s=stopForDay(d);return "Day "+d+(s?" · "+s.short:"");}
+  function todayDay(){var now=new Date(),t=new Date(now.getFullYear(),now.getMonth(),now.getDate());var n=Math.round((t-departDate())/86400000);return n<0?0:Math.min(n+1,TRIP_DAYS);}
+  function currentDay(){   /* live tracking → the leg being driven; else furthest Arrived stop; else the calendar */
+    if(tripPos){var l=locate(tripPos);return STOPS[l.leg+1].off+1;}
+    var last=0;STOPS.forEach(function(s,i){if(state.trip.arrived[s.id])last=i;});
+    if(last>0)return STOPS[last].off+1;
+    return todayDay();
+  }
+  function seedSpend(){   /* once: planned entries that feed the projection */
+    if(state.spend.seededV1)return;
+    var t=Date.now();
+    function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:true,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
+    state.spend.entries=state.spend.entries.concat([
+      P("seed-h1",95,"hotel","Quality Inn St. Robert",1,"strobert"),
+      P("seed-h2",110,"hotel","Home2 Suites Weatherford",2,"weatherford"),
+      P("seed-h3",140,"hotel","Sonesta ES Suites Albuquerque",3,"abq"),
+      P("seed-p1",35,"kane","Pet fee · Quality Inn",1,"strobert"),
+      P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"weatherford"),
+      P("seed-p3",75,"kane","Pet fee · Sonesta",3,"abq"),
+      P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
+      P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"weatherford",{billsLater:true}),
+      P("seed-m0",240,"misc","Ship Sticks · 3 pieces",0,null)
+    ]);
+    state.spend.seededV1=true;save(state);
+  }
+  function spendTotals(){
+    var soFar=0,planned=0,byCat={},chAmt=0,chKwh=0,food=0;
+    state.spend.entries.forEach(function(e){
+      if(e.planned){planned+=e.amount;return;}
+      soFar+=e.amount;byCat[e.cat]=(byCat[e.cat]||0)+e.amount;
+      if(e.cat==="charging"){chAmt+=e.amount;chKwh+=(e.kwh||0);}
+      if(e.cat==="food"||e.cat==="groceries")food+=e.amount;
+    });
+    var miles=tripProgress().miles,remMiles=Math.max(0,TOTAL_MI-miles);
+    var dEl=Math.min(todayDay(),TRIP_DAYS),remDays=Math.max(0,TRIP_DAYS-dEl);
+    var perKwh=chKwh>0?chAmt/chKwh:KWH_FALLBACK;
+    var foodDay=(dEl>0&&food>0)?food/dEl:FOOD_FALLBACK;
+    var proj=soFar+planned+remMiles*KWH_PER_MI*perKwh+foodDay*remDays+MISC_TAIL;
+    return{soFar:soFar,planned:planned,byCat:byCat,miles:miles,perMile:miles>0?soFar/miles:null,perDay:dEl>0?soFar/dEl:null,perKwh:perKwh,hasKwh:chKwh>0,proj:proj,budget:state.spend.budget||null};
+  }
+  function renderSpendTop(){
+    var t=spendTotals();
+    $("spSoFar").textContent=money(t.soFar);$("spProj").textContent=money(t.proj);
+    var bar=$("spBar");bar.innerHTML="";
+    var scale=Math.max(t.soFar,t.budget||0)||1,over=!!(t.budget&&t.soFar>t.budget);
+    CATS.forEach(function(c){var v=t.byCat[c.id];if(!v)return;var s=el("span","seg");s.style.width=(v/scale*100)+"%";s.style.background=c.c;bar.appendChild(s);});
+    if(over){var o=el("span","over");o.style.left=(t.budget/scale*100)+"%";o.style.width=((t.soFar-t.budget)/scale*100)+"%";bar.appendChild(o);}
+    bar.classList.toggle("overb",over);
+    var lg=$("spLegend");lg.innerHTML="";
+    CATS.forEach(function(c){lg.appendChild(el("span","lg",'<i style="background:'+c.c+'"></i>'+c.l+' <b>'+money(t.byCat[c.id]||0)+'</b>'));});
+    $("kMile").textContent=t.perMile===null?"–":"$"+t.perMile.toFixed(2);
+    $("kDay").textContent=t.perDay===null?"–":money(t.perDay);
+    $("kMiles").textContent=Math.round(t.miles).toLocaleString();
+    $("kKwh").textContent=t.hasKwh?"$"+t.perKwh.toFixed(2):"–";
+    $("budgetLink").textContent=t.budget?"Budget "+money(t.budget)+" · edit":"Set budget";
+    var bo=$("budgetOver");bo.textContent=t.budget?(over?money(t.soFar-t.budget)+" over":money(t.budget-t.soFar)+" left"):"";bo.classList.toggle("over",over);
+  }
+  $("budgetLink").addEventListener("click",function(ev){
+    ev.preventDefault();var row=$("budgetRow");if(row.querySelector("input"))return;
+    var ed=el("span","sp-edit",'<input type="text" inputmode="decimal" placeholder="$"><button class="btn go" type="button">Save</button>');
+    var inp=ed.querySelector("input");inp.value=state.spend.budget||"";
+    ed.querySelector("button").addEventListener("click",function(){
+      var v=parseFloat(String(inp.value).replace(/[^0-9.]/g,""));
+      if(v>0)state.spend.budget=v;else delete state.spend.budget;
+      save(state);ed.remove();renderSpendTop();
+    });
+    row.appendChild(ed);inp.focus();
+  });
+  var spCat="food",spDay=null;   /* spDay null = follow the trip */
+  function renderAddRow(){
+    var cc=$("spCats");cc.innerHTML="";
+    CATS.forEach(function(c){
+      var b=el("button","tag"+(spCat===c.id?" on":""),c.l);b.type="button";if(spCat===c.id)b.style.background=c.c;
+      b.addEventListener("click",function(){spCat=c.id;renderAddRow();});cc.appendChild(b);
+    });
+    $("spKwhRow").hidden=spCat!=="charging";
+    var d=spDay===null?currentDay():spDay;
+    $("spAdd").textContent="Add to "+dayLabel(d);
+    var pk=$("spDayPick");pk.innerHTML="";
+    for(var i=0;i<=TRIP_DAYS;i++){(function(i){var b=el("button","tag"+(d===i?" on":""),dayLabel(i));b.type="button";if(d===i)b.style.background="var(--blue)";
+      b.addEventListener("click",function(){spDay=i;pk.hidden=true;renderAddRow();});pk.appendChild(b);})(i);}
+  }
+  $("spDayBtn").addEventListener("click",function(){var pk=$("spDayPick");pk.hidden=!pk.hidden;});
+  $("spAdd").addEventListener("click",function(){
+    var amt=parseFloat(String($("spAmt").value).replace(/[^0-9.]/g,""));
+    if(!(amt>0)){$("spAmt").focus();return;}
+    var d=spDay===null?currentDay():spDay,s=stopForDay(d);
+    var e={id:"e"+Date.now(),amount:amt,cat:spCat,note:$("spNote").value.trim(),day:d,stopId:s?s.id:null,ts:Date.now(),planned:false,billsLater:false};
+    if(spCat==="charging"){var k=parseFloat(String($("spKwh").value).replace(/[^0-9.]/g,""));if(k>0)e.kwh=k;}
+    state.spend.entries.push(e);save(state);
+    $("spAmt").value="";$("spNote").value="";$("spKwh").value="";
+    renderSpend(e.id);
+  });
+  function spendRow(e,isNew){
+    var c=CATMAP[e.cat]||CATMAP.misc,sub=[];
+    if(e.note)sub.push(c.l);
+    if(e.cat==="charging"&&e.kwh)sub.push(e.kwh+" kWh · $"+(e.amount/e.kwh).toFixed(2)+"/kWh");
+    if(e.planned)sub.push(e.billsLater?"bills later":"planned");
+    var row=el("div","sprow"+(e.planned?" planned":"")+(isNew?" new":""),
+      '<span class="dot" style="background:'+c.c+'"></span><div class="sp-main"><div class="sp-t">'+esc(e.note||c.l)+'</div>'+
+      (sub.length?'<div class="sp-s">'+esc(sub.join(" · "))+(e.billsLater?'<br>confirm from your statement — could be after arrival':'')+'</div>':'')+
+      '</div><div class="sp-amt">'+money2(e.amount)+'</div>');
+    row.setAttribute("data-id",e.id);
+    /* swipe-left or long-press → delete (confirmed); tap a planned row → inline amount edit */
+    var sx=null,sy=null,moved=false,lp=null,armed=false;
+    row.addEventListener("pointerdown",function(ev){if(ev.button>0)return;sx=ev.clientX;sy=ev.clientY;moved=false;armed=false;lp=setTimeout(function(){lp=null;confirmDelete(row,e);},600);});
+    row.addEventListener("pointermove",function(ev){if(sx===null)return;var dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(Math.abs(dx)>10||Math.abs(dy)>10){moved=true;if(lp){clearTimeout(lp);lp=null;}}
+      if(dx<-60&&Math.abs(dy)<40){armed=true;row.style.transform="translateX(-24px)";}});
+    function up(){if(lp){clearTimeout(lp);lp=null;}if(armed){row.style.transform="";confirmDelete(row,e);}sx=null;}
+    row.addEventListener("pointerup",up);
+    row.addEventListener("pointercancel",function(){if(lp){clearTimeout(lp);lp=null;}row.style.transform="";sx=null;armed=false;});
+    row.addEventListener("click",function(){if(moved||armed)return;if(e.planned&&!row.querySelector(".sp-edit")&&!row.querySelector(".sp-conf"))editPlanned(row,e);});
+    return row;
+  }
+  function confirmDelete(row,e){
+    if(row.querySelector(".sp-conf"))return;
+    row.innerHTML='<div class="sp-conf"><span>Delete “'+esc(e.note||CATMAP[e.cat].l)+'”?</span><button class="btn del" type="button">Delete</button><button class="btn" type="button">Cancel</button></div>';
+    row.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation();state.spend.entries=state.spend.entries.filter(function(x){return x.id!==e.id;});save(state);renderSpend();});
+    row.querySelectorAll(".btn")[1].addEventListener("click",function(ev){ev.stopPropagation();renderSpend();});
+  }
+  function editPlanned(row,e){
+    var amt=row.querySelector(".sp-amt");
+    amt.innerHTML='<span class="sp-edit"><input type="text" inputmode="decimal"><button class="btn go" type="button">Save</button></span>';
+    var inp=amt.querySelector("input");inp.value=e.amount;inp.focus();
+    amt.querySelector("button").addEventListener("click",function(ev){
+      ev.stopPropagation();var v=parseFloat(String(inp.value).replace(/[^0-9.]/g,""));
+      if(v>0){e.amount=v;e.planned=false;save(state);}
+      renderSpend(e.id);
+    });
+    inp.addEventListener("click",function(ev){ev.stopPropagation();});
+  }
+  function renderSpendDays(newId){
+    var wrap=$("spendDays");wrap.innerHTML="";
+    var byDay={};state.spend.entries.forEach(function(e){(byDay[e.day]=byDay[e.day]||[]).push(e);});
+    Object.keys(byDay).map(Number).sort(function(a,b){return b-a;}).forEach(function(d){
+      var list=byDay[d].slice().sort(function(a,b){return b.ts-a.ts;}),act=0,pl=0;
+      list.forEach(function(e){if(e.planned)pl+=e.amount;else act+=e.amount;});
+      var card=el("div","card spday");
+      card.appendChild(el("div","sec-head",'<span class="t">'+esc(dayLabel(d))+'</span><span class="m">'+money(act)+(pl?' <span class="pl">+ '+money(pl)+' planned</span>':'')+'</span>'));
+      if(d>0)card.appendChild(el("div","sec-note",esc(fmtDay(addDays(departDate(),d-1)))));
+      var body=el("div","sec-body");
+      list.forEach(function(e){body.appendChild(spendRow(e,e.id===newId));});
+      card.appendChild(body);wrap.appendChild(card);
+    });
+  }
+  function renderSpend(newId){seedSpend();renderAddRow();renderSpendTop();renderSpendDays(newId);}
+
   /* ---------- tabs ---------- */
-  var pages=["move","sort","pack","trip"];
+  var pages=["move","sort","pack","trip","spend"];
   var scrollEl=document.getElementById("scroll"),scrollPos={},curPage="move";
   pages.forEach(function(p){
     document.getElementById("nav-"+p).addEventListener("click",function(){
@@ -1331,12 +1580,13 @@ var ACCENTS = {
       });
       if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
       if(p==="trip")ensureTripMap();
+      if(p==="spend")renderSpend();   /* day/stop autofill follows the Trip tab */
       curPage=p;scrollEl.scrollTop=scrollPos[p]||0;
     });
   });
 
   renderDates();renderMove();renderSort();renderPack();
-  renderTripStops();syncTrackSw();ensureTripMap();
+  renderTripStops();syncTrackSw();ensureTripMap();renderSpend();
   if(state.trip.tracking)startTrack();
 </script>
 </body>
