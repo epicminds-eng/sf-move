@@ -465,7 +465,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v28 · Sep 3</div>
+  <div class="appver">SF Move · v29 · Sep 4</div>
 
 </div>
 </div>
@@ -513,7 +513,7 @@
         {id:"jh-key", t:"House key (18 Freeman Rd) \u2192 Joey", d:""},
         {id:"jh-garage", t:"Garage door opener \u2192 Joey", d:""},
         {id:"jh-plan", t:"Walk Joey through the ship plan", d:"Ship Sticks pickup from his address"},
-        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:""}
+        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:"1442A Grove Street, San Francisco, CA 94117"}
       ]
     },
     {
@@ -533,7 +533,7 @@
         {id:"kane", t:"Kane: vet records + microchip/tag address update", d:"He rides with you \u2014 sorted"},
         {id:"covered-ca", t:"Apply via Covered California", d:"Move = 60-day Special Enrollment Period \u2014 apply up to 60 days ahead so coverage starts the 1st after landing"},
         {id:"il-plan-end", t:"Set IL health plan end date \u2014 no gap", d:"End it the day before CA coverage starts; don't let it lapse early (SEP needs prior coverage)"},
-        {id:"mail", t:"USPS mail forwarding", d:"Then update bank, cards, insurance, subscriptions"},
+        {id:"mail", t:"USPS mail forwarding", d:"\u2192 1442A Grove Street, San Francisco, CA 94117 \u2014 then update bank, cards, insurance, subscriptions"},
         {id:"addr-changes", t:"Address changes: bank, insurance, Tesla", d:""},
         {id:"ipass", t:"I-PASS / tolls for the drive", d:""},
         {id:"car", t:"Car: CA registration + license + insurance", d:"Registration within 20 days, license within 10 days of residency"},
@@ -1228,7 +1228,10 @@ var ACCENTS = {
       addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
       url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
       sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20Los%20Angeles%20CA"},
-    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7749,  lng:-122.4194, mi:385, off:5}
+    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:385, off:5,
+      addr:"1442A Grove St, SF 94117",
+      url:"https://maps.apple.com/?address=1442A%20Grove%20St%2C%20San%20Francisco%2C%20CA%2094117", linkLabel:"Home in Apple Maps",
+      sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20San%20Francisco%20CA"}
   ];
   /* backups for Day 1\u20133: drawn as small hollow gray nodes, never part of progress math */
   var BACKUPS=[
@@ -1259,7 +1262,7 @@ var ACCENTS = {
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
     {n:"Los Angeles",     lat:34.0525, lng:-118.3720, stop:"la"},   /* Seychelle\u0027s, 1127 S Hayworth Ave */
     {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
-    {n:"San Francisco",   lat:37.7749, lng:-122.4194, stop:"sf"}
+    {n:"San Francisco",   lat:37.7757, lng:-122.4400, stop:"sf"}   /* 1442A Grove St */
   ];
   var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
   /* node label placement: [dx, dy, anchor] per stop */
