@@ -354,6 +354,7 @@
       <h1>Pack</h1>
       <div class="sub">Check it off when it's boxed — or staged for Joey.</div>
     </div>
+    <div id="beforeLeave"></div>
     <div class="roadbar">
       <div class="row"><span class="lbl">Packed</span><span class="num" id="packNum">0 of 0 packed</span></div>
       <div class="road"><div class="fill" id="packFill" style="background:var(--green)"></div></div>
@@ -470,7 +471,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v30 · Sep 4</div>
+  <div class="appver">SF Move · v31 · Sep 4</div>
 
 </div>
 </div>
@@ -1065,7 +1066,66 @@ var ACCENTS = {
       pc.m.innerHTML=n+"/"+pc.items.length+' <span class="chev">▼</span>';
     });
   }
+  /* ---------- PACK: Before I leave (last-morning checklist, ids bl-*) ---------- */
+  var BEFORE_LEAVE=[
+    {id:"bl-charger",t:"Tesla mobile charger + J1772 adapter in the car"},
+    {id:"bl-walkthrough",t:"Walk-through of the house \u2014 every room, closets, garage"},
+    {id:"bl-garbage",t:"Take the garbage + recycling out"},
+    {id:"bl-eco",t:"Set the house to Eco (thermostat)"},
+    {id:"bl-waterheater",t:"Water heater to vacation mode"},
+    {id:"bl-fridge",t:"Fridge emptied \u00B7 perishables gone"},
+    {id:"bl-locks",t:"Windows locked \u00B7 doors locked \u00B7 garage closed"},
+    {id:"bl-lights",t:"Lights off \u00B7 unplug what\u0027s not needed"},
+    {id:"bl-firstweek",t:"First-week box in last, on top"},
+    {id:"bl-kane",t:"Kane: fed, walked, kit within reach"}
+  ];
+  function renderBeforeLeave(){
+    var wrap=document.getElementById("beforeLeave");if(!wrap)return;wrap.innerHTML="";
+    var ids=BEFORE_LEAVE.map(function(i){return i.id;}).concat((state.customTasks.bl||[]).map(function(c){return c.id;}));
+    var pdone=ids.filter(function(id){return state.done[id];}).length;
+    var card=el("div","card"+(state.collapsed["ph-bl"]?" closed":""));
+    var head=el("div","sec-head");
+    head.setAttribute("role","button");head.setAttribute("tabindex","0");
+    head.innerHTML='<span class="t">Before I leave</span><span class="m">'+pdone+'/'+ids.length+' <span class="chev">\u25BC</span></span>';
+    function togC(){state.collapsed["ph-bl"]=!state.collapsed["ph-bl"];save(state);renderBeforeLeave();}
+    head.addEventListener("click",togC);
+    head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
+    card.appendChild(head);
+    card.appendChild(el("div","sec-note","LAST MORNING \u2014 BEFORE THE DOOR LOCKS"));
+    var body=el("div","sec-body");
+    function addRow(it,custom){
+      var row=el("div","check"+(state.done[it.id]?" on":""),
+        '<span class="ring">\u2713</span><span><span class="ct">'+esc(it.t)+'</span></span>'+(custom?'<button class="xdel" type="button" aria-label="Delete">\u00D7</button>':''));
+      row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");
+      row.setAttribute("aria-checked",state.done[it.id]?"true":"false");
+      function tog(){state.done[it.id]=!state.done[it.id];save(state);renderBeforeLeave();}
+      row.addEventListener("click",tog);
+      row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
+      if(custom)row.querySelector(".xdel").addEventListener("click",function(e){
+        e.stopPropagation();
+        state.customTasks.bl=(state.customTasks.bl||[]).filter(function(c){return c.id!==it.id;});
+        delete state.done[it.id];
+        save(state);renderBeforeLeave();
+      });
+      body.appendChild(row);
+    }
+    BEFORE_LEAVE.forEach(function(it){addRow(it,false);});
+    (state.customTasks.bl||[]).forEach(function(it){addRow(it,true);});
+    var add=el("div","addrow",'<input type="text" placeholder="Add to Before I leave\u2026" enterkeyhint="done">');
+    add.querySelector("input").addEventListener("keydown",function(e){
+      if(e.key==="Enter"&&this.value.trim()){
+        state.customTasks.bl=(state.customTasks.bl||[]);
+        state.customTasks.bl.push({id:"bl-ct-"+Date.now(),t:this.value.trim()});
+        save(state);renderBeforeLeave();
+      }
+    });
+    body.appendChild(add);
+    card.appendChild(body);
+    wrap.appendChild(card);
+  }
+
   function renderPack(){
+    renderBeforeLeave();
     var wrap=document.getElementById("packGroups");wrap.innerHTML="";
     packCards=[];
     var undecided=[];
