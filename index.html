@@ -168,6 +168,18 @@
   .modal textarea{height:45vh;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--sep);border-radius:10px;padding:10px;background:var(--bg);color:var(--label);resize:none;-webkit-user-select:text;user-select:text;overflow:auto;}
   .modal .mbtns{display:flex;gap:8px;}
   .modal .mbtns .btn{flex:1;text-align:center;}
+  .hint .sep{color:var(--tertiary);margin:0 2px;}
+  .modal textarea.imp{height:26vh;font-family:inherit;font-size:15px;}
+  .imp-rows{max-height:34vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .imp-row{padding:10px 0;border-top:1px solid #E5E5EA;}
+  .imp-row:first-child{border-top:0;}
+  .imp-row .l{display:flex;justify-content:space-between;gap:10px;font-size:15px;font-weight:600;}
+  .imp-row .l span{color:var(--secondary);font-weight:500;}
+  .imp-row .chips2{margin-top:6px;gap:6px;}
+  .imp-row .chip2{font-size:12px;padding:5px 9px;}
+  .imp-note{font-size:12px;color:var(--secondary);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.4;}
+  .imp-note code{font-family:ui-monospace,Menlo,monospace;font-size:11px;word-break:break-all;}
+  .imp-res{font-size:14px;font-weight:600;}
 
   /* trip — motion is transform/opacity only, ease-out (spring, damping 1.0, no overshoot) */
   #page-trip.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
@@ -444,7 +456,7 @@
         <div class="kpi"><b id="kDay">–</b><span>per day</span></div>
         <div class="kpi"><b id="kMiles">0</b><span>mi driven</span></div>
       </div>
-      <p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span></p>
+      <p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span> <span class="sep">·</span> <a href="#" id="importLink">Import</a></p>
     </div>
     <div id="spendDays"></div>
     <div class="card spc">
@@ -453,7 +465,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v27 · Sep 3</div>
+  <div class="appver">SF Move · v28 · Sep 3</div>
 
 </div>
 </div>
@@ -1625,6 +1637,92 @@ var ACCENTS = {
   }
   function renderSpend(newId){seedSpend();syncNow();renderSpendTop();renderSpendDays(newId);}
 
+  /* ---------- SPEND INGEST: shared entry factory, merchant mapping, paste import, URL ingest ---------- */
+  function addSpendEntry(o){   /* same schema as a manual entry, planned:false */
+    var d=(typeof o.day==="number")?o.day:currentDay(),s=stopForDay(d);
+    var e={id:"e"+Date.now()+Math.random().toString(36).slice(2,6),amount:o.amount,cat:CATMAP[o.cat]?o.cat:"misc",note:(o.note||"").trim(),day:d,stopId:s?s.id:null,ts:o.ts||Date.now(),planned:false,billsLater:false};
+    if(o.kwh>0)e.kwh=o.kwh;
+    state.spend.entries.push(e);return e;
+  }
+  var MERCHANTS=[   /* case-insensitive substring → category; first hit wins */
+    ["charging",["tesla","supercharger"]],
+    ["tolls",["tollway","turnpike","pikepass","i-pass","toll"]],
+    ["parking",["parking","garage","spothero","parkmobile"]],
+    ["kane",["petsmart","petco","chewy","vet"]],
+    ["hotel",["quality inn","home2","sonesta","hilton","marriott","hotel","inn"]],
+    ["food",["culver","mcdonald","chick-fil-a","taco","pizza","grill","cafe","coffee","starbucks","restaurant","diner","wendy","sonic","whataburger"]],
+    ["groceries",["kroger","walmart","target","safeway","albertsons","smith's","fry's","trader joe","whole foods","grocery","market"]]];
+  function catForMerchant(m){
+    var s=String(m||"").toLowerCase();
+    for(var i=0;i<MERCHANTS.length;i++){var k=MERCHANTS[i][1];for(var j=0;j<k.length;j++)if(s.indexOf(k[j])>=0)return MERCHANTS[i][0];}
+    return "misc";
+  }
+  function dayForDate(d){var n=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-departDate())/86400000);return n<0?0:Math.min(n+1,TRIP_DAYS);}
+  var MON=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  function parseTxLine(line){   /* "9/5 19.60 TESLA SUPERCHARGER" · "2026-09-05  $19.60  Tesla Supercharger" · "Sep 5, 2026 Culver's $16.00" · "$16.00 Culver's" */
+    var s=line.trim(),m,date=null;if(!s)return null;
+    if((m=s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/))){date=new Date(+m[1],+m[2]-1,+m[3]);s=s.replace(m[0]," ");}
+    else if((m=s.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/))){var y=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):departDate().getFullYear();date=new Date(y,+m[1]-1,+m[2]);s=s.replace(m[0]," ");}
+    else if((m=s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:,?\s+(\d{4}))?\b/i))){date=new Date(m[3]?+m[3]:departDate().getFullYear(),MON.indexOf(m[1].slice(0,3).toLowerCase()),+m[2]);s=s.replace(m[0]," ");}
+    var a=s.match(/\$\s*(\d[\d,]*(?:\.\d{1,2})?)/)||s.match(/(?:^|\s)(\d[\d,]*\.\d{2})(?=\s|$)/)||s.match(/(?:^|\s)(\d[\d,]*)(?=\s|$)/);
+    if(!a)return null;
+    var amount=parseFloat(a[1].replace(/,/g,""));if(!(amount>0))return null;
+    s=s.replace(a[0]," ");
+    var merchant=s.replace(/\s+/g," ").replace(/^[\s\-·,|]+|[\s\-·,|]+$/g,"").trim();
+    return{amount:amount,merchant:merchant,cat:catForMerchant(merchant),day:date?dayForDate(date):currentDay()};
+  }
+  function isDupEntry(day,amount,merchant,list){
+    var mm=String(merchant||"").toLowerCase();
+    return (list||state.spend.entries).some(function(e){return !e.planned&&e.day===day&&Math.abs(e.amount-amount)<0.005&&String(e.note||"").toLowerCase()===mm;});
+  }
+  function openImportSheet(){
+    var back=el("div","modal-back",
+      '<div class="modal"><h2>Import transactions</h2>'+
+      '<textarea class="imp" placeholder="One per line, e.g.\n9/5 19.60 TESLA SUPERCHARGER\n$16.00 Culver\u0027s"></textarea>'+
+      '<div class="imp-rows" hidden></div><div class="imp-res" hidden></div>'+
+      '<div class="imp-note"><b>Shortcut recipe</b> — iOS Shortcuts → Automation → Transaction → Open URL: <code>https://epicminds-eng.github.io/sf-move/?add=[Amount]&amp;m=[Merchant]</code></div>'+
+      '<div class="mbtns"><button class="btn go" id="impPreview" type="button">Preview</button><button class="btn" id="impClose" type="button">Done</button></div></div>');
+    var ta=back.querySelector("textarea"),rows=back.querySelector(".imp-rows"),res=back.querySelector(".imp-res"),btn=back.querySelector("#impPreview"),parsed=[];
+    back.addEventListener("click",function(e){if(e.target===back)back.remove();});
+    back.querySelector("#impClose").addEventListener("click",function(){back.remove();});
+    function preview(){
+      parsed=ta.value.split(/\r?\n/).map(parseTxLine).filter(Boolean);
+      rows.innerHTML="";rows.hidden=false;res.hidden=true;
+      if(!parsed.length){rows.appendChild(el("div","empty","Nothing I could read — need an amount per line."));btn.textContent="Preview";btn.onclick=preview;return;}
+      parsed.forEach(function(r){
+        var row=el("div","imp-row",'<div class="l"><div>'+esc(r.merchant||"(no merchant)")+' <span>· '+esc(dayLabel(r.day))+'</span></div><div>'+money2(r.amount)+'</div></div><div class="chips2"></div>');
+        var ch=row.querySelector(".chips2");
+        function paint(){ch.innerHTML="";CATS.forEach(function(c){var b=el("button","chip2"+(r.cat===c.id?" on":""),c.e+" "+c.l);b.type="button";b.addEventListener("click",function(){r.cat=c.id;paint();});ch.appendChild(b);});}
+        paint();rows.appendChild(row);
+      });
+      btn.textContent="Import "+parsed.length;btn.onclick=doImport;
+    }
+    function doImport(){
+      var added=0,skipped=0,lastId=null,before=state.spend.entries.slice();   /* dedupe against what was already present, not against this batch */
+      parsed.forEach(function(r){if(isDupEntry(r.day,r.amount,r.merchant,before)){skipped++;return;}lastId=addSpendEntry({amount:r.amount,cat:r.cat,note:r.merchant,day:r.day}).id;added++;});
+      if(added)save(state);
+      renderSpendTop();renderSpendDays(lastId||undefined);
+      res.hidden=false;res.textContent=added+" imported"+(skipped?" · "+skipped+" skipped (already there)":"");
+      rows.hidden=true;btn.textContent="Preview";btn.onclick=preview;
+    }
+    btn.onclick=preview;
+    document.body.appendChild(back);ta.focus();
+  }
+  $("importLink").addEventListener("click",function(ev){ev.preventDefault();openImportSheet();});
+  function ingestFromUrl(){   /* ?add=<amount>&m=<merchant>&cat=<category>&kwh=<n> → one entry, then the query is stripped so a reload can't repeat it */
+    var q=location.search;if(!q||q.indexOf("add=")<0)return false;
+    var P={};q.slice(1).split("&").forEach(function(kv){var i=kv.indexOf("="),k=decodeURIComponent(i<0?kv:kv.slice(0,i)),v=decodeURIComponent((i<0?"":kv.slice(i+1)).replace(/\+/g," "));P[k]=v;});
+    try{history.replaceState(null,"",location.pathname+location.hash);}catch(e){}
+    var amt=parseFloat(String(P.add||"").replace(/[^0-9.]/g,""));if(!(amt>0))return false;
+    var m=(P.m||"").trim(),cat=P.cat&&CATMAP[P.cat]?P.cat:catForMerchant(m),k=parseFloat(P.kwh||""),now=Date.now();
+    var dup=state.spend.entries.some(function(e){return !e.planned&&Math.abs(e.amount-amt)<0.005&&String(e.note||"").toLowerCase()===m.toLowerCase()&&now-e.ts<60000;});
+    var id=null;
+    if(!dup){id=addSpendEntry({amount:amt,cat:cat,note:m,kwh:k>0?k:null}).id;save(state);}
+    document.getElementById("nav-spend").click();
+    renderSpend(id||undefined);
+    return true;
+  }
+
   /* ---------- tabs ---------- */
   var pages=["move","sort","pack","trip","spend"];
   var scrollEl=document.getElementById("scroll"),scrollPos={},curPage="move";
@@ -1645,6 +1743,7 @@ var ACCENTS = {
   renderDates();renderMove();renderSort();renderPack();
   renderTripStops();syncTrackSw();ensureTripMap();renderSpend();
   if(state.trip.tracking)startTrack();
+  ingestFromUrl();
 </script>
 </body>
 </html>
