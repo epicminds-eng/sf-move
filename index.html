@@ -95,12 +95,18 @@
 
   /* tally */
   .tally{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
-  .tally .cellbox{background:var(--cell);border-radius:12px;padding:10px 6px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.05);}
-  .tally .n{font-size:20px;font-weight:800;}
-  .tally .k{font-size:11px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.03em;}
+  .tally .cellbox{background:var(--cell);border:0;border-radius:12px;padding:10px 6px;min-height:56px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.05);font-family:inherit;color:inherit;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .35s cubic-bezier(.22,1,.36,1);}
+  .tally .cellbox.pressed{transform:scale(.95);}
+  .tally .cellbox.on{box-shadow:0 0 0 2px var(--fc,var(--blue)),0 1px 2px rgba(0,0,0,.05);}   /* pressed state: 2px ring in the tile's own color */
+  .tally .n{display:block;font-size:20px;font-weight:800;}
+  .tally .k{display:block;font-size:11px;font-weight:600;color:var(--secondary);text-transform:uppercase;letter-spacing:.03em;}
   .chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
   .chip{font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;border:none;background:var(--cell);color:var(--blue);box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer;font-family:inherit;}
   .chip.on{background:var(--blue);color:#fff;}
+  .chip.dim{opacity:.4;pointer-events:none;}
+  .chip.showing{color:var(--secondary);cursor:default;}
+  .chips[hidden]{display:none;}
+  .empty{padding:14px 16px;font-size:14px;color:var(--secondary);text-align:center;}
 
   /* numbers */
   .fact{padding:12px 16px;font-size:15px;position:relative;}
@@ -307,19 +313,20 @@
       <div class="sub">Ship = to Joey's, ships after I land · Joey = stays with Joey.</div>
     </div>
     <div class="tally" id="tally">
-      <div class="cellbox"><div class="n" style="color:var(--green)" id="t-car">0</div><div class="k">Car</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--blue)" id="t-ship">0</div><div class="k">Ship</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--purple)" id="t-joey">0</div><div class="k">Joey</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--orange)" id="t-undecided">0</div><div class="k">Undecided</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--brown)" id="t-leave">0</div><div class="k">Leave</div></div>
-      <div class="cellbox"><div class="n" style="color:var(--red)" id="t-sell">0</div><div class="k">Sell</div></div>
-      <div class="cellbox"><div class="n" id="t-todo">0</div><div class="k">Untagged</div></div>
-      <div class="cellbox"><div class="n" id="t-noted">0</div><div class="k">Notes</div></div>
+      <button class="cellbox" type="button" data-f="car" aria-pressed="false" style="--fc:var(--green)"><span class="n" style="color:var(--green)" id="t-car">0</span><span class="k">Car</span></button>
+      <button class="cellbox" type="button" data-f="ship" aria-pressed="false" style="--fc:var(--blue)"><span class="n" style="color:var(--blue)" id="t-ship">0</span><span class="k">Ship</span></button>
+      <button class="cellbox" type="button" data-f="joey" aria-pressed="false" style="--fc:var(--purple)"><span class="n" style="color:var(--purple)" id="t-joey">0</span><span class="k">Joey</span></button>
+      <button class="cellbox" type="button" data-f="undecided" aria-pressed="false" style="--fc:var(--orange)"><span class="n" style="color:var(--orange)" id="t-undecided">0</span><span class="k">Undecided</span></button>
+      <button class="cellbox" type="button" data-f="leave" aria-pressed="false" style="--fc:var(--brown)"><span class="n" style="color:var(--brown)" id="t-leave">0</span><span class="k">Leave</span></button>
+      <button class="cellbox" type="button" data-f="sell" aria-pressed="false" style="--fc:var(--red)"><span class="n" style="color:var(--red)" id="t-sell">0</span><span class="k">Sell</span></button>
+      <button class="cellbox" type="button" data-f="todo" aria-pressed="false" style="--fc:var(--label)"><span class="n" id="t-todo">0</span><span class="k">Untagged</span></button>
+      <button class="cellbox" type="button" data-f="noted" aria-pressed="false" style="--fc:var(--secondary)"><span class="n" id="t-noted">0</span><span class="k">Notes</span></button>
     </div>
     <div class="chips">
       <button class="chip" id="hideTagged" type="button">Hide tagged</button>
       <button class="chip" id="restoreBtn" type="button" style="display:none">Restore removed</button>
     </div>
+    <div class="chips" id="filterRow" hidden><span class="chip showing">Showing: <b id="filterName"></b></span><button class="chip" id="clearFilter" type="button">Clear</button></div>
     <div id="sortGroups"></div>
   </div>
 
@@ -446,7 +453,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v26 · Sep 3</div>
+  <div class="appver">SF Move · v27 · Sep 3</div>
 
 </div>
 </div>
@@ -881,17 +888,26 @@ var ACCENTS = {
   var DISPO=["car","ship","joey","undecided","leave","sell"];
   var TLAB={car:"Car",ship:"Ship",joey:"Joey",undecided:"Undecided",leave:"Leave",sell:"Sell"};
   var hideTagged=false;
+  var FLAB={car:"Car",ship:"Ship",joey:"Joey",undecided:"Undecided",leave:"Leave",sell:"Sell",todo:"Untagged",noted:"Notes"};
+  function sortMatch(it,d){   /* the active tile filter; "" = everything */
+    var f=state.sortFilter||"";
+    if(!f)return true;if(f==="todo")return !d;if(f==="noted")return !!state.notes[it.id];return d===f;
+  }
   function renderSort(){
     var wrap=document.getElementById("sortGroups");wrap.innerHTML="";
+    var f=state.sortFilter||"",shownTotal=0;
     SORT.forEach(function(g){
       var custom=(state.custom[g.id]||[]).map(function(c){return{id:c.id,t:c.t,isCustom:true};});
       var all=g.items.filter(function(x){return !x.sub;}).map(function(x){return{id:x.id,t:x.t,note:x.note};}).concat(custom);
       var live=all.filter(function(it){return !state.removed[it.id];});
       var tagged=live.filter(function(it){return state.disp[it.id];}).length;
+      var shown=live.filter(function(it){return sortMatch(it,state.disp[it.id]||"");});
+      if(f&&!shown.length)return;   /* categories with zero matches hide */
+      shownTotal+=shown.length;
       var card=el("div","card"+(state.collapsed["g-"+g.id]?" closed":""));
       var head=el("div","sec-head");
       head.setAttribute("role","button");head.setAttribute("tabindex","0");
-      head.innerHTML='<span class="t">'+esc(g.title)+'</span><span class="m">'+tagged+'/'+live.length+' <span class="chev">\u25BC</span></span>';
+      head.innerHTML='<span class="t">'+esc(g.title)+'</span><span class="m">'+(f?shown.length:tagged)+'/'+live.length+' <span class="chev">\u25BC</span></span>';
       function togC(){state.collapsed["g-"+g.id]=!state.collapsed["g-"+g.id];save(state);renderSort();}
       head.addEventListener("click",togC);
       head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
@@ -899,7 +915,7 @@ var ACCENTS = {
       var body=el("div","sec-body");
       live.forEach(function(it){
         var d=state.disp[it.id]||"";
-        if(hideTagged&&d)return;
+        if(f){if(!sortMatch(it,d))return;}else if(hideTagged&&d)return;   /* a tile filter overrides Hide tagged */
         var myNote=state.notes[it.id]||"";
         var tagsHtml=DISPO.map(function(k){
           return '<button class="tag '+k+(d===k?' on':'')+'" data-d="'+k+'" type="button">'+TLAB[k]+'</button>';
@@ -947,8 +963,27 @@ var ACCENTS = {
       card.appendChild(body);
       wrap.appendChild(card);
     });
-    updateTally();syncChips();
+    if(f&&!shownTotal)wrap.appendChild(el("div","empty",f==="todo"?"Nothing untagged \u2014 every item has a tag.":f==="noted"?"No items have a note yet.":"No items tagged "+FLAB[f]+"."));
+    updateTally();syncChips();syncTiles();
   }
+  function syncTiles(){
+    var f=state.sortFilter||"";
+    document.querySelectorAll("#tally .cellbox").forEach(function(b){var on=b.getAttribute("data-f")===f;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
+    var row=document.getElementById("filterRow");row.hidden=!f;
+    if(f)document.getElementById("filterName").textContent=FLAB[f];
+    document.getElementById("hideTagged").classList.toggle("dim",!!f);
+  }
+  function setSortFilter(f){state.sortFilter=(state.sortFilter===f)?"":f;save(state);renderSort();}
+  document.getElementById("clearFilter").addEventListener("click",function(){state.sortFilter="";save(state);renderSort();});
+  /* tiles: pressed on pointer-down, commit on release, >10px move cancels (same contract as the Pack checkboxes) */
+  document.querySelectorAll("#tally .cellbox").forEach(function(b){
+    var pd=null;
+    b.addEventListener("pointerdown",function(e){if(e.isPrimary===false||e.button>0)return;pd={x:e.clientX,y:e.clientY,id:e.pointerId};try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add("pressed");});
+    b.addEventListener("pointermove",function(e){if(!pd||e.pointerId!==pd.id)return;if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)>10){pd=null;b.classList.remove("pressed");}});
+    b.addEventListener("pointerup",function(e){if(!pd||e.pointerId!==pd.id)return;pd=null;b.classList.remove("pressed");setSortFilter(b.getAttribute("data-f"));});
+    b.addEventListener("pointercancel",function(){pd=null;b.classList.remove("pressed");});
+    b.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setSortFilter(b.getAttribute("data-f"));}});
+  });
   function updateTally(){
     var c={car:0,ship:0,joey:0,undecided:0,leave:0,sell:0,todo:0},noted=0;
     SORT.forEach(function(g){
@@ -973,7 +1008,7 @@ var ACCENTS = {
     rb.textContent="Restore removed ("+n+")";
     document.getElementById("hideTagged").classList.toggle("on",hideTagged);
   }
-  document.getElementById("hideTagged").addEventListener("click",function(){hideTagged=!hideTagged;renderSort();});
+  document.getElementById("hideTagged").addEventListener("click",function(){if(state.sortFilter)return;hideTagged=!hideTagged;renderSort();});
   document.getElementById("restoreBtn").addEventListener("click",function(){state.removed={};save(state);renderSort();});
 
   /* ---------- PACK ---------- */
