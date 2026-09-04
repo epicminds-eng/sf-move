@@ -126,6 +126,11 @@
   .refblock{border-top:.5px solid var(--sep);margin-top:6px;padding-top:2px;}
   .refblock .rt{font-size:12px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;padding:12px 16px 0;}
   .btns.wrap{display:flex;flex-wrap:wrap;gap:8px;}
+  .addr{display:flex;align-items:center;gap:10px;padding:10px 16px 0;}
+  .addr .txt{flex:1;min-width:0;}
+  .addr .al{font-size:11px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
+  .addr .av{font-size:15px;margin-top:1px;}
+  .addr .copybtn{flex:none;padding:8px 12px;font-size:14px;}
 
   /* nav */
   nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--tabh) + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(249,249,249,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
@@ -465,7 +470,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v29 · Sep 4</div>
+  <div class="appver">SF Move · v30 · Sep 4</div>
 
 </div>
 </div>
@@ -513,7 +518,7 @@
         {id:"jh-key", t:"House key (18 Freeman Rd) \u2192 Joey", d:""},
         {id:"jh-garage", t:"Garage door opener \u2192 Joey", d:""},
         {id:"jh-plan", t:"Walk Joey through the ship plan", d:"Ship Sticks pickup from his address"},
-        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:"1442A Grove Street, San Francisco, CA 94117"}
+        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:"From Joey \u00b7 405 E Foster Ave, Roselle, IL 60172 \u2192 1442A Grove Street, San Francisco, CA 94117"}
       ]
     },
     {
@@ -749,9 +754,11 @@ var ACCENTS = {
 
   /* reference blocks folded in from the old Info tab — every link stays a tappable button */
   var EXTRA={
-    joey:'<div class="refblock"><div class="rt">Ship via Joey</div>'+
-      '<div class="fact"><strong>3 pieces via Ship Sticks: ~$60–90/piece standard, CHI → SF.</strong><span class="vg">Two suitcases + golf travel bag stay at Joey\u0027s — he schedules the Ship Sticks pickup from his address after you land. Golf bag can run higher.</span></div>'+
-      '<div class="btns"><a class="btn go" href="https://www.shipsticks.com">Ship Sticks — exact quote</a></div></div>',
+    joey:'<div class="refblock"><div class="rt">Ship Sticks · 3 pieces</div>'+
+      '<div class="addr"><div class="txt"><div class="al">From (pickup)</div><div class="av">Joey · 405 E Foster Ave, Roselle, IL 60172</div></div><button class="btn copybtn" type="button" data-copy="405 E Foster Ave, Roselle, IL 60172">Copy</button></div>'+
+      '<div class="addr"><div class="txt"><div class="al">To (delivery)</div><div class="av">1442A Grove Street, San Francisco, CA 94117</div></div><button class="btn copybtn" type="button" data-copy="1442A Grove Street, San Francisco, CA 94117">Copy</button></div>'+
+      '<div class="fact"><span class="vg">Set Joey\u0027s address as your Ship Sticks default pickup: My Account → Choose Default Address.</span></div>'+
+      '<div class="btns"><a class="btn go" href="https://www.shipsticks.com">Book on Ship Sticks</a></div></div>',
     logistics:'<div class="refblock"><div class="rt">Workout gear — sell vs ship</div>'+
       '<div class="fact"><strong>FLYBIRD bench:</strong> new $117–162 depending on model (~$150 typical) · used resale ~$50–80.<span class="vg">Sell here + rebuy in SF ≈ net $70–100 — about what shipping a 30 lb bench costs anyway.</span><span class="verdict sell">SELL + REBUY IN SF</span></div>'+
       '<div class="fact"><strong>Merach ab trainer:</strong> new $60–90 · used ~$25–40.<span class="vg">Never worth freight.</span><span class="verdict sell">SELL / DONATE</span></div>'+
@@ -1159,9 +1166,9 @@ var ACCENTS = {
     try{obj=raw?JSON.parse(raw):state;}catch(e2){obj=state;}
     return JSON.stringify(obj,null,2);
   }
-  function showExportModal(txt){
+  function showExportModal(txt,title){
     var back=el("div","modal-back",
-      '<div class="modal"><h2>App data — sfMoveApp_v1</h2>'+
+      '<div class="modal"><h2>'+esc(title||"App data — sfMoveApp_v1")+'</h2>'+
       '<div class="mbtns"><button class="btn" id="selectAll" type="button">Select all</button></div>'+
       '<textarea readonly></textarea>'+
       '<div class="mbtns">'+
@@ -1185,6 +1192,15 @@ var ACCENTS = {
     if(sh)sh.addEventListener("click",function(){navigator.share({title:"SF Move data",text:txt}).catch(function(){});});
     document.body.appendChild(back);
   }
+  /* Copy buttons inside Move reference blocks: clipboard first, select-all modal on failure */
+  document.getElementById("phaseGroups").addEventListener("click",function(ev){
+    var b=ev.target.closest(".copybtn");if(!b)return;
+    ev.stopPropagation();
+    var v=b.getAttribute("data-copy");
+    function ok(){b.textContent="Copied \u2713";setTimeout(function(){b.textContent="Copy";},1500);}
+    function no(){showExportModal(v,"Copy address");}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(ok,no);}else{no();}
+  });
   document.getElementById("exportBtn").addEventListener("click",function(){
     var txt=exportJSON();
     if(navigator.share){
