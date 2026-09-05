@@ -209,6 +209,7 @@
   .tripstat{text-align:center;font-size:14px;font-weight:600;color:var(--secondary);padding:8px 0 4px;}
   .tripstat strong{color:var(--label);font-weight:800;}
   .chg{fill:#FF9F0A;stroke:#fff;stroke-width:1.5;}
+  .chg.plan{fill:#fff;stroke:#FF9F0A;}
   .chgrow{margin:0 4px;border-top:.5px solid var(--sep);}
   .chgrow .chgh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--secondary);padding:8px 4px;cursor:pointer;min-height:36px;}
   .chgrow .chgh b{color:var(--label);font-weight:800;}
@@ -482,7 +483,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v33 · Sep 5</div>
+  <div class="appver">SF Move · v34 · Sep 5</div>
 
 </div>
 </div>
@@ -1332,14 +1333,19 @@ var ACCENTS = {
   ];
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
   var CUM=[];(function(){var a=0;STOPS.forEach(function(s){a+=s.mi;CUM.push(a);});})();   /* miles through stop i */
-  /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   /* Supercharger session log — code-seeded. Each session becomes a ⚡ node on the map, a line in the Charging row,
      and an actual charging entry in Spend (id = charge id, so a re-render never duplicates; a deleted one stays deleted
      via spend.dismissedCharges). Shape:
      {id:"chg-001", name:"Portage, IN – George Ade", addr:"5100 Plaza Ave, Portage IN 46368", lat:41.57, lng:-87.18,
-      date:"2026-09-06", time:"11:35", kwh:37.33, rate:0.38, cost:14.18, min:24} */
+      date:"2026-09-06", time:"11:35", kwh:37.33, rate:0.38, cost:14.18, min:24}
+     planned:true = a charger we intend to use: hollow node, "Planned · <name>" in the list, NO Spend entry, excluded from
+     kWh/$ totals. Replace it in place with a real session (drop planned, add date/time/kwh/rate/cost/min) and it fills in
+     and seeds Spend like any other:
+     {id:"chg-oasis", planned:true, name:"Tesla Oasis – Lost Hills, CA", addr:"…", lat:35.617, lng:-119.694, leg:"LA → SF"} */
   var CHARGES=[
+    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"LA \u2192 SF"}
   ];
+  /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
     {n:"South Barrington",lat:42.0914, lng:-88.1562,  stop:"start"},
     {n:"Springfield IL",  lat:39.7817, lng:-89.6501},
@@ -1360,6 +1366,7 @@ var ACCENTS = {
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
     {n:"Los Angeles",     lat:34.0525, lng:-118.3720, stop:"la"},   /* Seychelle\u0027s, 1127 S Hayworth Ave */
     {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
+    {n:"Lost Hills",      lat:35.6175, lng:-119.6945},   /* I-5 × CA-46: Tesla Oasis */
     {n:"San Francisco",   lat:37.7757, lng:-122.4400, stop:"sf"}   /* 1442A Grove St */
   ];
   var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
@@ -1427,7 +1434,7 @@ var ACCENTS = {
     });
     CHARGES.forEach(function(c){   /* ⚡ sessions: above the route + backup markers, below the stop nodes */
       var p=proj(c.lat,c.lng);
-      ng.appendChild(svgEl("circle",{"class":"chg",cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:3}));
+      ng.appendChild(svgEl("circle",{"class":"chg"+(c.planned?" plan":""),cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:3}));
     });
     STOPS.forEach(function(s,k){
       var p=PTS[STOPW[k]],o=LBL[k],bold=(k>0);
@@ -1462,11 +1469,12 @@ var ACCENTS = {
   function chgTs(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}
   function renderCharging(){
     var w=document.getElementById("chgRow");if(!w)return;w.innerHTML="";
-    var n=CHARGES.length,kwh=0,cost=0;
-    CHARGES.forEach(function(c){kwh+=c.kwh||0;cost+=c.cost||0;});
-    w.classList.toggle("open",chgOpen&&n>0);
-    var h=el("div","chgh",'<span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b></span>'+(n?'<span class="chev">\u25BC</span>':''));
-    if(n){
+    var n=0,np=0,kwh=0,cost=0;
+    CHARGES.forEach(function(c){if(c.planned){np++;return;}n++;kwh+=c.kwh||0;cost+=c.cost||0;});
+    var any=CHARGES.length>0;
+    w.classList.toggle("open",chgOpen&&any);
+    var h=el("div","chgh",'<span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b>'+(np?' \u00b7 '+np+' planned':'')+'</span>'+(any?'<span class="chev">\u25BC</span>':''));
+    if(any){
       h.setAttribute("role","button");h.setAttribute("tabindex","0");h.setAttribute("aria-expanded",chgOpen?"true":"false");
       function tog(){chgOpen=!chgOpen;renderCharging();}
       h.addEventListener("click",tog);
@@ -1477,6 +1485,7 @@ var ACCENTS = {
     CHARGES.forEach(function(c){
       var a=document.createElement("a");
       a.href="https://maps.apple.com/?address="+encodeURIComponent(c.addr||c.name);a.target="_blank";a.rel="noopener";
+      if(c.planned){a.className="plan";a.innerHTML='Planned \u00b7 '+esc(c.name)+(c.leg?' <small>\u00b7 '+esc(c.leg)+'</small>':'');l.appendChild(a);return;}
       a.innerHTML=esc(fmtShort(parseYMD(c.date))+" "+(c.time||""))+' \u00b7 '+esc(chgPlace(c))+' <small>\u00b7 '+(Math.round((c.kwh||0)*10)/10)+' kWh @ $'+(+c.rate||0).toFixed(2)+' \u00b7 '+money2(c.cost||0)+(c.min?' \u00b7 '+c.min+' min':'')+'</small>';
       l.appendChild(a);
     });
@@ -1773,7 +1782,7 @@ var ACCENTS = {
     var have={},dis=state.spend.dismissedCharges||{},added=false;
     state.spend.entries.forEach(function(e){have[e.id]=true;});
     CHARGES.forEach(function(c){
-      if(have[c.id]||dis[c.id])return;
+      if(c.planned||have[c.id]||dis[c.id])return;   /* planned chargers are map-only until logged as a real session */
       var s=nearestStop(c.lat,c.lng);
       var e={id:c.id,amount:+c.cost||0,cat:"charging",note:c.name,day:dayForDate(parseYMD(c.date)),stopId:s?s.id:null,ts:chgTs(c),planned:false,billsLater:false};
       if(c.kwh>0)e.kwh=c.kwh;
