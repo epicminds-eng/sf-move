@@ -188,8 +188,13 @@
 
   /* trip — motion is transform/opacity only, ease-out (spring, damping 1.0, no overshoot) */
   #page-trip.active{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
-  .tripmap{background:var(--cell);border-radius:14px;padding:8px 8px 4px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
-  .tripmap svg{width:100%;height:auto;display:block;border-radius:12px;}
+  .tripmap{position:relative;background:var(--cell);border-radius:14px;padding:8px 8px 4px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .tripmap svg{width:100%;height:auto;display:block;border-radius:12px;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+  .tripmap svg.zoomed{touch-action:none;}   /* one finger pans only while zoomed; at 1× the page scrolls as usual */
+  .zoomlayer{transform-origin:0 0;}
+  .mapreset{position:absolute;top:16px;right:16px;z-index:2;font-family:inherit;font-size:12px;font-weight:600;line-height:1;padding:7px 11px;border-radius:999px;border:0;background:rgba(255,255,255,.94);color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.18);opacity:0;transform:scale(.9);pointer-events:none;transition:opacity .25s ease-out,transform .35s cubic-bezier(.22,1,.36,1);}
+  .mapreset.show{opacity:1;transform:none;pointer-events:auto;}
+  @media (prefers-reduced-motion:reduce){.mapreset{transition:none;}}
   .mp-state{fill:#F5F3EE;stroke:#DCD8CF;stroke-width:.7;stroke-linejoin:round;}
   .mp-abbr{font-size:8px;fill:#B5B1A8;font-family:inherit;font-weight:600;}
   .rt-case{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;}
@@ -208,8 +213,10 @@
   .posg .dot{fill:#0A7AFF;stroke:#fff;stroke-width:2;}
   .tripstat{text-align:center;font-size:14px;font-weight:600;color:var(--secondary);padding:8px 0 4px;}
   .tripstat strong{color:var(--label);font-weight:800;}
-  .chg{fill:#FF9F0A;stroke:#fff;stroke-width:1.5;}
-  .chg.plan{fill:#fff;stroke:#FF9F0A;}
+  .chg{fill:#E82127;stroke:#fff;stroke-width:1.5;}   /* Tesla red: logged session */
+  .chg.plan{fill:#fff;stroke:#E82127;}               /* planned charger: hollow */
+  .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#E82127;border:1.5px solid #fff;box-shadow:0 0 0 .5px rgba(0,0,0,.12);vertical-align:-1px;margin-right:5px;}
+  .cdot.plan{background:#fff;border-color:#E82127;box-shadow:none;}
   .chgrow{margin:0 4px;border-top:.5px solid var(--sep);}
   .chgrow .chgh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--secondary);padding:8px 4px;cursor:pointer;min-height:36px;}
   .chgrow .chgh b{color:var(--label);font-weight:800;}
@@ -389,7 +396,9 @@
       <div class="sub">St. Robert · Weatherford · Albuquerque · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
+      <button class="mapreset" id="mapReset" type="button" aria-hidden="true" tabindex="-1">Reset</button>
       <svg id="tripSvg" viewBox="0 62 380 168" role="img" aria-label="Route map">
+        <g id="zoomLayer" class="zoomlayer">
         <rect x="0" y="0" width="380" height="300" fill="#BFDDF3"/>
         <!-- outlines lifted verbatim from sf-move-map-options.html (option B): Mexico + 31 states, projected lon -125.5→-84.5 / lat 25→49.5 onto 380×300.
              The mockup's Canada/Alaska path is omitted: every vertex lies outside this 0 62 380 168 crop, so it paints nothing. -->
@@ -447,6 +456,7 @@
         <g id="routeG"></g>
         <g id="nodeG"></g>
         <g id="posG" class="posg" opacity="0"><circle class="halo" r="9"/><circle class="dot" r="4.5"/></g>
+        </g>
       </svg>
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
       <div class="chgrow" id="chgRow"></div>
@@ -483,7 +493,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v34 · Sep 5</div>
+  <div class="appver">SF Move · v35 · Sep 5</div>
 
 </div>
 </div>
@@ -1444,7 +1454,15 @@ var ACCENTS = {
       var t=svgEl("text",{"class":"nl"+(bold?" b":""),x:(p.x+o[0]).toFixed(2),y:(p.y+o[1]).toFixed(2),"text-anchor":o[2]});
       t.textContent=s.short;ng.appendChild(t);
     });
-    svg.appendChild(tripUI.pos);   /* keep the live dot above everything */
+    zoomLayer.appendChild(tripUI.pos);   /* keep the live dot above everything (inside the zoom layer) */
+    /* everything that must keep a constant screen size while the geography zooms */
+    Z.markers=[];
+    Array.prototype.forEach.call(ng.children,function(e){
+      var cx=e.getAttribute("cx"),cy=e.getAttribute("cy");
+      Z.markers.push({el:e,c:true,x:+(cx!==null?cx:e.getAttribute("x")),y:+(cy!==null?cy:e.getAttribute("y"))});
+    });
+    Array.prototype.forEach.call(tripUI.pos.children,function(e){Z.markers.push({el:e,c:false});});
+    applyZoom();
   }
   function tripProgress(){
     if(tripPos){var l=locate(tripPos);return{miles:l.miles,seg:l.seg,t:l.t,live:true};}
@@ -1473,7 +1491,7 @@ var ACCENTS = {
     CHARGES.forEach(function(c){if(c.planned){np++;return;}n++;kwh+=c.kwh||0;cost+=c.cost||0;});
     var any=CHARGES.length>0;
     w.classList.toggle("open",chgOpen&&any);
-    var h=el("div","chgh",'<span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b>'+(np?' \u00b7 '+np+' planned':'')+'</span>'+(any?'<span class="chev">\u25BC</span>':''));
+    var h=el("div","chgh",'<span><span class="cdot"></span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b>'+(np?' \u00b7 '+np+' planned':'')+'</span>'+(any?'<span class="chev">\u25BC</span>':''));
     if(any){
       h.setAttribute("role","button");h.setAttribute("tabindex","0");h.setAttribute("aria-expanded",chgOpen?"true":"false");
       function tog(){chgOpen=!chgOpen;renderCharging();}
@@ -1485,13 +1503,115 @@ var ACCENTS = {
     CHARGES.forEach(function(c){
       var a=document.createElement("a");
       a.href="https://maps.apple.com/?address="+encodeURIComponent(c.addr||c.name);a.target="_blank";a.rel="noopener";
-      if(c.planned){a.className="plan";a.innerHTML='Planned \u00b7 '+esc(c.name)+(c.leg?' <small>\u00b7 '+esc(c.leg)+'</small>':'');l.appendChild(a);return;}
-      a.innerHTML=esc(fmtShort(parseYMD(c.date))+" "+(c.time||""))+' \u00b7 '+esc(chgPlace(c))+' <small>\u00b7 '+(Math.round((c.kwh||0)*10)/10)+' kWh @ $'+(+c.rate||0).toFixed(2)+' \u00b7 '+money2(c.cost||0)+(c.min?' \u00b7 '+c.min+' min':'')+'</small>';
+      if(c.planned){a.className="plan";a.innerHTML='<span class="cdot plan"></span>Planned \u00b7 '+esc(c.name)+(c.leg?' <small>\u00b7 '+esc(c.leg)+'</small>':'');l.appendChild(a);return;}
+      a.innerHTML='<span class="cdot"></span>'+esc(fmtShort(parseYMD(c.date))+" "+(c.time||""))+' \u00b7 '+esc(chgPlace(c))+' <small>\u00b7 '+(Math.round((c.kwh||0)*10)/10)+' kWh @ $'+(+c.rate||0).toFixed(2)+' \u00b7 '+money2(c.cost||0)+(c.min?' \u00b7 '+c.min+' min':'')+'</small>';
       l.appendChild(a);
     });
     w.appendChild(l);
   }
   function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();renderCharging();}
+
+  /* ---------- TRIP MAP: pinch-zoom + pan. Transform-only, rAF springs, nothing persisted ---------- */
+  var VB={x:0,y:62,w:380,h:168},ZMIN=1,ZMAX=5;
+  var Z={s:1,tx:0,ty:0,markers:[],ptrs:{},raf:null,anim:null,lastTap:0};
+  var zoomSvg=document.getElementById("tripSvg"),zoomLayer=document.getElementById("zoomLayer"),zoomReset=document.getElementById("mapReset");
+  var reducedMotion=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function zb(s){return{txLo:(VB.x+VB.w)*(1-s),txHi:VB.x*(1-s),tyLo:(VB.y+VB.h)*(1-s),tyHi:VB.y*(1-s)};}   /* pan range that keeps the viewport covered */
+  function clampZ(s,tx,ty){s=Math.min(ZMAX,Math.max(ZMIN,s));var b=zb(s);return{s:s,tx:Math.min(b.txHi,Math.max(b.txLo,tx)),ty:Math.min(b.tyHi,Math.max(b.tyLo,ty))};}
+  function rub(x,dim){return (1-1/(x*0.55/dim+1))*dim;}   /* iOS rubber-band: progressive resistance past a limit */
+  function rubberRange(v,lo,hi,dim){return v<lo?lo-rub(lo-v,dim):v>hi?hi+rub(v-hi,dim):v;}
+  function applyZoom(){
+    var s=Z.s,k=(1/s).toFixed(4);
+    zoomLayer.setAttribute("transform","translate("+Z.tx.toFixed(3)+" "+Z.ty.toFixed(3)+") scale("+s.toFixed(4)+")");
+    for(var i=0;i<Z.markers.length;i++){var m=Z.markers[i];
+      m.el.setAttribute("transform",m.c?"translate("+m.x+" "+m.y+") scale("+k+") translate("+(-m.x)+" "+(-m.y)+")":"scale("+k+")");}
+    var zoomed=s>1.001;
+    zoomSvg.classList.toggle("zoomed",zoomed);
+    zoomReset.classList.toggle("show",zoomed);zoomReset.setAttribute("aria-hidden",zoomed?"false":"true");zoomReset.tabIndex=zoomed?0:-1;
+  }
+  function svgPt(e){var r=zoomSvg.getBoundingClientRect();return{x:VB.x+(e.clientX-r.left)/r.width*VB.w,y:VB.y+(e.clientY-r.top)/r.height*VB.h};}
+  function stopAnim(){if(Z.raf){cancelAnimationFrame(Z.raf);Z.raf=null;}Z.anim=null;}
+  function springTo(s,tx,ty,v0,snap){   /* critically damped, interruptible: always starts from the presentation value */
+    stopAnim();
+    if(reducedMotion||snap){Z.s=s;Z.tx=tx;Z.ty=ty;applyZoom();return;}
+    var w=2*Math.PI/0.45;   /* ~450 ms response, no overshoot */
+    Z.anim={to:{s:s,tx:tx,ty:ty},v:{s:0,tx:v0?v0.x:0,ty:v0?v0.y:0},last:performance.now()};
+    function step(now){
+      var A=Z.anim;if(!A)return;
+      var dt=Math.min(0.032,Math.max(0,(now-A.last)/1000));A.last=now;var done=true;
+      ["s","tx","ty"].forEach(function(key){
+        var x=Z[key],t=A.to[key],v=A.v[key];
+        v+=(-w*w*(x-t)-2*w*v)*dt;x+=v*dt;Z[key]=x;A.v[key]=v;
+        var eps=key==="s"?0.0005:0.05;if(Math.abs(x-t)>eps||Math.abs(v)>eps*20)done=false;
+      });
+      if(done){Z.s=A.to.s;Z.tx=A.to.tx;Z.ty=A.to.ty;Z.anim=null;Z.raf=null;applyZoom();return;}
+      applyZoom();Z.raf=requestAnimationFrame(step);
+    }
+    Z.raf=requestAnimationFrame(step);
+  }
+  function zoomTo(s,anchor,animate){
+    var a=anchor||{x:VB.x+VB.w/2,y:VB.y+VB.h/2},q={x:(a.x-Z.tx)/Z.s,y:(a.y-Z.ty)/Z.s};
+    var t=clampZ(s,a.x-s*q.x,a.y-s*q.y);springTo(t.s,t.tx,t.ty,null,!animate);
+  }
+  function resetMapZoom(animate){zoomTo(1,null,animate);}
+  var G=null;   /* the live gesture */
+  function ptrList(){var a=[];for(var k in Z.ptrs)a.push(Z.ptrs[k]);return a;}
+  function beginGesture(prev){
+    var p=ptrList();stopAnim();
+    G={s0:Z.s,tx0:Z.tx,ty0:Z.ty,t0:prev?prev.t0:performance.now(),moved:!!(prev&&prev.moved),samples:[],anchor:null};
+    if(p.length>=2){var a=p[0],b=p[1],m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+      G.two=true;G.d0=Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));G.m0=m;G.q={x:(m.x-Z.tx)/Z.s,y:(m.y-Z.ty)/Z.s};G.anchor=m;}
+    else{G.two=false;G.p0={x:p[0].x,y:p[0].y};}
+  }
+  function onDown(e){
+    if(e.pointerType==="mouse"&&e.button!==0)return;
+    var pt=svgPt(e);Z.ptrs[e.pointerId]={x:pt.x,y:pt.y};
+    try{zoomSvg.setPointerCapture(e.pointerId);}catch(_){}
+    beginGesture(null);
+  }
+  function onMove(e){
+    var P=Z.ptrs[e.pointerId];if(!P||!G)return;
+    var pt=svgPt(e);P.x=pt.x;P.y=pt.y;
+    var p=ptrList();
+    if(G.two&&p.length>=2){   /* pinch: zoom about the finger midpoint, rubber-band past 1–5 */
+      var a=p[0],b=p[1],d=Math.hypot(a.x-b.x,a.y-b.y),m={x:(a.x+b.x)/2,y:(a.y+b.y)/2},sr=G.s0*d/G.d0;
+      var s=sr>ZMAX?ZMAX+rub(sr-ZMAX,2):sr<ZMIN?ZMIN-rub(ZMIN-sr,0.35):sr,bb=zb(Math.max(ZMIN,s));
+      Z.s=s;Z.tx=rubberRange(m.x-s*G.q.x,bb.txLo,bb.txHi,VB.w);Z.ty=rubberRange(m.y-s*G.q.y,bb.tyLo,bb.tyHi,VB.h);G.anchor=m;
+      if(Math.abs(d-G.d0)>3||Math.hypot(m.x-G.m0.x,m.y-G.m0.y)>3)G.moved=true;
+    }else if(!G.two){   /* one finger: pan only while zoomed, so the page keeps scrolling at 1× */
+      if(G.s0<=1.001)return;
+      var dx=pt.x-G.p0.x,dy=pt.y-G.p0.y,b1=zb(Z.s);
+      Z.tx=rubberRange(G.tx0+dx,b1.txLo,b1.txHi,VB.w);Z.ty=rubberRange(G.ty0+dy,b1.tyLo,b1.tyHi,VB.h);
+      if(Math.hypot(dx,dy)>3)G.moved=true;
+    }else return;
+    G.samples.push({t:performance.now(),tx:Z.tx,ty:Z.ty});if(G.samples.length>6)G.samples.shift();
+    applyZoom();
+  }
+  function onUp(e){
+    if(!Z.ptrs[e.pointerId])return;
+    delete Z.ptrs[e.pointerId];
+    try{zoomSvg.releasePointerCapture(e.pointerId);}catch(_){}
+    if(ptrList().length){var keep=G;beginGesture(keep);return;}   /* a finger lifted mid-pinch: the other keeps panning */
+    var g=G,now=performance.now();G=null;
+    if(g&&!g.moved&&now-g.t0<250){   /* tap (one or two fingers); two within 300 ms → reset */
+      if(Z.lastTap&&now-Z.lastTap<300){Z.lastTap=0;resetMapZoom(true);return;}
+      Z.lastTap=now;
+    }else Z.lastTap=0;
+    settle(g);
+  }
+  function settle(g){   /* release: project momentum (decelerationRate .998), clamp, then spring to rest */
+    var v={x:0,y:0};
+    if(g&&g.samples.length>1){var a=g.samples[0],b=g.samples[g.samples.length-1],dt=b.t-a.t;if(dt>0&&dt<200){v.x=(b.tx-a.tx)/dt;v.y=(b.ty-a.ty)/dt;}}
+    var f=0.998/(1-0.998),s=Math.min(ZMAX,Math.max(ZMIN,Z.s)),tx=Z.tx+v.x*f,ty=Z.ty+v.y*f;
+    if(s!==Z.s){var an=(g&&g.anchor)||{x:VB.x+VB.w/2,y:VB.y+VB.h/2},q={x:(an.x-Z.tx)/Z.s,y:(an.y-Z.ty)/Z.s};tx=an.x-s*q.x;ty=an.y-s*q.y;}
+    var t=clampZ(s,tx,ty);
+    springTo(t.s,t.tx,t.ty,{x:v.x*1000,y:v.y*1000},false);
+  }
+  zoomSvg.addEventListener("pointerdown",onDown);
+  zoomSvg.addEventListener("pointermove",onMove);
+  zoomSvg.addEventListener("pointerup",onUp);
+  zoomSvg.addEventListener("pointercancel",onUp);
+  zoomReset.addEventListener("click",function(){resetMapZoom(true);});
   function renderTripStops(){
     var wrap=document.getElementById("tripStops");wrap.innerHTML="";
     STOPS.forEach(function(s,i){
@@ -1889,6 +2009,7 @@ var ACCENTS = {
         document.getElementById("page-"+q).classList.toggle("active",q===p);
       });
       if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
+      if(curPage==="trip"&&p!=="trip")resetMapZoom(false);   /* zoom is never persisted */
       if(p==="trip")ensureTripMap();
       if(p==="spend")renderSpend();   /* day/stop autofill follows the Trip tab */
       curPage=p;scrollEl.scrollTop=scrollPos[p]||0;
