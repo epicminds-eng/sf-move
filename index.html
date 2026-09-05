@@ -208,6 +208,16 @@
   .posg .dot{fill:#0A7AFF;stroke:#fff;stroke-width:2;}
   .tripstat{text-align:center;font-size:14px;font-weight:600;color:var(--secondary);padding:8px 0 4px;}
   .tripstat strong{color:var(--label);font-weight:800;}
+  .chg{fill:#FF9F0A;stroke:#fff;stroke-width:1.5;}
+  .chgrow{margin:0 4px;border-top:.5px solid var(--sep);}
+  .chgrow .chgh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--secondary);padding:8px 4px;cursor:pointer;min-height:36px;}
+  .chgrow .chgh b{color:var(--label);font-weight:800;}
+  .chgrow .chgh .chev{transition:transform .35s cubic-bezier(.22,1,.36,1);transform:rotate(-90deg);}
+  .chgrow.open .chgh .chev{transform:rotate(0);}
+  .chgrow .chgl{display:none;padding-bottom:4px;}
+  .chgrow.open .chgl{display:block;animation:springIn .35s cubic-bezier(.22,1,.36,1) both;}
+  .chgrow .chgl a{display:block;font-size:13px;line-height:1.35;color:var(--label);text-decoration:none;padding:8px 4px;border-top:.5px solid var(--sep);}
+  .chgrow .chgl a small{color:var(--secondary);font-size:13px;}
   .triptoggle{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--cell);border-radius:14px;padding:12px 16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
   .triptoggle .tl{font-size:16px;font-weight:600;}
   .triptoggle .ts{font-size:12px;color:var(--secondary);margin-top:2px;}
@@ -438,6 +448,7 @@
         <g id="posG" class="posg" opacity="0"><circle class="halo" r="9"/><circle class="dot" r="4.5"/></g>
       </svg>
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
+      <div class="chgrow" id="chgRow"></div>
     </div>
     <div class="triptoggle">
       <div><div class="tl">Track trip</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
@@ -471,7 +482,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v32 · Sep 5</div>
+  <div class="appver">SF Move · v33 · Sep 5</div>
 
 </div>
 </div>
@@ -1322,6 +1333,13 @@ var ACCENTS = {
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
   var CUM=[];(function(){var a=0;STOPS.forEach(function(s){a+=s.mi;CUM.push(a);});})();   /* miles through stop i */
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
+  /* Supercharger session log — code-seeded. Each session becomes a ⚡ node on the map, a line in the Charging row,
+     and an actual charging entry in Spend (id = charge id, so a re-render never duplicates; a deleted one stays deleted
+     via spend.dismissedCharges). Shape:
+     {id:"chg-001", name:"Portage, IN – George Ade", addr:"5100 Plaza Ave, Portage IN 46368", lat:41.57, lng:-87.18,
+      date:"2026-09-06", time:"11:35", kwh:37.33, rate:0.38, cost:14.18, min:24} */
+  var CHARGES=[
+  ];
   var WAYPTS=[
     {n:"South Barrington",lat:42.0914, lng:-88.1562,  stop:"start"},
     {n:"Springfield IL",  lat:39.7817, lng:-89.6501},
@@ -1407,6 +1425,10 @@ var ACCENTS = {
       ng.appendChild(svgEl("circle",{"class":"bk",cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:3}));
       if(b.lbl){var bt=svgEl("text",{"class":"bl",x:(p.x+b.lbl[0]).toFixed(2),y:(p.y+b.lbl[1]).toFixed(2),"text-anchor":"middle"});bt.textContent=b.name.split(",")[0];ng.appendChild(bt);}
     });
+    CHARGES.forEach(function(c){   /* ⚡ sessions: above the route + backup markers, below the stop nodes */
+      var p=proj(c.lat,c.lng);
+      ng.appendChild(svgEl("circle",{"class":"chg",cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:3}));
+    });
     STOPS.forEach(function(s,k){
       var p=PTS[STOPW[k]],o=LBL[k],bold=(k>0);
       var r=s.id==="start"?3.6:s.opt?4.2:4.6;
@@ -1435,7 +1457,32 @@ var ACCENTS = {
     document.getElementById("tripStat").innerHTML='<strong>'+Math.round(pr.miles)+'</strong> of '+TOTAL_MI+' mi'+
       (next>=0?' · next: '+esc(STOPS[next].short)+' in ~'+Math.round(CUM[next]-pr.miles)+' mi':' · arrived SF');
   }
-  function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();}
+  var chgOpen=false;
+  function chgPlace(c){return String(c.name).split(/\s[\u2013\u2014-]\s/)[0];}   /* "Portage, IN – George Ade" → "Portage, IN" */
+  function chgTs(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}
+  function renderCharging(){
+    var w=document.getElementById("chgRow");if(!w)return;w.innerHTML="";
+    var n=CHARGES.length,kwh=0,cost=0;
+    CHARGES.forEach(function(c){kwh+=c.kwh||0;cost+=c.cost||0;});
+    w.classList.toggle("open",chgOpen&&n>0);
+    var h=el("div","chgh",'<span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b></span>'+(n?'<span class="chev">\u25BC</span>':''));
+    if(n){
+      h.setAttribute("role","button");h.setAttribute("tabindex","0");h.setAttribute("aria-expanded",chgOpen?"true":"false");
+      function tog(){chgOpen=!chgOpen;renderCharging();}
+      h.addEventListener("click",tog);
+      h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
+    }
+    w.appendChild(h);
+    var l=el("div","chgl");
+    CHARGES.forEach(function(c){
+      var a=document.createElement("a");
+      a.href="https://maps.apple.com/?address="+encodeURIComponent(c.addr||c.name);a.target="_blank";a.rel="noopener";
+      a.innerHTML=esc(fmtShort(parseYMD(c.date))+" "+(c.time||""))+' \u00b7 '+esc(chgPlace(c))+' <small>\u00b7 '+(Math.round((c.kwh||0)*10)/10)+' kWh @ $'+(+c.rate||0).toFixed(2)+' \u00b7 '+money2(c.cost||0)+(c.min?' \u00b7 '+c.min+' min':'')+'</small>';
+      l.appendChild(a);
+    });
+    w.appendChild(l);
+  }
+  function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();renderCharging();}
   function renderTripStops(){
     var wrap=document.getElementById("tripStops");wrap.innerHTML="";
     STOPS.forEach(function(s,i){
@@ -1681,7 +1728,9 @@ var ACCENTS = {
   function confirmDelete(row,e){
     if(row.querySelector(".sp-conf"))return;
     row.innerHTML='<div class="sp-conf"><span>Delete “'+esc(e.note||CATMAP[e.cat].l)+'”?</span><button class="btn del" type="button">Delete</button><button class="btn" type="button">Cancel</button></div>';
-    row.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation();state.spend.entries=state.spend.entries.filter(function(x){return x.id!==e.id;});save(state);renderSpend();});
+    row.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation();
+      if(isChargeId(e.id)){state.spend.dismissedCharges=state.spend.dismissedCharges||{};state.spend.dismissedCharges[e.id]=true;}   /* a deleted log entry stays deleted */
+      state.spend.entries=state.spend.entries.filter(function(x){return x.id!==e.id;});save(state);renderSpend();});
     row.querySelectorAll(".btn")[1].addEventListener("click",function(ev){ev.stopPropagation();renderSpend();});
   }
   function editPlanned(row,e){
@@ -1718,7 +1767,21 @@ var ACCENTS = {
       card.appendChild(sec);wrap.appendChild(card);
     });
   }
-  function renderSpend(newId){seedSpend();syncNow();renderSpendTop();renderSpendDays(newId);}
+  function nearestStop(lat,lng){var best=null,bd=Infinity;STOPS.forEach(function(s){var d=hav({lat:lat,lng:lng},s);if(d<bd){bd=d;best=s;}});return best;}
+  function isChargeId(id){for(var i=0;i<CHARGES.length;i++)if(CHARGES[i].id===id)return true;return false;}
+  function seedCharges(){   /* every render: add any CHARGES session not yet in entries (and not user-deleted) as an actual charging entry */
+    var have={},dis=state.spend.dismissedCharges||{},added=false;
+    state.spend.entries.forEach(function(e){have[e.id]=true;});
+    CHARGES.forEach(function(c){
+      if(have[c.id]||dis[c.id])return;
+      var s=nearestStop(c.lat,c.lng);
+      var e={id:c.id,amount:+c.cost||0,cat:"charging",note:c.name,day:dayForDate(parseYMD(c.date)),stopId:s?s.id:null,ts:chgTs(c),planned:false,billsLater:false};
+      if(c.kwh>0)e.kwh=c.kwh;
+      state.spend.entries.push(e);added=true;
+    });
+    if(added)save(state);
+  }
+  function renderSpend(newId){seedSpend();seedCharges();syncNow();renderSpendTop();renderSpendDays(newId);}
 
   /* ---------- SPEND INGEST: shared entry factory, merchant mapping, paste import, URL ingest ---------- */
   function addSpendEntry(o){   /* same schema as a manual entry, planned:false */
