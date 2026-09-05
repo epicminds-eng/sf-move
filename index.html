@@ -471,7 +471,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v31 · Sep 4</div>
+  <div class="appver">SF Move · v32 · Sep 5</div>
 
 </div>
 </div>
@@ -796,10 +796,14 @@ var ACCENTS = {
   /* departure date: the single source for every date in the app */
   (function(){
     var changed=false;
-    if(!state.trip.departDate){state.trip.departDate="2026-09-05";changed=true;}
+    if(!state.trip.departDate){state.trip.departDate="2026-09-06";changed=true;}
     if(!state.trip.dateMigratedV1){
       if(state.trip.departDate==="2026-09-04"){state.trip.departDate="2026-09-05";}   /* one-time move Fri → Sat; never again once flagged */
       state.trip.dateMigratedV1=true;changed=true;
+    }
+    if(!state.trip.dateMigratedV2){
+      if(state.trip.departDate==="2026-09-05"){state.trip.departDate="2026-09-06";}   /* one-time move Sat → Sun; never again once flagged */
+      state.trip.dateMigratedV2=true;changed=true;
     }
     if(changed)save(state);
   })();
@@ -819,7 +823,7 @@ var ACCENTS = {
   function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
   function fmtShort(d){return MO[d.getMonth()]+" "+d.getDate();}
   function fmtDay(d){return WD[d.getDay()]+" "+fmtShort(d);}
-  function departDate(){return parseYMD(state.trip.departDate||"2026-09-05");}
+  function departDate(){return parseYMD(state.trip.departDate||"2026-09-06");}
   function hotelUrl(base,d){return base+"?startDate="+ymd(d)+"&endDate="+ymd(addDays(d,1))+"&rm1=a1";}   /* Day N start = departDate + (N-1) */
   function renderDates(){
     var d0=departDate(),eve=addDays(d0,-1);
