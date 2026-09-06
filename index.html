@@ -270,6 +270,26 @@
   .tripstop .btns.three{display:flex;flex-wrap:wrap;gap:8px;}
   .tripstop .btns.three .btn{flex:1 1 calc(50% - 4px);text-align:center;font-size:14px;padding:10px 8px;}
   .tripstop .lnk{font-size:13px;font-weight:600;color:var(--blue);text-decoration:none;margin-left:14px;}
+  /* Rolling / Arrived timestamps on a stop card */
+  .rollrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 16px 12px;}
+  .rollrow .btn{font-size:14px;padding:8px 12px;}
+  .chipbtn{font-family:inherit;font-size:13px;font-weight:600;background:var(--fill);color:var(--label);border:0;border-radius:999px;padding:7px 12px;cursor:pointer;}
+  .stampEd{display:inline-flex;gap:6px;align-items:center;}
+  .stampEd input{font-family:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
+  .stampEd .btn{font-size:13px;padding:7px 10px;}
+  /* Stats card */
+  .stats .sd{padding:8px 16px 6px;}
+  .stats .sd + .sd{border-top:.5px solid var(--sep);}
+  .stats .sd h3{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;margin:0 0 2px;}
+  .stats .sd h3 span{font-size:13px;font-weight:600;color:var(--secondary);}
+  .stats .sl{font-size:13px;color:var(--secondary);padding:2px 0;line-height:1.4;}
+  .stats .sl b{color:var(--label);font-weight:600;}
+  .stats .sbar{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;display:flex;margin:6px 0 4px;}
+  .stats .sbar i{display:block;height:100%;}
+  .stats .sbar .dr{background:var(--blue);}
+  .stats .sbar .ch{background:#E82127;}
+  .stats .legend2{display:flex;gap:14px;font-size:12px;font-weight:600;color:var(--secondary);}
+  .stats .legend2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0;}
   .daterow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 4px;}
   .daterow label{font-size:16px;font-weight:600;}
   .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
@@ -511,6 +531,7 @@
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
       <div class="chgrow" id="chgRow"></div>
     </div>
+    <div id="tripStats"></div>
     <div class="triptoggle">
       <div><div class="tl">Track trip</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Track trip"><span class="knob"></span></button>
@@ -543,7 +564,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v43 · Sep 6</div>
+  <div class="appver">SF Move · v44 · Sep 6</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -912,6 +933,12 @@ var ACCENTS = {
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
+  state.trip.rolled=state.trip.rolled||{};         /* stopId → "YYYY-MM-DDTHH:MM" local wall-clock, set by the Rolling button */
+  state.trip.arrivedAt=state.trip.arrivedAt||{};   /* stopId → same format, set when Arrived is checked */
+  if(!state.trip.arrivedAtV1){   /* one-time backfill: Day 1 (Springfield) arrival 5:49 PM Sept 6 */
+    if(!state.trip.arrivedAt.strobert){state.trip.arrivedAt.strobert="2026-09-06T17:49";state.trip.arrived.strobert=true;}
+    state.trip.arrivedAtV1=true;save(state);
+  }
   /* departure date: the single source for every date in the app */
   (function(){
     var changed=false;
@@ -1873,10 +1900,15 @@ var ACCENTS = {
       }
       var row=el("div","check"+(arr?" on":""),'<span class="ring">\u2713</span><span><span class="ct">Arrived</span></span>');
       row.setAttribute("role","checkbox");row.setAttribute("tabindex","0");row.setAttribute("aria-checked",arr?"true":"false");
-      function tog(){state.trip.arrived[s.id]=!state.trip.arrived[s.id];save(state);renderTripStops();updateTripMap();}
+      function tog(){
+        var on=!state.trip.arrived[s.id];state.trip.arrived[s.id]=on;
+        if(on){if(!state.trip.arrivedAt[s.id])state.trip.arrivedAt[s.id]=localISO(new Date());}else delete state.trip.arrivedAt[s.id];
+        save(state);renderTripStops();updateTripMap();
+      }
       row.addEventListener("click",tog);
       row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
       card.appendChild(row);
+      if(i>0)card.appendChild(stampRow(s));   /* Rolling button → "Rolled 8:32 AM" chip; "Arrived 5:49 PM" chip; tap a chip to edit its time */
       if(s.maps){   /* hotel buttons; the Orbitz one only while a booking link exists */
         card.appendChild(el("div","btns"+(s.orbitz?" three":""),
           '<a class="btn" href="'+s.maps+'">Hotel in Apple Maps</a>'+
@@ -1888,6 +1920,27 @@ var ACCENTS = {
       }
       wrap.appendChild(card);
     });
+    renderStats();
+  }
+  function p2(n){return ("0"+n).slice(-2);}
+  function localISO(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())+"T"+p2(d.getHours())+":"+p2(d.getMinutes());}
+  function parseLocalISO(v){var m=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(v||""));if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);var d=new Date(v);return isNaN(d)?null:d;}
+  function stampRow(s){
+    var r=el("div","rollrow"),ro=state.trip.rolled[s.id],ar=state.trip.arrivedAt[s.id];
+    function chip(label,iso,key){
+      var d=parseLocalISO(iso),b=el("button","chipbtn",esc(label)+" "+(d?esc(fmtTime(d)):"?"));b.type="button";b.setAttribute("aria-label",label+" time, tap to edit");
+      b.addEventListener("click",function(){
+        var ed=el("span","stampEd",'<input type="time" aria-label="'+label+' time"><button class="btn go" type="button">Save</button><button class="btn" type="button">Clear</button>');
+        var inp=ed.querySelector("input");inp.value=String(iso).slice(11,16);b.replaceWith(ed);inp.focus();
+        ed.querySelector(".go").addEventListener("click",function(){if(/^\d\d:\d\d$/.test(inp.value)){state.trip[key][s.id]=String(iso).slice(0,10)+"T"+inp.value;save(state);renderTripStops();}});
+        ed.querySelectorAll(".btn")[1].addEventListener("click",function(){delete state.trip[key][s.id];save(state);renderTripStops();});
+      });
+      return b;
+    }
+    if(ro)r.appendChild(chip("Rolled",ro,"rolled"));
+    else{var rb=el("button","btn","Rolling");rb.type="button";rb.addEventListener("click",function(){state.trip.rolled[s.id]=localISO(new Date());save(state);renderTripStops();});r.appendChild(rb);}
+    if(ar)r.appendChild(chip("Arrived",ar,"arrivedAt"));
+    return r;
   }
   function refreshTripDates(){
     renderDates();renderMove();   /* Move hero + phase title; Info carries no dates */
@@ -1899,6 +1952,72 @@ var ACCENTS = {
       var go=card.querySelector(".btns.three a.go");
       if(go&&s.orbitz)go.setAttribute("href",hotelUrl(s.orbitz,dt));
     });
+    renderStats();   /* day boundaries follow the departure date */
+  }
+  /* ---------- TRIP STATS: computed live from CHARGES + rolled/arrived stamps; every missing input shows "—" ---------- */
+  function hm(min){if(min===null||min===undefined||isNaN(min))return "\u2014";min=Math.round(min);var h=Math.floor(min/60),m=min%60;return h?h+"h "+p2(m)+"m":m+"m";}
+  function dash(v,f){return (v===null||v===undefined||isNaN(v))?"\u2014":f(v);}
+  function dayStats(d){
+    var st=stopForDay(d);if(!st)return null;var k=STOPS.indexOf(st);
+    var rolled=state.trip.rolled[st.id]?parseLocalISO(state.trip.rolled[st.id]):null,arrived=state.trip.arrivedAt[st.id]?parseLocalISO(state.trip.arrivedAt[st.id]):null;
+    var ch=CHARGES.filter(function(c){return !c.planned&&c.date&&dayForDate(parseYMD(c.date))===d;}).sort(function(a,b){return chgTs(a)-chgTs(b);});
+    if(!rolled&&!arrived&&!ch.length&&!state.trip.arrived[st.id])return null;
+    var kwh=0,cost=0,min=0;ch.forEach(function(c){kwh+=c.kwh||0;cost+=c.cost||0;min+=c.min||0;});
+    var miles=st.mi,d2d=(rolled&&arrived&&arrived>rolled)?(arrived-rolled)/60000:null;
+    var drive=d2d!==null?d2d-min:null,mph=(drive!==null&&drive>0)?miles/(drive/60):null;
+    var prev=CUM[k-1],stints=[];
+    ch.forEach(function(c){var m=locate({lat:c.lat,lng:c.lng}).miles;stints.push(m-prev);prev=m;});
+    var longest=stints.length?Math.max.apply(null,stints):null,whmi=(kwh>0&&miles>0)?kwh/miles*1000:null;
+    return{d:d,stop:st,rolled:rolled,arrived:arrived,miles:miles,ch:ch,kwh:kwh,cost:cost,chMin:min,d2d:d2d,drive:drive,mph:mph,longest:longest,whmi:whmi};
+  }
+  function tripStats(){
+    var days=[];for(var d=1;d<=TRIP_DAYS;d++){var r=dayStats(d);if(r)days.push(r);}
+    var done=tripProgress().miles,left=Math.max(0,TOTAL_MI-done);
+    var driveMin=0,chMinTot=0,d2dMin=0,milesD2d=0,anyD2d=false;
+    days.forEach(function(r){chMinTot+=r.chMin;if(r.d2d!==null){anyD2d=true;driveMin+=Math.max(0,r.drive);d2dMin+=r.d2d;milesD2d+=r.miles;}});
+    var real=CHARGES.filter(function(c){return !c.planned&&c.kwh>0;}),kwh=0,cost=0;real.forEach(function(c){kwh+=c.kwh;cost+=c.cost||0;});
+    var perKwh=kwh>0?cost/kwh:null,perMi=(done>0&&cost>0)?cost/done:null,whmi=(kwh>0&&done>0)?kwh/done*1000:null;
+    var proj=(whmi!==null&&perKwh!==null)?left*whmi/1000*perKwh:null;
+    var rated=real.map(function(c){return{c:c,r:c.rate>0?c.rate:(c.cost>0?c.cost/c.kwh:null)};}).filter(function(x){return x.r!==null;}).sort(function(a,b){return a.r-b.r;});
+    var fast=real.filter(function(c){return c.min>0;}).map(function(c){return{c:c,v:c.kwh/c.min};}).sort(function(a,b){return b.v-a.v;})[0]||null;
+    var elapsed=days.length?Math.max.apply(null,days.map(function(r){return r.d;})):0;
+    var d2dMph=d2dMin>0?milesD2d/(d2dMin/60):null,remDays=Math.max(1,TRIP_DAYS-elapsed),eta=null,hrsPerDay=null;
+    if(d2dMph&&left>0){
+      hrsPerDay=(left/d2dMph)/remDays;
+      var rolls=days.filter(function(r){return r.rolled;}).map(function(r){return r.rolled.getHours()*60+r.rolled.getMinutes();});
+      if(rolls.length){var rollMin=rolls.reduce(function(a,b){return a+b;},0)/rolls.length,last=addDays(departDate(),TRIP_DAYS-1);eta=new Date(last.getFullYear(),last.getMonth(),last.getDate(),0,Math.round(rollMin+hrsPerDay*60));}
+    }
+    return{days:days,done:done,left:left,pct:TOTAL_MI?done/TOTAL_MI*100:0,elapsed:elapsed,driveMin:anyD2d?driveMin:null,chMin:chMinTot,kwh:kwh,cost:cost,perKwh:perKwh,perMi:perMi,whmi:whmi,proj:proj,
+      best:rated[0]||null,worst:rated.length>1?rated[rated.length-1]:null,fast:fast,eta:eta,hrsPerDay:hrsPerDay,d2dMph:d2dMph,remDays:remDays};
+  }
+  function renderStats(){
+    var w=document.getElementById("tripStats");if(!w)return;w.innerHTML="";
+    var t=tripStats(),open=!state.collapsed["trip-stats"];
+    var card=el("div","card stats"+(open?"":" closed"));
+    var head=el("div","sec-head",'<span class="t">Stats</span><span class="m">'+(t.elapsed?"Day "+t.elapsed+" of "+TRIP_DAYS:"not rolling yet")+' <span class="chev">\u25BC</span></span>');
+    head.setAttribute("role","button");head.setAttribute("tabindex","0");
+    function togC(){state.collapsed["trip-stats"]=!state.collapsed["trip-stats"];save(state);renderStats();}
+    head.addEventListener("click",togC);head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
+    card.appendChild(head);
+    var body=el("div","sec-body");
+    t.days.forEach(function(r){
+      var sd=el("div","sd");
+      sd.innerHTML='<h3>Day '+r.d+' \u00b7 '+esc(r.stop.short)+'<span>'+r.miles+' mi</span></h3>'+
+        '<div class="sl">Rolled <b>'+(r.rolled?esc(fmtTime(r.rolled)):"\u2014")+'</b> \u2192 Arrived <b>'+(r.arrived?esc(fmtTime(r.arrived)):"\u2014")+'</b> \u00b7 door-to-door <b>'+hm(r.d2d)+'</b></div>'+
+        '<div class="sl">Driving <b>'+hm(r.drive)+'</b> \u00b7 avg <b>'+dash(r.mph,function(v){return Math.round(v)+" mph";})+'</b> \u00b7 charging <b>'+hm(r.ch.length?r.chMin:null)+'</b></div>'+
+        '<div class="sl"><b>'+r.ch.length+'</b> charge'+(r.ch.length===1?"":"s")+' \u00b7 <b>'+(Math.round(r.kwh*10)/10)+' kWh</b> \u00b7 <b>'+money2(r.cost)+'</b> \u00b7 longest stint <b>'+dash(r.longest,function(v){return Math.round(v)+" mi";})+'</b> \u00b7 <b>'+dash(r.whmi,function(v){return Math.round(v)+" Wh/mi";})+'</b></div>';
+      body.appendChild(sd);
+    });
+    var tot=el("div","sd"),dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):0,pc=sum?100-pd:0;
+    tot.innerHTML='<h3>Trip<span>'+t.elapsed+' of '+TRIP_DAYS+' days</span></h3>'+
+      '<div class="sl"><b>'+Math.round(t.done)+'</b> of '+TOTAL_MI+' mi done \u00b7 <b>'+Math.round(t.left)+'</b> left \u00b7 <b>'+Math.round(t.pct)+'%</b></div>'+
+      (sum?'<div class="sbar"><i class="dr" style="width:'+pd+'%"></i><i class="ch" style="width:'+pc+'%"></i></div><div class="legend2"><span><i class="dr" style="background:var(--blue)"></i>Driving '+hm(dr)+' \u00b7 '+pd+'%</span><span><i style="background:#E82127"></i>Charging '+hm(chm)+' \u00b7 '+pc+'%</span></div>':'<div class="sl">Driving <b>\u2014</b> \u00b7 charging <b>'+hm(chm||null)+'</b></div>')+
+      '<div class="sl"><b>'+(Math.round(t.kwh*10)/10)+' kWh</b> \u00b7 <b>'+money2(t.cost)+'</b> \u00b7 <b>'+dash(t.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";})+'</b> \u00b7 <b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2)+"/mi";})+'</b> \u00b7 <b>'+dash(t.whmi,function(v){return Math.round(v)+" Wh/mi";})+'</b></div>'+
+      '<div class="sl">Remaining charging \u2248 <b>'+dash(t.proj,function(v){return money(v);})+'</b></div>'+
+      '<div class="sl">Best <b>'+(t.best?esc(chgPlace(t.best.c))+" $"+t.best.r.toFixed(2):"\u2014")+'</b> \u00b7 worst <b>'+(t.worst?esc(chgPlace(t.worst.c))+" $"+t.worst.r.toFixed(2):"\u2014")+'</b> \u00b7 fastest <b>'+(t.fast?esc(chgPlace(t.fast.c))+" "+t.fast.v.toFixed(2)+" kWh/min":"\u2014")+'</b></div>'+
+      '<div class="sl">ETA SF <b>'+(t.eta?esc(fmtDay(t.eta))+" ~"+esc(fmtTime(t.eta)):"\u2014")+'</b>'+(t.hrsPerDay?' \u00b7 '+hm(t.hrsPerDay*60)+' door-to-door/day at '+Math.round(t.d2dMph)+' mph':'')+'</div>';
+    body.appendChild(tot);
+    card.appendChild(body);w.appendChild(card);
   }
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
@@ -2387,7 +2506,7 @@ var ACCENTS = {
       });
       if(p==="pack")renderPack();  /* reflect any tag changes made in Sort */
       if(curPage==="trip"&&p!=="trip")resetMapZoom(false);   /* zoom is never persisted */
-      if(p==="trip")ensureTripMap();
+      if(p==="trip"){ensureTripMap();renderStats();}
       if(p==="spend")renderSpend();   /* day/stop autofill follows the Trip tab */
       curPage=p;scrollEl.scrollTop=scrollPos[p]||0;
     });
