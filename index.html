@@ -506,7 +506,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v37 · Sep 5</div>
+  <div class="appver">SF Move · v38 · Sep 6</div>
 
 </div>
 </div>
@@ -1366,7 +1366,14 @@ var ACCENTS = {
      and seeds Spend like any other:
      {id:"chg-oasis", planned:true, name:"Tesla Oasis – Lost Hills, CA", addr:"…", lat:35.617, lng:-119.694, leg:"LA → SF"} */
   var CHARGES=[
-    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"LA \u2192 SF"}
+    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"LA \u2192 SF"},
+    {id:"chg-001", name:"Normal, IL – West Raab Rd", addr:"610 West Raab Rd, Normal, IL 61761", lat:40.5327, lng:-88.9918, date:"2026-09-06", time:"10:27", kwh:29.83, rate:0.35, cost:10.43, min:14},
+    {id:"chg-002", name:"Springfield, IL – South Dirksen", addr:"1501 S Dirksen Pkwy, Springfield, IL 62703", lat:39.7755, lng:-89.6089, date:"2026-09-06", time:"11:41", kwh:43.79, rate:0.36, cost:15.76, min:28}
+  ];
+  /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
+     but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
+  var EXPENSES=[
+    {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"}
   ];
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
@@ -1969,6 +1976,7 @@ var ACCENTS = {
     row.innerHTML='<div class="sp-conf"><span>Delete “'+esc(e.note||CATMAP[e.cat].l)+'”?</span><button class="btn del" type="button">Delete</button><button class="btn" type="button">Cancel</button></div>';
     row.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation();
       if(isChargeId(e.id)){state.spend.dismissedCharges=state.spend.dismissedCharges||{};state.spend.dismissedCharges[e.id]=true;}   /* a deleted log entry stays deleted */
+      if(isExpenseId(e.id)){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses[e.id]=true;}
       state.spend.entries=state.spend.entries.filter(function(x){return x.id!==e.id;});save(state);renderSpend();});
     row.querySelectorAll(".btn")[1].addEventListener("click",function(ev){ev.stopPropagation();renderSpend();});
   }
@@ -2020,7 +2028,18 @@ var ACCENTS = {
     });
     if(added)save(state);
   }
-  function renderSpend(newId){seedSpend();seedCharges();syncNow();renderSpendTop();renderSpendDays(newId);}
+  function isExpenseId(id){for(var i=0;i<EXPENSES.length;i++)if(EXPENSES[i].id===id)return true;return false;}
+  function seedExpenses(){   /* every render: add any EXPENSES receipt not yet in entries (and not user-deleted) as an actual entry */
+    var have={},dis=state.spend.dismissedExpenses||{},added=false;
+    state.spend.entries.forEach(function(e){have[e.id]=true;});
+    EXPENSES.forEach(function(x){
+      if(have[x.id]||dis[x.id])return;
+      var d=dayForDate(parseYMD(x.date)),st=stopForDay(d);
+      state.spend.entries.push({id:x.id,amount:+x.amount||0,cat:CATMAP[x.cat]?x.cat:"misc",note:x.note||"",day:d,stopId:st?st.id:null,ts:chgTs(x),planned:false,billsLater:false});added=true;
+    });
+    if(added)save(state);
+  }
+  function renderSpend(newId){seedSpend();seedCharges();seedExpenses();syncNow();renderSpendTop();renderSpendDays(newId);}
 
   /* ---------- SPEND INGEST: shared entry factory, merchant mapping, paste import, URL ingest ---------- */
   function addSpendEntry(o){   /* same schema as a manual entry, planned:false */
