@@ -326,6 +326,20 @@
   .sp-edit{display:flex;gap:6px;align-items:center;}
   .sp-edit input{width:88px;font-family:inherit;font-size:16px;padding:7px 9px;border:0;background:var(--bg);border-radius:10px;}
   .sp-edit .btn{padding:8px 12px;font-size:14px;}
+  /* ---------- responsive: iPad and wider (≥700px). Everything above this block is the phone layout and is unchanged ---------- */
+  @media (min-width:700px){
+    .wrap{max-width:1040px;padding:8px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));}   /* 16px sides: an 820px iPad then fits two 386px columns */
+    /* card grids: two columns once ~780px of content is available (iPad portrait and up), one below; rows top-aligned so a folded card stays short */
+    #phaseGroups,#packGroups,#sortGroups,#tripStops,#spendDays{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start;margin-bottom:16px;}
+    #phaseGroups>.card,#packGroups>.card,#sortGroups>.card,#tripStops>.card,#spendDays>.card{margin-bottom:0;min-width:0;}
+    /* text lines never run past ~70ch, whatever the column width */
+    .sec-note,.check>span,.check .cd,.item .name,.item .note,.refblock,.fact,.tripstop .hot,.tripstop .sc,.tripstop .nm,.sprow .t,.unote,.hint,.imp-note,.est,.spc p{max-width:70ch;}
+    /* Trip hero spans the full column; aspect is kept and height capped at 70vh — the SVG "slice"s (crops sky + Mexico), never letterboxes or distorts */
+    .tripmap svg{max-height:70vh;}
+    /* same tab bar, its five targets centred inside 600px; height and safe-area padding unchanged */
+    nav{justify-content:center;}
+    nav button{flex:0 1 120px;}
+  }
 </style>
 </head>
 <body>
@@ -408,7 +422,7 @@
     </div>
     <div class="tripmap">
       <button class="mapreset" id="mapReset" type="button" aria-hidden="true" tabindex="-1">Reset</button>
-      <svg id="tripSvg" viewBox="0 0 380 300" role="img" aria-label="Route map">
+      <svg id="tripSvg" viewBox="0 0 380 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Route map">
         <g id="zoomLayer" class="zoomlayer">
         <rect x="0" y="0" width="380" height="300" fill="#BFDDF3"/>
         <!-- outlines lifted verbatim from sf-move-map-options.html (option B): Canada/Alaska + Mexico + 31 states, projected lon -125.5→-84.5 / lat 25→49.5 onto 380×300.
@@ -506,7 +520,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v41 · Sep 6</div>
+  <div class="appver">SF Move · v42 · Sep 6</div>
 
 </div>
 </div>
@@ -1639,7 +1653,19 @@ var ACCENTS = {
   var Z={s:1,tx:0,ty:0,markers:[],ptrs:{},raf:null,anim:null,lastTap:0};
   var zoomSvg=document.getElementById("tripSvg"),zoomLayer=document.getElementById("zoomLayer"),zoomReset=document.getElementById("mapReset");
   var reducedMotion=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  function zb(s){return{txLo:(VB.x+VB.w)*(1-s),txHi:VB.x*(1-s),tyLo:(VB.y+VB.h)*(1-s),tyHi:VB.y*(1-s)};}   /* pan range that keeps the viewport covered */
+  function vb(){   /* the viewBox region actually on screen: all of VB on a phone; with preserveAspectRatio "slice" a height-capped SVG (iPad landscape) crops top+bottom, so the box is shorter */
+    var r=zoomSvg.getBoundingClientRect();if(!r.width||!r.height)return VB;
+    var ea=r.width/r.height,va=VB.w/VB.h;
+    if(ea>va*1.001){var h=VB.w/ea;return{x:VB.x,y:VB.y+(VB.h-h)/2,w:VB.w,h:h};}
+    if(ea<va*0.999){var w=VB.h*ea;return{x:VB.x+(VB.w-w)/2,y:VB.y,w:w,h:VB.h};}
+    return VB;
+  }
+  function vbCenter(){var b=vb();return{x:b.x+b.w/2,y:b.y+b.h/2};}
+  function zb(s){   /* pan range that keeps the visible box covered (a cropped box leaves a little vertical room even at 1×) */
+    var b=vb(),lo=b.x+b.w-s*(VB.x+VB.w),hi=b.x-s*VB.x,lo2=b.y+b.h-s*(VB.y+VB.h),hi2=b.y-s*VB.y;
+    if(lo>hi){lo=hi=(lo+hi)/2;}if(lo2>hi2){lo2=hi2=(lo2+hi2)/2;}
+    return{txLo:lo,txHi:hi,tyLo:lo2,tyHi:hi2};
+  }
   function clampZ(s,tx,ty){s=Math.min(ZMAX,Math.max(ZMIN,s));var b=zb(s);return{s:s,tx:Math.min(b.txHi,Math.max(b.txLo,tx)),ty:Math.min(b.tyHi,Math.max(b.tyLo,ty))};}
   function rub(x,dim){return (1-1/(x*0.55/dim+1))*dim;}   /* iOS rubber-band: progressive resistance past a limit */
   function rubberRange(v,lo,hi,dim){return v<lo?lo-rub(lo-v,dim):v>hi?hi+rub(v-hi,dim):v;}
@@ -1653,7 +1679,7 @@ var ACCENTS = {
     zoomSvg.classList.toggle("zoomed",zoomed);
     zoomReset.classList.toggle("show",zoomed);zoomReset.setAttribute("aria-hidden",zoomed?"false":"true");zoomReset.tabIndex=zoomed?0:-1;
   }
-  function svgPt(e){var r=zoomSvg.getBoundingClientRect();return{x:VB.x+(e.clientX-r.left)/r.width*VB.w,y:VB.y+(e.clientY-r.top)/r.height*VB.h};}
+  function svgPt(e){var r=zoomSvg.getBoundingClientRect(),b=vb();return{x:b.x+(e.clientX-r.left)/r.width*b.w,y:b.y+(e.clientY-r.top)/r.height*b.h};}
   function stopAnim(){if(Z.raf){cancelAnimationFrame(Z.raf);Z.raf=null;}Z.anim=null;}
   function springTo(s,tx,ty,v0,snap){   /* critically damped, interruptible: always starts from the presentation value */
     stopAnim();
@@ -1674,7 +1700,7 @@ var ACCENTS = {
     Z.raf=requestAnimationFrame(step);
   }
   function zoomTo(s,anchor,animate){
-    var a=anchor||{x:VB.x+VB.w/2,y:VB.y+VB.h/2},q={x:(a.x-Z.tx)/Z.s,y:(a.y-Z.ty)/Z.s};
+    var a=anchor||vbCenter(),q={x:(a.x-Z.tx)/Z.s,y:(a.y-Z.ty)/Z.s};
     var t=clampZ(s,a.x-s*q.x,a.y-s*q.y);springTo(t.s,t.tx,t.ty,null,!animate);
   }
   function resetMapZoom(animate){zoomTo(1,null,animate);}
@@ -1727,7 +1753,7 @@ var ACCENTS = {
     var v={x:0,y:0};
     if(g&&g.samples.length>1){var a=g.samples[0],b=g.samples[g.samples.length-1],dt=b.t-a.t;if(dt>0&&dt<200){v.x=(b.tx-a.tx)/dt;v.y=(b.ty-a.ty)/dt;}}
     var f=0.998/(1-0.998),s=Math.min(ZMAX,Math.max(ZMIN,Z.s)),tx=Z.tx+v.x*f,ty=Z.ty+v.y*f;
-    if(s!==Z.s){var an=(g&&g.anchor)||{x:VB.x+VB.w/2,y:VB.y+VB.h/2},q={x:(an.x-Z.tx)/Z.s,y:(an.y-Z.ty)/Z.s};tx=an.x-s*q.x;ty=an.y-s*q.y;}
+    if(s!==Z.s){var an=(g&&g.anchor)||vbCenter(),q={x:(an.x-Z.tx)/Z.s,y:(an.y-Z.ty)/Z.s};tx=an.x-s*q.x;ty=an.y-s*q.y;}
     var t=clampZ(s,tx,ty);
     springTo(t.s,t.tx,t.ty,{x:v.x*1000,y:v.y*1000},false);
   }
@@ -1736,6 +1762,7 @@ var ACCENTS = {
   zoomSvg.addEventListener("pointerup",onUp);
   zoomSvg.addEventListener("pointercancel",onUp);
   zoomReset.addEventListener("click",function(){resetMapZoom(true);});
+  window.addEventListener("resize",function(){if(!G&&!Z.anim){var t=clampZ(Z.s,Z.tx,Z.ty);Z.s=t.s;Z.tx=t.tx;Z.ty=t.ty;applyZoom();}});
   function renderTripStops(){
     var wrap=document.getElementById("tripStops");wrap.innerHTML="";
     STOPS.forEach(function(s,i){
