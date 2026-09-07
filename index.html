@@ -748,7 +748,7 @@
     <section id="spNote"></section>
   </div>
 
-  <div class="appver">SF Move · v63 · Sep 7</div>
+  <div class="appver">SF Move · v64 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1149,8 +1149,6 @@ var ACCENTS = {
     ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.weatherford!==undefined){if(o.amarillo===undefined)o.amarillo=o.weatherford;delete o.weatherford;}});
     state.spend.entries.forEach(function(e){
       if(e.stopId==="weatherford")e.stopId="amarillo";
-      if(e.planned&&e.id==="seed-h2"){e.amount=120;e.note="Amarillo hotel";}
-      if(e.planned&&e.id==="seed-p2"){e.amount=50;e.note="Pet fee";}
     });
     state.trip.day2AmarilloV1=true;save(state);
   }
@@ -1163,6 +1161,11 @@ var ACCENTS = {
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h1"&&e.planned);});
     state.spend.entries.forEach(function(e){if(e.id==="seed-p1"&&e.planned){e.amount=25;e.note="Pet fee · Candlewood";}});
     state.spend.day1HotelV1=true;save(state);
+  }
+  if(!state.spend.day2HotelV1){   /* Day 2 hotel booked: Home2 Suites Amarillo East (actual exp-005). Retire the planned hotel row and reprice the planned pet fee to Home2's $75; a pet fee already confirmed by hand is left alone */
+    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h2"&&e.planned);});
+    state.spend.entries.forEach(function(e){if(e.id==="seed-p2"&&e.planned){e.amount=75;e.note="Pet fee · Home2 Suites";}});
+    state.spend.day2HotelV1=true;save(state);
   }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
@@ -1655,9 +1658,9 @@ var ACCENTS = {
       maps:"https://maps.apple.com/?address=1920%20E%20Kerr%20St%2C%20Springfield%2C%20MO%2065803",
       q:"Tesla%20Supercharger%20Springfield%20MO"},   /* already booked on Orbitz (exp-002), so no booking link */
     {id:"amarillo",day:"Day 2",     name:"Amarillo, TX",         short:"Amarillo",   lat:35.2220,  lng:-101.8313, mi:545, off:1, backup:"shamrock",
-      hotel:"Hotel TBD",
-      q:"Tesla%20Supercharger%20Amarillo%20TX",
-      orbitz:"https://www.orbitz.com/Hotel-Search?destination=Amarillo%2C%20Texas", orbitzLabel:"Hotels on Orbitz"},   /* search, not a property: dates are derived */
+      hotel:"Home2 Suites by Hilton Amarillo East \u00b7 7775 I-40 East", detail:"Pets $75/stay \u00b7 check-in 3 PM",
+      maps:"https://maps.apple.com/?address=7775%20I-40%20East%2C%20Amarillo%2C%20TX%2079118",
+      q:"Tesla%20Supercharger%20Amarillo%20TX"},   /* booked on Orbitz (exp-005), so no booking link */
     {id:"abq",     day:"Day 3",    name:"Albuquerque, NM",      short:"Albuquerque",lat:35.099215,lng:-106.590972,mi:289, off:2, backup:"santarosa",
       hotel:"Sonesta ES Suites \u00b7 3300 Prospect Ave NE", detail:"Check-in 4 PM \u00b7 call ahead if after 9 PM \u00b7 pets $75/stay",
       maps:"https://maps.apple.com/?address=3300%20Prospect%20Ave%20NE%2C%20Albuquerque%2C%20NM%2087107",
@@ -1709,7 +1712,8 @@ var ACCENTS = {
     {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"},
     {id:"exp-002", cat:"hotel", amount:168.72, note:"Candlewood Suites Springfield · booked Orbitz", date:"2026-09-06", time:"15:39"},
     {id:"exp-003", cat:"groceries", amount:24.83, note:"Walmart · Springfield MO", date:"2026-09-06", time:"18:40"},
-    {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"}
+    {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"},
+    {id:"exp-005", cat:"hotel", amount:314.98, note:"Home2 Suites Amarillo East · booked Orbitz", date:"2026-09-07", time:"17:30"}
   ];
   /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
      entry under the same id (food/coffee → "food", sight → "misc"), so it counts exactly once. Never touch route miles, progress or charging stats. */
@@ -2132,7 +2136,7 @@ var ACCENTS = {
       }
       if(i>0){var st=stampRow(s);if(status==="done"||state.trip.rolled[s.id]||state.trip.arrivedAt[s.id])card.appendChild(st);else if(status==="cur")card.appendChild(st);}
       /* buttons: primary Apple Maps (or Find a hotel), secondary Supercharger / Mark arrived, More for hotel · Orbitz · backup · undo */
-      var sc=s.q?"https://maps.apple.com/?q="+s.q:(s.sc2||null),primary=noHotel&&s.orbitz?'<a class="btn go" href="'+hotelUrl(s.orbitz,dt)+'">Find a hotel</a>':((s.maps||s.url)?'<a class="btn go" href="'+(s.maps||s.url)+'">Apple Maps</a>':(sc?'<a class="btn go" href="'+sc+'">Apple Maps</a>':''));
+      var sc=s.q?"https://maps.apple.com/?q="+s.q:(s.sc2||null),primary=noHotel&&s.orbitz?'<a class="btn go" href="'+hotelUrl(s.orbitz,dt)+'">Find a hotel</a>':((s.maps||s.url)?'<a class="btn go" href="'+(s.maps||s.url)+'">'+(s.hotel&&s.maps?"Hotel in Apple Maps":"Apple Maps")+'</a>':(sc?'<a class="btn go" href="'+sc+'">Apple Maps</a>':''));
       var second=(sc&&!(primary.indexOf(sc)>=0)?'<a class="btn" href="'+sc+'">Supercharger</a>':'')+(i>0&&status!=="done"?'<button class="btn" type="button" data-arr="1">Mark arrived</button>':'');
       var more=[];
       if(s.maps&&primary.indexOf(s.maps)<0)more.push('<a href="'+s.maps+'">Hotel in Apple Maps<span class="chev">›</span></a>');
@@ -2519,9 +2523,8 @@ var ACCENTS = {
     var t=Date.now();
     function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:true,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
     state.spend.entries=state.spend.entries.concat([
-      P("seed-h2",120,"hotel","Amarillo hotel",2,"amarillo"),
       P("seed-h3",140,"hotel","Sonesta ES Suites Albuquerque",3,"abq"),
-      P("seed-p2",50,"kane","Pet fee",2,"amarillo"),
+      P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"amarillo"),
       P("seed-p3",75,"kane","Pet fee · Sonesta",3,"abq"),
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
       P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo",{billsLater:true}),
