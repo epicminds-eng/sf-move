@@ -655,7 +655,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v54 · Sep 7</div>
+  <div class="appver">SF Move · v55 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1604,7 +1604,8 @@ var ACCENTS = {
     {id:"chg-003", name:"Fenton, MO \u2013 Wally\u0027s", addr:"950 Assembly Pkwy, Fenton, MO 63026", lat:38.5093, lng:-90.4527, date:"2026-09-06", time:"13:45", kwh:36.59, rate:0.44, cost:16.10, min:21},
     {id:"chg-004", name:"Rolla, MO", addr:"1705 Martin Springs Dr, Rolla, MO 65401", lat:37.9448, lng:-91.7967, date:"2026-09-06", time:"15:23", kwh:35.66, rate:0.37, cost:13.19, min:21},
     {id:"chg-005", name:"Springfield, MO \u2013 North (Buc-ee\u0027s)", addr:"3284 N Mulroy Rd, Springfield, MO 65803", lat:37.2683, lng:-93.2340, date:"2026-09-06", time:"17:14", kwh:45.64, rate:0.37, cost:16.88, min:26},
-    {id:"chg-006", name:"Joplin, MO \u2013 Highway 43", addr:"4240 Hwy 43, Joplin, MO 64803", lat:37.0392, lng:-94.5487, date:"2026-09-07", time:"09:35", kwh:36.29, rate:0.37, cost:13.42, min:23}
+    {id:"chg-006", name:"Joplin, MO \u2013 Highway 43", addr:"4240 Hwy 43, Joplin, MO 64803", lat:37.0392, lng:-94.5487, date:"2026-09-07", time:"09:35", kwh:36.29, rate:0.37, cost:13.42, min:23},
+    {id:"chg-007", name:"Tulsa, OK \u2013 East 41st St", addr:"5726 E 41st St, Tulsa, OK 74135", lat:36.1006, lng:-95.8850, date:"2026-09-07", time:"11:46", kwh:48.25, rate:0.40, cost:19.30, min:33}
   ];
   /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
@@ -1839,6 +1840,7 @@ var ACCENTS = {
     if(typeof ST_DEF!=="undefined")renderTripProg();   /* the strip follows every position change */
   }
   var chgOpen=false;
+  function kwh1(v){return Math.round(Math.round(v*100)/100*10)/10;}   /* a total of 2-decimal readings: 276.04999… shows as 276.1, not 276 */
   function chgPlace(c){return String(c.name).split(/\s[\u2013\u2014-]\s/)[0];}   /* "Portage, IN – George Ade" → "Portage, IN" */
   function chgTs(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}
   function renderCharging(){
@@ -1847,7 +1849,7 @@ var ACCENTS = {
     CHARGES.forEach(function(c){if(c.planned){np++;return;}n++;kwh+=c.kwh||0;cost+=c.cost||0;});
     var any=CHARGES.length>0;
     w.classList.toggle("open",chgOpen&&any);
-    var h=el("div","chgh",'<span><span class="cdot"></span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+(Math.round(kwh*10)/10)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b>'+(np?' \u00b7 '+np+' planned':'')+'</span>'+(any?'<span class="chev">\u25BC</span>':''));
+    var h=el("div","chgh",'<span><span class="cdot"></span>Charging \u00b7 <b>'+n+'</b> '+(n===1?"stop":"stops")+' \u00b7 <b>'+kwh1(kwh)+'</b> kWh \u00b7 <b>'+money2(cost)+'</b>'+(np?' \u00b7 '+np+' planned':'')+'</span>'+(any?'<span class="chev">\u25BC</span>':''));
     if(any){
       h.setAttribute("role","button");h.setAttribute("tabindex","0");h.setAttribute("aria-expanded",chgOpen?"true":"false");
       function tog(){chgOpen=!chgOpen;renderCharging();}
@@ -2257,7 +2259,7 @@ var ACCENTS = {
     L.push("SF Move · Trip stats · "+(o.day?dayTitle(o.day):"Whole trip · Day "+Math.max(1,t.elapsed)+" of "+TRIP_DAYS));
     L.push("Miles "+(o.miles>0?num(o.miles):"—")+(o.day?"":" of "+num(TOTAL_MI))+" · "+Math.round(o.pct)+"% of the trip");
     L.push("Door to door "+hm(o.d2d)+" · Driving "+hm(o.drive)+" · Charging "+(o.stops?hm(o.chMin):"—"));
-    L.push("Stops "+o.stops+" · "+(Math.round(o.kwh*10)/10)+" kWh · "+money2(o.cost)+" · "+dash2(o.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";}));
+    L.push("Stops "+o.stops+" · "+kwh1(o.kwh)+" kWh · "+money2(o.cost)+" · "+dash2(o.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";}));
     L.push("ETA SF "+(t.eta?WD3[t.eta.getDay()]+" "+fmtTime(t.eta):"—"));
     return L.join("\n");
   }
