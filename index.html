@@ -274,6 +274,7 @@
   .pin-g{cursor:pointer;}
   .pin-c{fill:#E82127;stroke:#fff;stroke-width:1.2;}
   .pin-c.plan{fill:#fff;stroke:#E82127;}
+  .pin-c.pl{fill:#FF9500;}   /* a place I liked, not a charger */
   .pin-b{fill:#fff;stroke:none;pointer-events:none;}
   .pin-c.plan+.pin-b{fill:#E82127;}
   .pin-badge{fill:#fff;stroke:#E82127;stroke-width:.8;}
@@ -646,7 +647,8 @@
       <div class="trmapw">
       <div class="mapseg" id="mapSeg" role="group" aria-label="Map layer">
         <button type="button" data-m="route" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3z"/><path d="M9 3v15M15 6v15"/></svg>Route</button>
-        <button type="button" data-m="chg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>Charging stops</button>
+        <button type="button" data-m="chg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>Charging</button>
+        <button type="button" data-m="places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>Places</button>
       </div>
       <button class="mapreset" id="mapReset" type="button" aria-hidden="true" tabindex="-1">Reset</button>
       <svg id="tripSvg" viewBox="0 0 380 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Route map">
@@ -725,7 +727,7 @@
     <section class="trsec" id="trItinerary"><div class="itin"><div><div class="trackcard">
       <div><div class="tl">Trip tracking</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Trip tracking"><span class="knob"></span></button>
-    </div><div id="tripStops"></div></div><aside class="itinrail trrail" id="itinRail"></aside></div></section>
+    </div><div id="tripStops"></div><div id="tripPlaces"></div></div><aside class="itinrail trrail" id="itinRail"></aside></div></section>
   </div>
 
   <!-- ================= SPEND ================= -->
@@ -739,7 +741,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v60 · Sep 7</div>
+  <div class="appver">SF Move · v61 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1691,7 +1693,8 @@ var ACCENTS = {
     {id:"chg-006", name:"Joplin, MO \u2013 Highway 43", addr:"4240 Hwy 43, Joplin, MO 64803", lat:37.0392, lng:-94.5487, date:"2026-09-07", time:"09:35", kwh:36.29, rate:0.37, cost:13.42, min:23},
     {id:"chg-007", name:"Tulsa, OK \u2013 East 41st St", addr:"5726 E 41st St, Tulsa, OK 74135", lat:36.1006, lng:-95.8850, date:"2026-09-07", time:"11:46", kwh:48.25, rate:0.40, cost:19.30, min:33},
     {id:"chg-008", name:"Oklahoma City, OK \u2013 West Memorial", addr:"3437 W Memorial Rd, Oklahoma City, OK 73134", lat:35.6086, lng:-97.5766, date:"2026-09-07", time:"13:48", kwh:40.29, rate:0.46, cost:18.53, min:27},
-    {id:"chg-009", name:"Calumet, OK \u2013 Cherokee Trading Post", addr:"245 S Walbaum Rd, Calumet, OK 73014", lat:35.6003, lng:-98.1236, date:"2026-09-07", time:"15:00", kwh:23.53, rate:0.56, cost:13.17, min:14}
+    {id:"chg-009", name:"Calumet, OK \u2013 Cherokee Trading Post", addr:"245 S Walbaum Rd, Calumet, OK 73014", lat:35.6003, lng:-98.1236, date:"2026-09-07", time:"15:00", kwh:23.53, rate:0.56, cost:13.17, min:14},
+    {id:"chg-010", name:"Elk City, OK", addr:"2001 E 7th St, Elk City, OK 73644", lat:35.4088, lng:-99.3854, date:"2026-09-07", time:"16:15", kwh:27.21, rate:0.48, cost:13.06, min:16}
   ];
   /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
@@ -1700,6 +1703,11 @@ var ACCENTS = {
     {id:"exp-002", cat:"hotel", amount:168.72, note:"Candlewood Suites Springfield · booked Orbitz", date:"2026-09-06", time:"15:39"},
     {id:"exp-003", cat:"groceries", amount:24.83, note:"Walmart · Springfield MO", date:"2026-09-06", time:"18:40"},
     {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"}
+  ];
+  /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
+     entry under the same id (food/coffee → "food", sight → "misc"), so it counts exactly once. Never touch route miles, progress or charging stats. */
+  var PLACES=[
+    {id:"pl-001", name:"Rudy\u0027s Country Store & Bar-B-Q", kind:"food", addr:"3751 W Interstate 40, Amarillo, TX 79109", lat:35.1938, lng:-101.9297, date:"2026-09-07", time:"16:55", note:"Texas BBQ", cost:17.83}
   ];
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
@@ -1945,6 +1953,7 @@ var ACCENTS = {
       if(card)card.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
     }
     rail.addEventListener("click",railTap);document.getElementById("itinRail").addEventListener("click",railTap);
+    document.getElementById("tripPlaces").addEventListener("click",function(e){var b=e.target.closest("[data-place]");if(b)openPlace(b.getAttribute("data-place"));});
     document.getElementById("tripSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setTripSeg(b.getAttribute("data-s"));});
     document.getElementById("trDaily").addEventListener("click",function(e){
       var g=e.target.closest("[data-goto]");if(g){state.stats=state.stats||{};state.stats.chgDay=+g.getAttribute("data-day");setTripSeg("charging");return;}
@@ -2140,7 +2149,20 @@ var ACCENTS = {
       });
       wrap.appendChild(card);
     });
+    renderPlacesList();
     renderStats();
+  }
+  function renderPlacesList(){   /* "Places along the way": grouped by day; a tap shows the pin on the map */
+    var w=document.getElementById("tripPlaces");if(!w)return;
+    if(!PLACES.length){w.innerHTML="";return;}
+    var byDay={};PLACES.forEach(function(pl){var d=dayForDate(parseYMD(pl.date));(byDay[d]=byDay[d]||[]).push(pl);});
+    var out='<div class="grp-h flex"><span>Places along the way</span></div>';
+    Object.keys(byDay).map(Number).sort(function(a,b){return a-b;}).forEach(function(d){
+      var st=stopForDay(d),list=byDay[d].sort(function(a,b){return chgTs(a)-chgTs(b);});
+      out+='<div class="grp-h">'+(d>0?"Day "+d+(st?" · "+esc(st.short):""):"Pre-trip")+'</div><div class="grp">'+list.map(function(pl){
+        return row({ic:PLACE_IC[pl.kind]||PLACE_IC.sight,bg:"#FF9500",t1:esc(pl.name),t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),v1:pl.cost>0?money2(pl.cost):"",chev:true,attrs:' role="button" tabindex="0" data-place="'+pl.id+'"'});}).join("")+'</div>';
+    });
+    w.innerHTML=out;
   }
   function p2(n){return ("0"+n).slice(-2);}
   function localISO(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())+"T"+p2(d.getHours())+":"+p2(d.getMinutes());}
@@ -2236,7 +2258,7 @@ var ACCENTS = {
   function pillSel(label,name,opts,val){return '<label class="dpk">'+label+' <i>⌄</i><select data-sel="'+name+'" aria-label="'+esc(label)+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+esc(o[1])+'</option>';}).join("")+'</select></label>';}
   function chgRate(c){return c.rate>0?c.rate:(c.cost>0&&c.kwh>0?c.cost/c.kwh:0);}
   /* ---------- TRIP top section: header pill · progress bar · route rail · charging summary · charger pins ---------- */
-  function mapMode(){return (state.ui&&state.ui.mapMode==="chg")?"chg":"route";}
+  function mapMode(){var m=state.ui&&state.ui.mapMode;return (m==="chg"||m==="places")?m:"route";}
   function routePos(){   /* live fix if tracking, else the furthest of: Arrived stops, logged (non-planned) charger positions */
     var pr=tripProgress();if(pr.live)return pr.miles;var m=pr.miles;
     CHARGES.forEach(function(c){if(c.planned||!c.date)return;var x=locate({lat:c.lat,lng:c.lng}).miles;if(x>m&&x<=TOTAL_MI)m=x;});
@@ -2284,26 +2306,40 @@ var ACCENTS = {
   function renderTripTop(){renderTripHead();renderTripBar();renderRail();renderCharging();syncMapSeg();}
   /* charger pins: logged sessions cluster when they sit within CLUSTER_R viewBox units of each other */
   var CLUSTER_R=6,BOLT="M0.5 -2.2 L-1.6 0.4 L-0.25 0.4 L-0.6 2.2 L1.6 -0.5 L0.25 -0.5 Z";
-  function pinClusters(){
-    var out=[];
-    CHARGES.forEach(function(c){
+  var GLYPH={food:"M-1.7 -2.2h0.8v1.9a0.5 0.5 0 0 1-0.4 0.5v2h-0.8v-2a0.5 0.5 0 0 1-0.4-0.5v-1.9h0.8zM0.6 -2.2h0.9c0.4 0 0.6 0.3 0.6 0.7v1.6a0.6 0.6 0 0 1-0.6 0.6v1.5h-0.9z",
+    coffee:"M-1.9 -1.4h3.1v2.1a1.3 1.3 0 0 1-1.3 1.3h-0.5a1.3 1.3 0 0 1-1.3-1.3zM1.2 -0.8h0.5a0.7 0.7 0 0 1 0 1.4h-0.5z",
+    sight:"M0 -2.3L0.7 -0.8 2.3 -0.6 1.1 0.5 1.4 2.2 0 1.4-1.4 2.2-1.1 0.5-2.3 -0.6-0.7 -0.8Z"};
+  var PLACE_IC={food:'<svg viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 0-3 2.5-3 5v3h3v10M17 3v18"/></svg>',
+    coffee:'<svg viewBox="0 0 24 24"><path d="M4 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M6 3v2M10 3v2"/></svg>',
+    sight:'<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>'};
+  function pinClusters(){   /* the current layer's pins: logged sessions (planned never merge) or places, each merged within CLUSTER_R */
+    var out=[],src=mapMode()==="places"?PLACES:CHARGES;
+    src.forEach(function(c){
       var p=proj(c.lat,c.lng);
       if(!c.planned){
         for(var i=0;i<out.length;i++){var g=out[i];
           if(!g.planned&&Math.hypot(g.x-p.x,g.y-p.y)<=CLUSTER_R){g.list.push(c);g.x=(g.x*(g.list.length-1)+p.x)/g.list.length;g.y=(g.y*(g.list.length-1)+p.y)/g.list.length;return;}}
       }
-      out.push({x:p.x,y:p.y,list:[c],planned:!!c.planned});
+      out.push({x:p.x,y:p.y,list:[c],planned:!!c.planned,place:!!c.kind});
     });
     return out;
+  }
+  function placeIdx(id){var cl=pinClusters();for(var i=0;i<cl.length;i++)if(cl[i].list.some(function(x){return x.id===id;}))return i;return -1;}
+  function openPlace(id){   /* Itinerary row → Overview, Places layer, that pin's popover */
+    if(tripSeg()!=="overview")setTripSeg("overview");
+    if(mapMode()!=="places")setMapMode("places");
+    var i=placeIdx(id);if(i<0)return;
+    document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
+    setTimeout(function(){pinPopOpen(i);},reducedMotion?0:350);
   }
   function buildPins(){
     var pg=document.getElementById("pinG");if(!pg)return;
     pg.innerHTML="";pinPopClose();
-    if(mapMode()!=="chg"){collectMarkers();applyZoom();return;}
+    if(mapMode()==="route"){collectMarkers();applyZoom();return;}
     pinClusters().forEach(function(g,i){
-      var el=svgEl("g",{"class":"pin-g","data-pin":i}),n=g.list.length;
-      el.appendChild(svgEl("circle",{"class":"pin-c"+(g.planned?" plan":""),cx:g.x.toFixed(2),cy:g.y.toFixed(2),r:3.6}));
-      el.appendChild(svgEl("path",{"class":"pin-b",d:BOLT,transform:"translate("+g.x.toFixed(2)+" "+g.y.toFixed(2)+")"}));
+      var el=svgEl("g",{"class":"pin-g","data-pin":i}),n=g.list.length,glyph=g.place?(GLYPH[g.list[0].kind]||GLYPH.sight):BOLT;
+      el.appendChild(svgEl("circle",{"class":"pin-c"+(g.planned?" plan":"")+(g.place?" pl":""),cx:g.x.toFixed(2),cy:g.y.toFixed(2),r:3.6}));
+      el.appendChild(svgEl("path",{"class":"pin-b",d:glyph,transform:"translate("+g.x.toFixed(2)+" "+g.y.toFixed(2)+")"}));
       if(n>1){
         el.appendChild(svgEl("circle",{"class":"pin-badge",cx:(g.x+3).toFixed(2),cy:(g.y-3).toFixed(2),r:2.3}));
         var t=svgEl("text",{"class":"pin-n",x:(g.x+3).toFixed(2),y:(g.y-1.55).toFixed(2),"text-anchor":"middle"});t.textContent=n;el.appendChild(t);
@@ -2318,7 +2354,11 @@ var ACCENTS = {
     var p=document.getElementById("pinPop"),g=pinClusters()[i];if(!p||!g)return;
     function maps(c){return "https://maps.apple.com/?q="+encodeURIComponent(c.addr||c.name)+(c.lat?"&ll="+c.lat+","+c.lng:"");}
     var html;
-    if(g.list.length===1){var c=g.list[0];
+    if(g.place){
+      html=g.list.map(function(pl){return '<b>'+esc(pl.name)+'</b>'+(pl.note?'<div class="l"><span>'+esc(pl.note)+'</span><span></span></div>':'')+
+        '<div class="l"><span>Cost</span><span>'+(pl.cost>0?money2(pl.cost):"—")+'</span></div><div class="l"><span>Time</span><span>'+fmtTime(chgTs(pl))+'</span></div>'+
+        '<a href="https://maps.apple.com/?q='+esc(encodeURIComponent(pl.addr||pl.name))+'">Open in Apple Maps ›</a>';}).join('<div class="l"></div>');
+    }else if(g.list.length===1){var c=g.list[0];
       html='<b>'+esc(chgPlace(c))+'</b>'+(c.planned?'<div class="l"><span>Planned stop</span><span>—</span></div>':
         '<div class="l"><span>Energy</span><span>'+(Math.round(c.kwh*10)/10)+' kWh</span></div>'+
         '<div class="l"><span>Cost</span><span>'+money2(c.cost||0)+'</span></div>'+
@@ -2334,7 +2374,8 @@ var ACCENTS = {
     p.hidden=false;
     var r=zoomSvg.getBoundingClientRect(),b=vb(),wr=p.offsetParent.getBoundingClientRect();
     var sx=Z.tx+Z.s*g.x,sy=Z.ty+Z.s*g.y;
-    p.style.left=Math.round(r.left-wr.left+(sx-b.x)/b.w*r.width)+"px";
+    var lx=r.left-wr.left+(sx-b.x)/b.w*r.width,half=p.offsetWidth/2+8;   /* keep the card inside the map: it is centred on the pin, so clamp by half its width */
+    p.style.left=Math.round(Math.max(half,Math.min(wr.width-half,lx)))+"px";
     p.style.top=Math.round(r.top-wr.top+(sy-b.y)/b.h*r.height-10)+"px";
   }
   function setMapMode(m){
@@ -2545,6 +2586,7 @@ var ACCENTS = {
     row.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation();
       if(isChargeId(e.id)){state.spend.dismissedCharges=state.spend.dismissedCharges||{};state.spend.dismissedCharges[e.id]=true;}   /* a deleted log entry stays deleted */
       if(isExpenseId(e.id)){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses[e.id]=true;}
+      if(isPlaceId(e.id)){state.spend.dismissedPlaces=state.spend.dismissedPlaces||{};state.spend.dismissedPlaces[e.id]=true;}
       state.spend.entries=state.spend.entries.filter(function(x){return x.id!==e.id;});save(state);renderSpend();});
     row.querySelectorAll(".btn")[1].addEventListener("click",function(ev){ev.stopPropagation();renderSpend();});
   }
@@ -2584,7 +2626,19 @@ var ACCENTS = {
     });
     if(added)saveSeed(state);
   }
-  function renderSpend(newId){seedSpend();seedCharges();seedExpenses();syncNow();renderSpendAll(newId);}
+  function isPlaceId(id){for(var i=0;i<PLACES.length;i++)if(PLACES[i].id===id)return true;return false;}
+  function placeTown(pl){var a=String(pl.addr||"").split(",");return a.length>=3?a[1].trim()+", "+a[2].trim().split(" ")[0]:(a[1]||pl.name).trim();}
+  function seedPlaces(){   /* every render: a place with a cost becomes one actual entry under the place id, unless the user deleted it */
+    var have={},dis=state.spend.dismissedPlaces||{},added=false;
+    state.spend.entries.forEach(function(e){have[e.id]=true;});
+    PLACES.forEach(function(pl){
+      if(!(pl.cost>0)||have[pl.id]||dis[pl.id])return;
+      var d=dayForDate(parseYMD(pl.date)),st=stopForDay(d);
+      state.spend.entries.push({id:pl.id,amount:+pl.cost,cat:pl.kind==="sight"?"misc":"food",note:pl.name+(pl.note?" · "+pl.note:""),day:d,stopId:st?st.id:null,ts:chgTs(pl),planned:false,billsLater:false});added=true;
+    });
+    if(added)saveSeed(state);
+  }
+  function renderSpend(newId){seedSpend();seedCharges();seedExpenses();seedPlaces();syncNow();renderSpendAll(newId);}
 
   /* ---------- SPEND sections: Overview · Transactions · Planned (state.ui.spendSeg / spendDay, never synced) + the Add expense sheet ---------- */
   var SPEND_SECS=["overview","transactions","planned"];
@@ -2597,7 +2651,7 @@ var ACCENTS = {
     SPEND_SECS.forEach(function(s){var e=document.getElementById("sp"+s.charAt(0).toUpperCase()+s.slice(1));if(e)e.classList.toggle("on",s===k);});
   }
   function catIcon(c){return '<span class="ic emoji" style="background:'+c.c+'">'+c.e+'</span>';}
-  function entrySource(e){return isChargeId(e.id)?"Tesla":(isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
+  function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
   function txRow(e,isNew){   /* an actual entry as an inset row; swipe-left or long-press → delete, as before */
     var c=CATMAP[e.cat]||CATMAP.misc,sub=(e.cat==="charging"&&e.kwh?e.kwh+" kWh · ":entrySource(e)+" · ")+fmtTime(e.ts);
     var r=el("div","row"+(isNew?" new":""),catIcon(c)+'<div class="tt"><div class="t1">'+esc(e.note||c.l)+'</div><div class="t2">'+esc(sub)+'</div></div><div class="vv"><div class="v1">'+money2(e.amount)+'</div></div>');
