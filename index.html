@@ -316,9 +316,6 @@
   .stx .tip{margin-top:20px;background:var(--sx-soft);border-radius:16px;padding:14px 16px;font-size:14px;}
   .stx .tip b{display:block;margin-bottom:8px;font-weight:600;}.stx .tip div{display:flex;justify-content:space-between;color:var(--sx-mute);margin-top:4px;}.stx .tip div span:last-child{color:var(--sx-ink);font-weight:600;}
   .stx .tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:#E2E5EA;}.stx .tip i.b{background:var(--sx-acc);}.stx .tip i.r{background:var(--sx-red);}
-  .stx .ring{position:relative;width:220px;height:130px;margin:18px auto 6px;}
-  .stx .ring svg{width:100%;height:100%;overflow:visible;display:block;}
-  .stx .ring .c{position:absolute;left:0;right:0;bottom:-4px;text-align:center;}.stx .ring .c b{display:block;font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;}.stx .ring .c span{font-size:12px;color:var(--sx-mute);}
   .stx .mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;}
   .stx .mini.three{grid-template-columns:repeat(3,1fr);margin-top:30px;}
   .stx .mini div{background:var(--sx-soft);border-radius:16px;padding:14px;min-width:0;}
@@ -351,6 +348,35 @@
     .stx .mini .t{font-size:13px;margin-bottom:14px;}.stx .mini div{padding:16px;}
     .stx table{font-size:14px;}.stx th{padding:14px 12px;}.stx td{padding:16px 12px;}
   }
+  /* Trip progress strip — the card directly under the map hero (dashboard style, same palette as .stx) */
+  .tprog{background:#fff;border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);color:#111214;overflow:visible;}
+  .tprog .tph{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .tprog h2{font-size:20px;font-weight:700;margin:0;}
+  .tprog .tpill{background:#E8F0FF;color:#2F6BFF;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;white-space:nowrap;flex:none;}
+  .tprog .tpw{position:relative;margin-top:56px;}
+  .tprog .tptrack{position:relative;height:10px;border-radius:999px;background:#E9EBEF;}
+  .tprog .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#6C9BFF);}
+  .tprog .tps{position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-sizing:border-box;}
+  .tprog .tps.up{width:10px;height:10px;border:2px solid #C7CBD1;}
+  .tprog .tps.on{width:8px;height:8px;}
+  .tprog .tpring{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid #2F6BFF;box-sizing:border-box;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.15);}
+  .tprog .tpflag{position:absolute;bottom:20px;transform:translateX(-50%);background:#111214;color:#fff;border:0;border-radius:999px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;line-height:1;white-space:nowrap;cursor:pointer;}
+  .tprog .tpflag:after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-top-color:#111214;border-bottom:0;}
+  .tprog .tpflag:active{transform:translateX(-50%) scale(.96);}
+  .tprog .tpnames{position:relative;height:38px;margin-top:12px;font-size:12px;}
+  .tprog .tpn{position:absolute;top:0;transform:translateX(-50%);text-align:center;white-space:nowrap;font-weight:600;color:#111214;}
+  .tprog .tpn small{display:block;font-size:11px;font-weight:500;color:#6B7280;margin-top:1px;}
+  .tprog .tpn.first{transform:none;text-align:left;}.tprog .tpn.last{transform:translateX(-100%);text-align:right;}
+  .tprog .tpn.next,.tprog .tpn.next small{color:#2F6BFF;}
+  .tprog .tptiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;}
+  .tprog .tptiles>div{background:#F3F4F7;border-radius:16px;padding:14px;min-width:0;}
+  .tprog .tptiles>div:last-child{grid-column:1/-1;}
+  .tprog .tt{font-size:12px;color:#6B7280;margin-bottom:10px;}
+  .tprog .tn{font-size:22px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px;white-space:nowrap;}
+  .tprog .tn small{font-size:12px;font-weight:500;color:#6B7280;}
+  .tprog .tn .bolt{color:#E82127;font-size:17px;align-self:center;}
+  @media (max-width:599px){.tprog .tpn.opt{display:none;}}
+  @media (min-width:600px){.tprog .tptiles{grid-template-columns:repeat(3,1fr);}.tprog .tptiles>div:last-child{grid-column:auto;}}
   /* Filter sheet (Stats) */
   .fsheet .frow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--sep);}
   .fsheet .frow:last-of-type{border-bottom:0;}
@@ -595,6 +621,7 @@
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
       <div class="chgrow" id="chgRow"></div>
     </div>
+    <div class="card tprog" id="tripProg"></div>
     <div id="tripStats" class="stx"></div>
     <div class="triptoggle">
       <div><div class="tl">Track trip</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
@@ -628,7 +655,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v52 · Sep 7</div>
+  <div class="appver">SF Move · v53 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1809,6 +1836,7 @@ var ACCENTS = {
     var next=-1;for(var i=0;i<STOPS.length;i++){if(CUM[i]>pr.miles+0.5){next=i;break;}}
     document.getElementById("tripStat").innerHTML='<strong>'+Math.round(pr.miles)+'</strong> of '+TOTAL_MI+' mi'+
       (next>=0?' · next: '+esc(STOPS[next].short)+' in ~'+Math.round(CUM[next]-pr.miles)+' mi':' · arrived SF');
+    if(typeof ST_DEF!=="undefined")renderTripProg();   /* the strip follows every position change */
   }
   var chgOpen=false;
   function chgPlace(c){return String(c.name).split(/\s[\u2013\u2014-]\s/)[0];}   /* "Portage, IN – George Ade" → "Portage, IN" */
@@ -2122,6 +2150,7 @@ var ACCENTS = {
   var SORTS=[{k:"time",l:"time",dir:"asc",f:function(c){return chgTs(c);}},{k:"kwh",l:"kWh",dir:"desc",f:function(c){return c.kwh;}},{k:"rate",l:"rate",dir:"asc",f:function(c){return chgRate(c);}},{k:"min",l:"minutes",dir:"desc",f:function(c){return c.min||0;}},{k:"cost",l:"cost",dir:"desc",f:function(c){return c.cost||0;}}];
   function chgRate(c){return c.rate>0?c.rate:(c.cost>0&&c.kwh>0?c.cost/c.kwh:0);}
   function renderStats(){
+    renderTripProg();
     var w=document.getElementById("tripStats");if(!w)return;w.innerHTML="";
     var S=stS(),o=scopeStats(),t=o.t,sd=o.day,cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(t.elapsed,todayDay()||1)));
     var scopeOpts=[["trip","Whole trip"]];for(var d=1;d<=TRIP_DAYS;d++){var so=stopForDay(d);scopeOpts.push([d,"Day "+d+" · "+so.short]);}
@@ -2164,15 +2193,6 @@ var ACCENTS = {
         '<div><span><i></i>Door to door</span><span>'+(sr.hrs.est?(sr.hrs.min?"~"+halfH(sr.hrs.min/60):"—"):hm(sr.hrs.min))+'</span></div>'+
         '<div><span><i></i>Spend</span><span>'+(sr.sp.est?"~":"")+money(sr.sp.tot)+'</span></div></div>';}
     w.appendChild(card("Miles per day",'<button class="pill" type="button" data-act="metric">'+ML[M]+' <i>⌄</i></button>',(rows.length?'<div class="hb">'+hb+'</div>':'<div class="empty">No driven days yet — turn on planned days in Filter.</div>')+tip));
-    /* Trip progress — "…" cycles the arc metric */
-    var A=S.arcMetric,p,cap,daysDone=STOPS.filter(function(s,i){return i>0&&state.trip.arrived[s.id];}).length;
-    if(A==="days"){p=daysDone/TRIP_DAYS;cap=daysDone+" of "+TRIP_DAYS+" days";}
-    else if(A==="spend"){p=sp.proj>0?sp.soFar/sp.proj:0;cap="of projected spend · "+money(sp.soFar)+" of ~"+money(sp.proj);}
-    else{p=TOTAL_MI?t.done/TOTAL_MI:0;cap="of the drive · "+num(t.done)+" of "+num(TOTAL_MI)+" mi";}
-    p=Math.max(0,Math.min(1,p));var LEN=301.6,mx=110-96*Math.cos(Math.PI*p),my=110-96*Math.sin(Math.PI*p);
-    w.appendChild(card("Trip progress",'<button class="pill" type="button" data-act="arc" aria-label="Change progress metric">…</button>',
-      '<div class="ring"><svg viewBox="0 0 220 120"><path d="M14 110 A96 96 0 0 1 206 110" fill="none" stroke="#E9EBEF" stroke-width="5" stroke-linecap="round"/><path d="M14 110 A96 96 0 0 1 206 110" fill="none" stroke="#2F6BFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+LEN+'" stroke-dashoffset="'+(LEN*(1-p)).toFixed(1)+'"/><circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="6" fill="#fff" stroke="#2F6BFF" stroke-width="3"/></svg><div class="c"><b>'+Math.round(p*100)+'%</b><span>'+cap+'</span></div></div>'+
-      '<div class="mini">'+mini("Charging stops"+(sd?" · Day "+sd:""),String(o.stops),o.kwh>0?(Math.round(o.kwh*10)/10)+" kWh":"")+mini("ETA SF",t.eta?WD3[t.eta.getDay()]:"—",t.eta?fmtTime(t.eta):"","k")+'</div>'));
     /* Minutes at each charger — its own day picker */
     var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||1,cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):(sd||lastChg),cds=dayStats(cd),cs=cds?cds.ch.filter(function(c){return c.min>0;}):[];
     var dayOpts=[];for(d=1;d<=TRIP_DAYS;d++)dayOpts.push([d,"Day "+d+" · "+stopForDay(d).short]);
@@ -2196,6 +2216,42 @@ var ACCENTS = {
       list.length?'<div class="tw"><table><thead><tr>'+TH.map(function(h){return '<th'+(h[1]===srt.k?' class="on"':'')+'>'+h[0]+(h[1]===srt.k?' '+arrow:'')+'</th>';}).join("")+'</tr></thead><tbody>'+
       list.map(function(c){var dt=parseYMD(c.date);return '<tr><td><span class="st"><i>⚡︎</i>'+esc(chgPlace(c))+'</span></td><td>'+WD3[dt.getDay()]+' · '+fmtTime(chgTs(c))+'</td><td>'+c.kwh.toFixed(1)+'</td><td><span class="tag'+tagCls(c)+'">$'+chgRate(c).toFixed(2)+'</span></td><td>'+(c.min||"—")+'</td><td>'+(c.min>0?(c.kwh/c.min).toFixed(2):"—")+'</td><td>'+money2(c.cost||0)+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="empty">No sessions '+(S.sessionsScope==="all"?"logged yet":"in this scope — Filter › Sessions: all days")+'</div>'));
   }
+  /* ---------- TRIP PROGRESS strip under the map: route by cumulative miles, fill to the current position, stops as circles, three tiles. The flag cycles the metric (state.stats.arcMetric) ---------- */
+  function routePos(){   /* live fix if tracking, else the furthest of: Arrived stops, logged (non-planned) charger positions */
+    var pr=tripProgress();if(pr.live)return pr.miles;var m=pr.miles;
+    CHARGES.forEach(function(c){if(c.planned||!c.date)return;var x=locate({lat:c.lat,lng:c.lng}).miles;if(x>m&&x<=TOTAL_MI)m=x;});
+    return m;
+  }
+  function renderTripProg(){
+    var w=document.getElementById("tripProg");if(!w)return;
+    var t=tripStats(),sp=spendTotals(),S=stS(),pos=Math.max(0,Math.min(TOTAL_MI,routePos())),pct=TOTAL_MI?pos/TOTAL_MI*100:0,cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(t.elapsed,todayDay()||1)));
+    var daysDone=STOPS.filter(function(s,i){return i>0&&state.trip.arrived[s.id];}).length,flag;
+    if(S.arcMetric==="days")flag=daysDone+" of "+TRIP_DAYS+" days \u00b7 "+Math.round(daysDone/TRIP_DAYS*100)+"%";
+    else if(S.arcMetric==="spend")flag=money(sp.soFar)+" of ~"+money(sp.proj)+" \u00b7 "+(sp.proj>0?Math.round(sp.soFar/sp.proj*100):0)+"%";
+    else flag=num(pos)+" mi \u00b7 "+Math.round(pct)+"%";
+    var next=-1;for(var i=1;i<STOPS.length;i++){if(CUM[i]>pos+0.5){next=i;break;}}
+    var X=function(i){return (i===0?0:CUM[i]/TOTAL_MI*100);},px=function(v){return v.toFixed(2)+"%";};
+    var dots=STOPS.map(function(s,i){var on=i===0||CUM[i]<=pos+0.5,L=i===0?"5px":(i===STOPS.length-1?"calc(100% - 5px)":px(X(i)));return '<b class="tps '+(on?"on":"up")+'" style="left:'+L+'"></b>';}).join("");   /* end dots sit inside the rounded track */
+    var names=[],dep=departDate(),r1=STOPS[1]&&state.trip.rolled[STOPS[1].id]?parseLocalISO(state.trip.rolled[STOPS[1].id]):null;
+    names.push('<div class="tpn first" style="left:0">'+"Chicago"+'<small>'+WD3[dep.getDay()]+(r1?" \u00b7 "+fmtTime(r1):" "+fmtShort(dep))+'</small></div>');
+    STOPS.forEach(function(s,i){if(i===0||i===STOPS.length-1)return;
+      var passed=CUM[i]<=pos+0.5,isNext=i===next,show=passed||isNext||s.home;if(!show)return;
+      var sub=isNext?"next \u00b7 "+num(CUM[i]-pos)+" mi":(passed?"Day "+(s.off+1):"Day "+(s.off+1));
+      names.push('<div class="tpn'+(isNext?" next":" opt")+'" style="left:'+px(X(i))+'">'+esc(s.short)+'<small>'+sub+'</small></div>');});
+    var last=STOPS.length-1,sfNext=next===last;
+    names.push('<div class="tpn last'+(sfNext?" next":"")+'" style="left:100%">San Francisco<small>'+(pos>=TOTAL_MI-0.5?"arrived":(t.eta?"ETA "+WD3[t.eta.getDay()]+" "+fmtTime(t.eta):(sfNext?"next \u00b7 "+num(TOTAL_MI-pos)+" mi":"ETA \u2014")))+'</small></div>');
+    var d2d=0,nd=0;t.days.forEach(function(r){if(r.d2d!==null){d2d+=r.d2d;nd++;}});
+    var stops=realCharges().length;
+    w.innerHTML='<div class="tph"><h2>Trip progress</h2><span class="tpill">Day '+cur+' of '+TRIP_DAYS+'</span></div>'+
+      '<div class="tpw"><div class="tptrack"><i class="fill" style="width:'+px(pct)+'"></i>'+dots+'<span class="tpring" style="left:'+px(pct)+'"></span>'+
+      '<button class="tpflag" type="button" aria-label="Change progress metric" style="left:clamp(64px,'+px(pct)+',calc(100% - 64px))">'+flag+'</button></div>'+
+      '<div class="tpnames">'+names.join("")+'</div></div>'+
+      '<div class="tptiles"><div><div class="tt">Remaining</div><div class="tn">'+num(TOTAL_MI-pos)+'<small>mi</small></div></div>'+
+      '<div><div class="tt">Charging</div><div class="tn"><span class="bolt">\u26A1\uFE0E</span>'+(stops?hm(t.chMin):"\u2014")+'<small>'+stops+' stop'+(stops===1?"":"s")+'</small></div></div>'+
+      '<div><div class="tt">On the road</div><div class="tn">'+(nd?hm(d2d):"\u2014")+'<small>'+nd+' day'+(nd===1?"":"s")+'</small></div></div></div>';
+  }
+  (function(){var w=document.getElementById("tripProg");if(!w)return;
+    w.addEventListener("click",function(e){if(!e.target.closest(".tpflag"))return;var s=stS(),L=["miles","days","spend"];stSet("arcMetric",L[(L.indexOf(s.arcMetric)+1)%L.length]);});})();
   function statsText(){   /* plain-text summary of the current scope for Export */
     var o=scopeStats(),t=o.t,L=[];
     L.push("SF Move · Trip stats · "+(o.day?dayTitle(o.day):"Whole trip · Day "+Math.max(1,t.elapsed)+" of "+TRIP_DAYS));
