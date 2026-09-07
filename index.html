@@ -268,7 +268,7 @@
   .trsum .tr-c span{font-size:11px;color:#6B7280;}
   .trsum.on{box-shadow:0 1px 2px rgba(0,0,0,.05),0 0 0 2px #2F6BFF inset;}
   @media (max-width:479px){.trsum .tr-c:first-child{flex:1 0 100%;padding-bottom:8px;}}
-  @media (min-width:900px){
+  @media (min-width:768px){   /* iPad portrait (820) keeps the rail and the two-column map card; phones stay on the compact Up next line */
     .trmap{display:grid;grid-template-columns:70% 30%;}   /* the card grows to the taller of map and rail: the rail is never cut, and the map centres in its column */
     .trmapw{align-self:center;width:100%;}
     .trrailw{display:block;}
@@ -756,7 +756,7 @@
     <section id="spNote"></section>
   </div>
 
-  <div class="appver">SF Move · v65 · Sep 7</div>
+  <div class="appver">SF Move · v66 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
