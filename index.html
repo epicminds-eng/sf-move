@@ -564,7 +564,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v44 · Sep 6</div>
+  <div class="appver">SF Move · v45 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -938,6 +938,10 @@ var ACCENTS = {
   if(!state.trip.arrivedAtV1){   /* one-time backfill: Day 1 (Springfield) arrival 5:49 PM Sept 6 */
     if(!state.trip.arrivedAt.strobert){state.trip.arrivedAt.strobert="2026-09-06T17:49";state.trip.arrived.strobert=true;}
     state.trip.arrivedAtV1=true;save(state);
+  }
+  if(!state.trip.rolledV1){   /* one-time backfill: Day 1 rolled 8:30 AM Sept 6; a time already entered by hand is kept */
+    if(!state.trip.rolled.strobert)state.trip.rolled.strobert="2026-09-06T08:30";
+    state.trip.rolledV1=true;save(state);
   }
   /* departure date: the single source for every date in the app */
   (function(){
