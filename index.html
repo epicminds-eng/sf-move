@@ -564,7 +564,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v46 · Sep 7</div>
+  <div class="appver">SF Move · v47 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -967,6 +967,11 @@ var ACCENTS = {
       if(e.planned&&e.id==="seed-p2"){e.amount=50;e.note="Pet fee";}
     });
     state.trip.day2AmarilloV1=true;save(state);
+  }
+  if(!state.spend.day1PetV1){   /* Day 1 pet fee paid (actual exp-004): retire the planned row; if it was already confirmed by hand, keep that and skip exp-004 instead */
+    if(state.spend.entries.some(function(e){return e.id==="seed-p1"&&!e.planned;})){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses["exp-004"]=true;}
+    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-p1"&&e.planned);});
+    state.spend.day1PetV1=true;save(state);
   }
   if(!state.spend.day1HotelV1){   /* Day 1 hotel became Candlewood Springfield (actual exp-002): retire the planned Quality Inn row, reprice the planned pet fee; confirmed actuals are left alone */
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h1"&&e.planned);});
@@ -1511,7 +1516,9 @@ var ACCENTS = {
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
   var EXPENSES=[
     {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"},
-    {id:"exp-002", cat:"hotel", amount:168.72, note:"Candlewood Suites Springfield · booked Orbitz", date:"2026-09-06", time:"15:39"}
+    {id:"exp-002", cat:"hotel", amount:168.72, note:"Candlewood Suites Springfield · booked Orbitz", date:"2026-09-06", time:"15:39"},
+    {id:"exp-003", cat:"groceries", amount:24.83, note:"Walmart · Springfield MO", date:"2026-09-06", time:"18:40"},
+    {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"}
   ];
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
@@ -2103,7 +2110,6 @@ var ACCENTS = {
     state.spend.entries=state.spend.entries.concat([
       P("seed-h2",120,"hotel","Amarillo hotel",2,"amarillo"),
       P("seed-h3",140,"hotel","Sonesta ES Suites Albuquerque",3,"abq"),
-      P("seed-p1",25,"kane","Pet fee · Candlewood",1,"strobert"),
       P("seed-p2",50,"kane","Pet fee",2,"amarillo"),
       P("seed-p3",75,"kane","Pet fee · Sonesta",3,"abq"),
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
