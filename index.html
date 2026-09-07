@@ -263,7 +263,7 @@
   .trsum{display:flex;align-items:center;flex-wrap:wrap;gap:8px 0;padding:14px 4px;cursor:pointer;}
   .trsum .tr-c{flex:1 1 auto;padding:0 14px;text-align:center;border-left:1px solid #E9EBEF;min-width:0;}
   .trsum .tr-c:first-child{border-left:0;text-align:left;display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px;white-space:nowrap;}
-  .trsum .tr-bolt{width:26px;height:26px;border-radius:9px;background:#FEECEC;color:#E82127;display:grid;place-items:center;font-size:13px;flex:none;}
+  .trsum .tr-bolt{flex:none;}
   .trsum .tr-c b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
   .trsum .tr-c span{font-size:11px;color:#6B7280;}
   .trsum.on{box-shadow:0 1px 2px rgba(0,0,0,.05),0 0 0 2px #2F6BFF inset;}
@@ -369,8 +369,24 @@
   .row{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 16px;position:relative;}
   .row+.row::before{content:"";position:absolute;left:57px;right:0;top:0;height:.5px;background:var(--sep);}   /* hairline inset to the text start */
   .row.noic+.row.noic::before{left:16px;}
-  .row .ic{width:29px;height:29px;border-radius:7px;display:grid;place-items:center;color:#fff;flex:none;}
-  .row .ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .ic,.row .ic{width:29px;height:29px;border-radius:12px;display:grid;place-items:center;flex:none;}   /* one flat set: glyph at full strength on the same colour at 12% */
+  .ic svg,.row .ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .ic svg .f{fill:currentColor;stroke:none;}
+  /* horizontal bars: label left, rounded track, value right */
+  .brow{display:flex;align-items:center;gap:10px;padding:9px 16px;min-height:52px;position:relative;}
+  .brow+.brow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
+  .brow.cat+.brow.cat::before{left:55px;}
+  .brow .bl{flex:0 0 92px;min-width:0;}
+  .brow.cat .bl{flex:0 0 84px;}
+  .brow .b1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .brow .b2{font-size:12px;color:var(--secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+  .brow .bt{flex:1 1 auto;min-width:36px;height:22px;border-radius:8px;background:#F3F4F7;position:relative;overflow:hidden;}
+  .brow .bt.plan{background:repeating-linear-gradient(135deg,#E4E7EC 0 5px,#F3F4F7 5px 10px);}
+  .brow .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;}
+  .brow .bv{flex:0 0 auto;display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums;}
+  .brow .bv b{font-size:15px;font-weight:600;white-space:nowrap;}
+  .brow .bv.g b{color:var(--tertiary);font-weight:500;}
+  .brow.today{background:#EEF4FF;}
   .row .tt{flex:1;min-width:0;}
   .row .t1{font-size:17px;line-height:1.25;}   /* wraps rather than ellipsizing a day name */
   .row .t2{font-size:13px;color:var(--secondary);margin-top:1px;}
@@ -443,9 +459,9 @@
   .sheet .amtf input{font-size:28px;font-weight:600;width:100%;}
   .cattiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
   .cattile{display:flex;align-items:center;gap:12px;background:#fff;border:0;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:17px;color:var(--label);cursor:pointer;text-align:left;min-height:56px;transition:transform .12s ease-out;}
-  .cattile .ic{width:29px;height:29px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:15px;flex:none;}
+  .cattile .ic{font-size:15px;}
   .cattile.on{background:var(--blue);color:#fff;}
-  .cattile.on .ic{background:rgba(255,255,255,.25)!important;}
+  .cattile.on .ic{background:rgba(255,255,255,.22)!important;color:#fff!important;}   /* selection chrome wins on the blue tile */
   .cattile:active{transform:scale(.97);}
   @media (min-width:700px){
     .sheet-back{align-items:center;}
@@ -453,7 +469,6 @@
     .sheet .shh{height:52px;padding-top:0;}
     .sheet .shf{padding-bottom:12px;}
   }
-  .row .ic.emoji{font-size:15px;}
   .row.plan .v1{color:var(--secondary);}
   .pillst.later{background:#FEF3C7;color:#B45309;}
   .pillst.cur{background:var(--blue);color:#fff;}.pillst.up{background:var(--fill);color:var(--secondary);}
@@ -463,7 +478,8 @@
   .tripstop.cur{border-top:3px solid var(--blue);}
   .tripstop .sh{align-items:center;padding:12px 16px 0;}
   .tripstop .sh .day{display:flex;align-items:center;gap:6px;}
-  .tripstop .sh .ok{width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;}
+  .tripstop .sh .ok{width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;}
+  .tripstop .sh .ok svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
   .tripstop .leg{font-size:13px;color:var(--secondary);padding:2px 16px 0;}
   .tripstop .stamps{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:8px 16px 4px;font-size:13px;color:var(--secondary);}
   .rollrow .arr{color:#C7C7CC;font-size:15px;}
@@ -523,14 +539,12 @@
   .dayh b{font-size:15px;}
   .sprow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #E5E5EA;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .35s cubic-bezier(.22,1,.36,1);}
   .sprow:first-of-type{border-top:0;}
-  .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:0 0 34px;}
   .sprow .t{flex:1;min-width:0;}
   .sprow .t div{font-size:15px;font-weight:600;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}   /* wrap to two lines so tags never clip */
   .sprow .t span{font-size:12px;color:#8E8E93;}
   .sprow .a{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;flex:none;}
   .sprow.plan{opacity:.62;}
   .sprow.plan .a{color:var(--secondary);font-weight:600;}
-  .sprow.plan .ic{outline:1.5px dashed #8E8E93;outline-offset:-1.5px;background:transparent!important;}
   .sprow.new{animation:springIn .38s cubic-bezier(.22,1,.36,1);}
   .addsec{border-top:1px solid #E5E5EA;margin-top:4px;padding-top:12px;}
   .addrow2{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:4px 0;font-family:inherit;font-size:15px;font-weight:600;color:var(--blue);cursor:pointer;text-align:left;}
@@ -749,7 +763,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v69 · Sep 7</div>
+  <div class="appver">SF Move · v70 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2124,7 +2138,7 @@ var ACCENTS = {
       var noHotel=!!s.orbitz&&(!s.hotel||/TBD/i.test(s.hotel));   /* a hotel stop still to be booked; houses (Mom's, LA, SF) never need one */
       var pill=status==="cur"?'<span class="pillst cur">In progress</span>':status==="done"?'<span class="pillst done">Arrived</span>':status==="up"?'<span class="pillst up">Upcoming</span>':'';
       var card=el("div","card tripstop "+status,
-        '<div class="sh"><span class="day">'+(status==="done"?'<span class="ok">✓</span>':'')+esc(s.day)+' · '+esc(fmtDay(dt))+'</span>'+pill+'</div>'+
+        '<div class="sh"><span class="day">'+(status==="done"?'<span class="ok">'+ICON.check+'</span>':'')+esc(s.day)+' · '+esc(fmtDay(dt))+'</span>'+pill+'</div>'+
         '<div class="nm">'+esc(s.name)+(note?' <span class="note">· '+esc(note)+'</span>':'')+'</div>'+
         (i?'<div class="leg">'+num(s.mi)+' mi leg from '+esc(STOPS[i-1].short)+(status==="cur"?' · ~'+num(Math.max(0,CUM[i]-pos))+' mi to go':'')+'</div>':'<div class="leg">wheels up '+esc(fmtShort(dt))+'</div>')+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
@@ -2172,7 +2186,7 @@ var ACCENTS = {
     Object.keys(byDay).map(Number).sort(function(a,b){return a-b;}).forEach(function(d){
       var st=stopForDay(d),list=byDay[d].sort(function(a,b){return chgTs(a)-chgTs(b);});
       out+='<div class="grp-h">'+(d>0?"Day "+d+(st?" · "+esc(st.short):""):"Pre-trip")+'</div><div class="grp">'+list.map(function(pl){
-        return row({ic:PLACE_IC[pl.kind]||PLACE_IC.sight,bg:"#FF9500",t1:esc(pl.name),t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),v1:pl.cost>0?money2(pl.cost):"",chev:true,attrs:' role="button" tabindex="0" data-place="'+pl.id+'"'});}).join("")+'</div>';
+        return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),v1:pl.cost>0?money2(pl.cost):"",chev:true,attrs:' role="button" tabindex="0" data-place="'+pl.id+'"'});}).join("")+'</div>';
     });
     w.innerHTML=out;
   }
@@ -2309,7 +2323,7 @@ var ACCENTS = {
     var n=0,np=0,kwh=0,cost=0;
     CHARGES.forEach(function(c){if(c.planned){np++;return;}n++;kwh+=c.kwh||0;cost+=c.cost||0;});
     w.classList.toggle("on",mapMode()==="chg");
-    w.innerHTML='<div class="tr-c"><span class="tr-bolt">⚡︎</span>Charging summary</div>'+
+    w.innerHTML='<div class="tr-c"><span class="tr-bolt">'+icon("bolt",TINT.charging)+'</span>Charging summary</div>'+
       '<div class="tr-c"><b>'+n+'</b><span>'+(n===1?"stop":"stops")+'</span></div>'+
       '<div class="tr-c"><b>'+kwh1(kwh)+'</b><span>kWh</span></div>'+
       '<div class="tr-c"><b>'+money2(cost)+'</b><span>spent</span></div>'+
@@ -2323,9 +2337,7 @@ var ACCENTS = {
   var GLYPH={food:"M-1.7 -2.2h0.8v1.9a0.5 0.5 0 0 1-0.4 0.5v2h-0.8v-2a0.5 0.5 0 0 1-0.4-0.5v-1.9h0.8zM0.6 -2.2h0.9c0.4 0 0.6 0.3 0.6 0.7v1.6a0.6 0.6 0 0 1-0.6 0.6v1.5h-0.9z",
     coffee:"M-1.9 -1.4h3.1v2.1a1.3 1.3 0 0 1-1.3 1.3h-0.5a1.3 1.3 0 0 1-1.3-1.3zM1.2 -0.8h0.5a0.7 0.7 0 0 1 0 1.4h-0.5z",
     sight:"M0 -2.3L0.7 -0.8 2.3 -0.6 1.1 0.5 1.4 2.2 0 1.4-1.4 2.2-1.1 0.5-2.3 -0.6-0.7 -0.8Z"};
-  var PLACE_IC={food:'<svg viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 0-3 2.5-3 5v3h3v10M17 3v18"/></svg>',
-    coffee:'<svg viewBox="0 0 24 24"><path d="M4 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M6 3v2M10 3v2"/></svg>',
-    sight:'<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>'};
+  var PLACE_G={food:"fork",coffee:"cup",sight:"star"};   /* the same glyphs the lists use */
   function pinClusters(){   /* the current layer's pins: logged sessions (planned never merge) or places, each merged within CLUSTER_R */
     var out=[],src=mapMode()==="places"?PLACES:CHARGES;
     src.forEach(function(c){
@@ -2406,20 +2418,39 @@ var ACCENTS = {
     TRIP_SECS.forEach(function(x){var e=document.getElementById("tr"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
   }
   function setTripSeg(k){state.ui=state.ui||{};state.ui.tripSeg=k;save(state);renderStats();}
-  var IC={bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+  /* ---------- one flat icon set: single-weight line glyphs, one colour per concept, everywhere that concept appears ---------- */
+  var ICON={
+    bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+    bed:'<svg viewBox="0 0 24 24"><path d="M3 5v14M3 9h15a3 3 0 0 1 3 3v7M3 16h18M7.5 9v6"/></svg>',
+    fork:'<svg viewBox="0 0 24 24"><path d="M7 3v7M5 3v4a2 2 0 0 0 4 0V3M7 10v11M16.5 3c-1.6 0-2.6 2-2.6 4.6s1.1 4.4 2.6 4.4v9"/></svg>',
+    cart:'<svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.3a2 2 0 0 0 2 1.6h7.5a2 2 0 0 0 2-1.5L20.5 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>',
+    paw:'<svg viewBox="0 0 24 24"><circle class="f" cx="7" cy="9.5" r="1.9"/><circle class="f" cx="11.3" cy="6.8" r="1.9"/><circle class="f" cx="16" cy="8" r="1.9"/><circle class="f" cx="18.6" cy="12.3" r="1.7"/><path class="f" d="M12.3 12.2c2.7 0 4.7 2.1 4.7 4.4 0 2-1.6 3.4-3.5 3.4-1.1 0-1.7-.4-2.7-.4s-1.6.4-2.7.4c-1.9 0-3.5-1.4-3.5-3.4 0-2.3 2-4.4 4.7-4.4z"/></svg>',
+    road:'<svg viewBox="0 0 24 24"><path d="M8 3 5.5 21M16 3l2.5 18M12 4.5v3M12 10.5v3M12 16.5v3"/></svg>',
+    pin:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
     clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
     usd:'<svg viewBox="0 0 24 24"><path d="M12 4v16M16 8.5c0-1.7-1.8-3-4-3s-4 1.3-4 3c0 3.5 8 2 8 6 0 1.7-1.8 3-4 3s-4-1.3-4-3"/></svg>',
     gauge:'<svg viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/></svg>',
-    pin:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'};
+    cup:'<svg viewBox="0 0 24 24"><path d="M4 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M6 3v2M10 3v2"/></svg>',
+    star:'<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>',
+    check:'<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>'};
+  var TINT={charging:"#E82127",hotel:"#AF52DE",food:"#FF9500",groceries:"#30B0C7",kane:"#34C759",misc:"#8E8E93",route:"#0A7AFF",place:"#FF9500"};
+  function icon(g,c){c=c||TINT.misc;return '<span class="ic" style="color:'+c+';background:'+c+'1F">'+(ICON[g]||ICON.pin)+'</span>';}
+  var IC=ICON;
   function row(o){   /* one inset-grouped row: tinted icon · title/subtitle · status pill · right-aligned values · chevron */
-    return '<div class="row'+(o.ic?'':' noic')+(o.cls?' '+o.cls:'')+'"'+(o.attrs||'')+'>'+(o.ic?'<span class="ic" style="background:'+o.bg+'">'+o.ic+'</span>':'')+
+    return '<div class="row'+(o.ic?'':' noic')+(o.cls?' '+o.cls:'')+'"'+(o.attrs||'')+'>'+(o.ic?icon(o.ic,o.bg):'')+
       '<div class="tt"><div class="t1'+(o.mute?' mute':'')+'">'+o.t1+'</div>'+(o.t2?'<div class="t2">'+o.t2+'</div>':'')+'</div>'+
       (o.pill?'<span class="pillst '+o.pillCls+'">'+o.pill+'</span>':'')+
       ((o.v1||o.v2)?'<div class="vv">'+(o.v1?'<div class="v1">'+o.v1+'</div>':'')+(o.v2?'<div class="v2">'+o.v2+'</div>':'')+'</div>':'')+
       (o.chev?'<span class="chev">›</span>':'')+'</div>';
   }
   function grp(title,rows){return '<div class="grp-h">'+title+'</div><div class="grp">'+rows+'</div>';}
+  function barRow(o){   /* label · rounded track · value; the same shape for miles and for money */
+    return '<div class="brow'+(o.cls?' '+o.cls:'')+'"'+(o.attrs||'')+'>'+(o.ic?icon(o.ic,o.bg):'')+
+      '<div class="bl"><div class="b1">'+o.t1+'</div>'+(o.t2?'<div class="b2">'+o.t2+'</div>':'')+'</div>'+
+      '<div class="bt'+(o.plan?' plan':'')+'">'+(o.plan?'':'<i style="width:'+Math.max(2,Math.min(100,o.pct)).toFixed(1)+'%;background:'+o.fill+'"></i>')+'</div>'+
+      '<div class="bv'+(o.plan?' g':'')+'">'+(o.pill?'<span class="pillst '+o.pillCls+'">'+o.pill+'</span>':'')+'<b>'+o.v+'</b></div></div>';
+  }
   function statrow(items){return '<div class="statrow">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
   function dayStatus(d,cur){var dp=dayProg(d);return dp.done?"done":(d===cur?"today":(d<cur?"done":"plan"));}
   function renderDaily(){
@@ -2428,17 +2459,20 @@ var ACCENTS = {
     var stats=statrow([[cp.so>0?num(cp.so):"—","miles today"],[(cd&&cd.ch.length)?hm(cd.chMin):"—","time at chargers"],[(cd&&cd.ch.length)?Math.round(cd.chMin/cd.ch.length)+" min":"—","average stop"],[(cd&&cd.cost>0)?money2(cd.cost):"—","spent today"]]);
     var rows=[];
     for(var d=1;d<=TRIP_DAYS;d++){var dp=dayProg(d),st=stopForDay(d),dt=addDays(departDate(),d-1),status=dayStatus(d,cur);
-      rows.push(row({ic:IC.cal,bg:status==="today"?"#007AFF":(status==="done"?"#34C759":"#C7C7CC"),t1:WDL[dt.getDay()]+" · Day "+d,t2:esc(st.name),
-        v1:(status==="today"?num(dp.so):num(dp.mi))+" mi",pill:{done:"Done",today:"Today",plan:"Planned"}[status],pillCls:status,
-        cls:(d===cur?"today ":"")+(d===sel?"sel":""),attrs:' role="button" tabindex="0" data-day="'+d+'"'}));}
+      var driven=status!=="plan",mi=driven?dp.so:dp.mi;
+      rows.push({d:d,st:st,dt:dt,status:status,driven:driven,mi:mi,plan:dp.mi,sel:d===sel,cur:d===cur});}
+    var maxMi=Math.max.apply(null,rows.map(function(r){return Math.max(r.mi,r.plan);}).concat([1]));
+    rows=rows.map(function(r){return barRow({t1:WD3[r.dt.getDay()]+" · Day "+r.d,t2:esc(r.st.short),plan:!r.driven,pct:r.mi/maxMi*100,fill:TINT.route,
+      v:(r.driven?"":"~")+num(r.mi)+" mi",pill:{done:"Done",today:"Today",plan:"Planned"}[r.status],pillCls:r.status,
+      cls:(r.cur?"today ":"")+(r.sel?"sel":""),attrs:' role="button" tabindex="0" data-day="'+r.d+'"'});});
     var ds=dayStats(sel),pp=dayProg(sel),sst=stopForDay(sel),sdt=addDays(departDate(),sel-1),ch=ds?ds.ch:[];
     var longest=ch.reduce(function(a,c){return (!a||(c.min||0)>(a.min||0))?c:a;},null);
     var detail='<div class="grp-h">'+(sel===cur?"Today":"Day "+sel)+'</div><div class="grp dd">'+
       '<div class="ddh"><div class="ddd">'+esc(fmtDay(sdt))+' · Day '+sel+'</div><div class="ddn">'+esc(sst.name)+'</div><div class="ddm">'+((pp.done||pp.so>0)?num(pp.so):"0")+'<small> mi recorded'+(pp.done?"":" of ~"+num(pp.mi))+'</small></div></div>'+
-      row({ic:IC.clock,bg:"#FF9500",t1:"Time at chargers",v1:ch.length?hm(ds.chMin):"—"})+
-      row({ic:IC.usd,bg:"#34C759",t1:"Charging spend",v1:(ds&&ds.cost>0)?money2(ds.cost):"—"})+
-      row({ic:IC.bolt,bg:"#FF3B30",t1:"Longest stop",t2:longest?esc(chgShort(longest,ch)):"",v1:longest?hm(longest.min):"—"})+
-      row({ic:IC.pin,bg:"#007AFF",t1:"View charging details",chev:true,cls:"link",attrs:' role="button" tabindex="0" data-goto="charging" data-day="'+sel+'"'})+'</div>';
+      row({ic:"clock",bg:TINT.charging,t1:"Time at chargers",v1:ch.length?hm(ds.chMin):"—"})+
+      row({ic:"usd",bg:TINT.charging,t1:"Charging spend",v1:(ds&&ds.cost>0)?money2(ds.cost):"—"})+
+      row({ic:"bolt",bg:TINT.charging,t1:"Longest stop",t2:longest?esc(chgShort(longest,ch)):"",v1:longest?hm(longest.min):"—"})+
+      row({ic:"bolt",bg:TINT.charging,t1:"View charging details",chev:true,cls:"link",attrs:' role="button" tabindex="0" data-goto="charging" data-day="'+sel+'"'})+'</div>';
     w.innerHTML='<div class="two"><div>'+stats+grp("Miles by day",rows.join(""))+'</div><div class="side">'+detail+'</div></div>';
   }
   function renderChargingSec(){
@@ -2450,20 +2484,20 @@ var ACCENTS = {
     var stats=statrow([[real.length?hm(t.chMin):"—","time at chargers"],[String(td?td.ch.length:0),"stops today"],[avg!==null?Math.round(avg)+" min":"—","average stop"],[(td&&td.cost>0)?money2(td.cost):"—","spent today"]]);
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
-    var srows=cs.map(function(c){return row({ic:IC.bolt,bg:"#FF3B30",t1:esc(chgPlace(c)),t2:fmtTime(chgTs(c))+" · "+(c.min||"—")+" min · "+(Math.round(c.kwh*10)/10)+" kWh",
+    var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),t2:fmtTime(chgTs(c))+" · "+(c.min||"—")+" min · "+(Math.round(c.kwh*10)/10)+" kWh",
       v1:c.min>0?(c.kwh/c.min).toFixed(2)+" kWh/min":"—",v2:money2(c.cost||0)});}).join("");
     var sessions=head+'<div class="grp">'+(srows||row({t1:"No sessions logged for Day "+cd,mute:true}))+'</div>';
     var withMin=cs.filter(function(c){return c.min>0;});
     var fast=withMin.slice().sort(function(a,b){return b.kwh/b.min-a.kwh/a.min;})[0],longest=withMin.slice().sort(function(a,b){return b.min-a.min;})[0],pricey=cs.slice().sort(function(a,b){return chgRate(b)-chgRate(a);})[0];
     var hl=grp("Highlights · Day "+cd,
-      row({ic:IC.gauge,bg:"#34C759",t1:"Fastest session",t2:fast?esc(chgShort(fast,cs)):"",v1:fast?(fast.kwh/fast.min).toFixed(2)+" kWh/min":"—"})+
-      row({ic:IC.clock,bg:"#FF9500",t1:"Longest stop",t2:longest?esc(chgShort(longest,cs)):"",v1:longest?hm(longest.min):"—"})+
-      row({ic:IC.usd,bg:"#FF3B30",t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,cs)):"",v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"}));
+      row({ic:"gauge",bg:TINT.charging,t1:"Fastest session",t2:fast?esc(chgShort(fast,cs)):"",v1:fast?(fast.kwh/fast.min).toFixed(2)+" kWh/min":"—"})+
+      row({ic:"clock",bg:TINT.charging,t1:"Longest stop",t2:longest?esc(chgShort(longest,cs)):"",v1:longest?hm(longest.min):"—"})+
+      row({ic:"usd",bg:TINT.charging,t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,cs)):"",v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"}));
     var ttd=grp("Trip to date",
-      row({ic:IC.pin,bg:"#007AFF",t1:"Stops",v1:String(real.length)})+
-      row({ic:IC.bolt,bg:"#007AFF",t1:"Energy added",v1:kwh1(t.kwh)+" kWh"})+
-      row({ic:IC.usd,bg:"#007AFF",t1:"Average rate",v1:dash2(t.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";})})+
-      row({ic:IC.clock,bg:"#007AFF",t1:"Time at chargers",v1:real.length?hm(t.chMin):"—"}));
+      row({ic:"pin",bg:TINT.route,t1:"Stops",v1:String(real.length)})+
+      row({ic:"bolt",bg:TINT.charging,t1:"Energy added",v1:kwh1(t.kwh)+" kWh"})+
+      row({ic:"usd",bg:TINT.charging,t1:"Average rate",v1:dash2(t.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";})})+
+      row({ic:"clock",bg:TINT.charging,t1:"Time at chargers",v1:real.length?hm(t.chMin):"—"}));
     w.innerHTML='<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+ttd+'</div></div>';
   }
   function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();}   /* every Trip section, from the same data */
@@ -2508,14 +2542,14 @@ var ACCENTS = {
 
   /* ---------- SPEND (layout per design/sf-move-spend-mockup.html) ---------- */
   var CATS=[
-    {id:"charging", l:"Charging", c:"#007AFF", e:"⚡︎", t:"ch"},
-    {id:"hotel",    l:"Hotel",    c:"#AF52DE", e:"🏨", t:"ho"},
-    {id:"food",     l:"Food",     c:"#FF9500", e:"🍔", t:"fo"},
-    {id:"groceries",l:"Groceries",c:"#30B0C7", e:"🛒", t:"gr"},
-    {id:"kane",     l:"Kane",     c:"#34C759", e:"🐾", t:"ka"},
-    {id:"tolls",    l:"Tolls",    c:"#8E8E93", e:"🛣", t:"mi"},
-    {id:"parking",  l:"Parking",  c:"#8E8E93", e:"🅿︎", t:"mi"},
-    {id:"misc",     l:"Misc",     c:"#8E8E93", e:"·", t:"mi"}];
+    {id:"charging", l:"Charging", c:"#E82127", g:"bolt", t:"ch"},   /* charging is red in every context */
+    {id:"hotel",    l:"Hotel",    c:"#AF52DE", g:"bed",  t:"ho"},
+    {id:"food",     l:"Food",     c:"#FF9500", g:"fork", t:"fo"},
+    {id:"groceries",l:"Groceries",c:"#30B0C7", g:"cart", t:"gr"},
+    {id:"kane",     l:"Kane",     c:"#34C759", g:"paw",  t:"ka"},
+    {id:"tolls",    l:"Tolls",    c:"#8E8E93", g:"road", t:"mi"},
+    {id:"parking",  l:"Parking",  c:"#8E8E93", g:"pin",  t:"mi"},
+    {id:"misc",     l:"Misc",     c:"#8E8E93", g:"road", t:"mi"}];
   var CATMAP={};CATS.forEach(function(c){CATMAP[c.id]=c;});
   var TRIP_DAYS=STOPS[STOPS.length-1].off+1;
   var KWH_PER_MI=0.27,KWH_FALLBACK=0.40,FOOD_FALLBACK=45,MISC_TAIL=40;
@@ -2664,7 +2698,7 @@ var ACCENTS = {
     Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");});
     SPEND_SECS.forEach(function(x){var e=document.getElementById("sp"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
   }
-  function catIcon(c){return '<span class="ic emoji" style="background:'+c.c+'">'+c.e+'</span>';}
+  function catIcon(c){return icon(c.g,c.c);}
   function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
   function txRow(e,isNew){   /* an actual entry as an inset row; swipe-left or long-press → delete, as before */
     var c=CATMAP[e.cat]||CATMAP.misc,sub=(e.cat==="charging"&&e.kwh?e.kwh+" kWh · ":entrySource(e)+" · ")+fmtTime(e.ts);
@@ -2701,9 +2735,10 @@ var ACCENTS = {
     w.innerHTML='<div class="sphero"><div class="big">'+money(P.soFar)+'<small>spent so far</small></div><div class="proj">~<b>'+money(P.proj)+'</b> projected trip total</div><div class="hr"></div>'+
       '<div class="rates"><div>'+(t.perMile===null?"—":"$"+t.perMile.toFixed(2)+" / mi")+'<span>per mile</span></div><div>'+(t.perDay===null?"—":money(t.perDay)+" / day")+'<span>per day</span></div></div>'+
       '<p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span> <span class="sep">·</span> <a href="#" id="importLink">Import</a></p></div>'+
-      grp("By category",cats.length?cats.map(function(c){return row({ic:c.e,bg:c.c,cls:"emoji",t1:c.l,v1:money2(t.byCat[c.id])});}).join(""):row({t1:"Nothing recorded yet",mute:true}))+
-      '<div class="grp">'+row({ic:IC.cal,bg:"#007AFF",t1:"Today"+(cs?" · "+esc(cs.short):""),t2:money2(today)+" recorded · "+nch+(nch===1?" charge":" charges"),chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="'+cd+'"'})+
-      row({ic:IC.clock,bg:"#FF9500",t1:"Planned &amp; pending",t2:np+" planned · ~"+money(pl)+" still to confirm",chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})+'</div>'+
+      (function(){var mx=Math.max.apply(null,cats.map(function(c){return t.byCat[c.id];}).concat([1]));
+        return grp("By category",cats.length?cats.map(function(c){return barRow({ic:c.g,bg:c.c,cls:"cat",t1:c.l,pct:t.byCat[c.id]/mx*100,fill:c.c,v:money2(t.byCat[c.id])});}).join(""):row({t1:"Nothing recorded yet",mute:true}));})()+
+      '<div class="grp">'+row({ic:"cal",bg:TINT.route,t1:"Today"+(cs?" · "+esc(cs.short):""),t2:money2(today)+" recorded · "+nch+(nch===1?" charge":" charges"),chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="'+cd+'"'})+
+      row({ic:"clock",bg:TINT.misc,t1:"Planned &amp; pending",t2:np+" planned · ~"+money(pl)+" still to confirm",chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})+'</div>'+
       '<button class="btn go spadd" type="button" data-add="1">Add expense</button>'+
       '<div class="grp-h">How the projection is built</div><div class="grp"><p class="spest" id="spEst"></p></div>'+
       '<span id="spProj2" hidden></span><span id="spSoFar" hidden></span><span id="spProj" hidden></span><span id="kMile" hidden></span><span id="kDay" hidden></span><span id="kMiles" hidden></span><span id="spBar" hidden></span><span id="spLegend" hidden></span>';
@@ -2721,8 +2756,8 @@ var ACCENTS = {
     }
     w.innerHTML=head;w.appendChild(group(d));if(d===1)w.appendChild(group(0));
     var pl=0,np=0;state.spend.entries.forEach(function(e){if(e.planned){pl+=e.amount;np++;}});
-    w.appendChild(el("div","grp",row({ic:IC.cal,bg:"#8E8E93",t1:"Pre-trip",t2:"Ship Sticks and other costs before wheels up",chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="0"'})+
-      row({ic:IC.clock,bg:"#FF9500",t1:"Pending costs",t2:np+" planned · ~"+money(pl),chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})));
+    w.appendChild(el("div","grp",row({ic:"cal",bg:TINT.route,t1:"Pre-trip",t2:"Ship Sticks and other costs before wheels up",chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="0"'})+
+      row({ic:"clock",bg:TINT.misc,t1:"Pending costs",t2:np+" planned · ~"+money(pl),chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})));
   }
   function renderSpendPlanned(){
     var w=document.getElementById("spPlanned");if(!w)return;w.innerHTML="";
@@ -2743,7 +2778,7 @@ var ACCENTS = {
         '<div class="row noic"><span class="lbl">Day</span>'+pillSel(spendDayTitle(d),"addDay",opts,d)+'</div>'+
         '<div class="row noic"><span class="lbl">Amount</span><div class="amtf"><span>$</span><input class="amt" type="text" inputmode="decimal" placeholder="0.00" aria-label="Amount"></div></div>'+
         '<div class="row noic"><span class="lbl">Description</span><input class="note" type="text" placeholder="What was it?" aria-label="Description"></div></div>'+
-        '<div class="grp-h">Category</div><div class="cattiles">'+CATS.map(function(c){return '<button class="cattile'+(cat===c.id?" on":"")+'" type="button" data-cat="'+c.id+'"><span class="ic" style="background:'+c.c+'">'+c.e+'</span>'+c.l+'</button>';}).join("")+'</div>'+
+        '<div class="grp-h">Category</div><div class="cattiles">'+CATS.map(function(c){return '<button class="cattile'+(cat===c.id?" on":"")+'" type="button" data-cat="'+c.id+'">'+icon(c.g,c.c)+c.l+'</button>';}).join("")+'</div>'+
         '<div class="grp kwhg"'+(cat==="charging"?"":" hidden")+'><div class="row noic"><span class="lbl">Energy added</span><input class="kwh" type="text" inputmode="decimal" placeholder="kWh" aria-label="kWh"></div></div></div>'+
         '<div class="shf"><div class="to">Save to '+esc(spendDayTitle(d))+'</div><button class="btn go" type="button" data-save="1">Add expense</button></div></div>';
     }
@@ -2841,7 +2876,7 @@ var ACCENTS = {
       parsed.forEach(function(r){
         var row=el("div","imp-row",'<div class="l"><div>'+esc(r.merchant||"(no merchant)")+' <span>· '+esc(dayLabel(r.day))+'</span></div><div>'+money2(r.amount)+'</div></div><div class="chips2"></div>');
         var ch=row.querySelector(".chips2");
-        function paint(){ch.innerHTML="";CATS.forEach(function(c){var b=el("button","chip2"+(r.cat===c.id?" on":""),c.e+" "+c.l);b.type="button";b.addEventListener("click",function(){r.cat=c.id;paint();});ch.appendChild(b);});}
+        function paint(){ch.innerHTML="";CATS.forEach(function(c){var b=el("button","chip2"+(r.cat===c.id?" on":""),c.l);b.type="button";b.addEventListener("click",function(){r.cat=c.id;paint();});ch.appendChild(b);});}
         paint();rows.appendChild(row);
       });
       btn.textContent="Import "+parsed.length;btn.onclick=doImport;
