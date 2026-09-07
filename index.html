@@ -277,85 +277,53 @@
   .stampEd{display:inline-flex;gap:6px;align-items:center;}
   .stampEd input{font-family:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .stampEd .btn{font-size:13px;padding:7px 10px;}
-  /* Trip stats section */
-  .tsHead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:4px 0 12px;}
-  .tsTitle{font-size:22px;font-weight:800;letter-spacing:.2px;}
-  .tsSub{font-size:13px;color:var(--secondary);}
-  .tsSel{font-size:13px;font-weight:600;color:var(--secondary);display:flex;align-items:center;gap:6px;white-space:nowrap;}
-  .tsSel select{font-family:inherit;font-size:14px;font-weight:600;color:var(--label);background:var(--cell);border:1px solid var(--sep);border-radius:10px;padding:6px 8px;}
-  .tsCard{padding:14px 16px;}
-  .tsProg{display:flex;gap:16px;flex-wrap:wrap;}
-  .tsProgL{flex:1 1 220px;min-width:0;}
-  .tsProgR{flex:1 1 180px;border-top:.5px solid var(--sep);padding-top:12px;}
-  .tsBig{font-size:34px;font-weight:800;letter-spacing:.2px;line-height:1.05;}
-  .tsOf{font-size:13px;color:var(--secondary);margin:4px 0 8px;display:flex;align-items:center;gap:8px;}
-  .pill{font-size:11px;font-weight:700;background:var(--fill);color:var(--label);border-radius:999px;padding:3px 8px;}
-  .pill.live{background:#E82127;color:#fff;}
-  .tsBar{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;}
-  .tsBar i{display:block;height:100%;background:#0A7AFF;border-radius:4px;}
-  .tsRem{font-size:13px;color:var(--secondary);margin-top:6px;}
-  .tsK{font-size:11px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
-  .tsV{font-size:17px;font-weight:700;margin-top:4px;}
-  .tsV2{font-size:24px;font-weight:800;color:#0A7AFF;line-height:1.1;}
-  .tsNote{font-size:12px;color:var(--secondary);margin-top:4px;}
-  .tsGrid{display:block;}
-  .tsDayH{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .tsLab{font-size:12px;font-weight:700;color:var(--secondary);letter-spacing:.04em;text-transform:uppercase;}
-  .tsStop{font-size:17px;font-weight:700;margin:2px 0 6px;}
-  .tsLine{font-size:14px;color:var(--secondary);}
-  .tsLine b{color:var(--label);font-weight:600;}
-  .tsKpis{display:grid;gap:8px;margin-top:10px;}
-  .tsKpis.three{grid-template-columns:repeat(3,1fr);}
-  .tsKpis.two{grid-template-columns:repeat(2,1fr);}
-  .tsKpis div,.tsG4 div,.tsKpiRow div{background:#EEF0F3;border-radius:12px;padding:8px 10px;min-width:0;text-align:center;}
-  .tsKpis span,.tsG4 span,.tsKpiRow span{display:block;font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
-  .tsKpis b,.tsG4 b,.tsKpiRow b{display:block;font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .tsKpis b.red,.tsG4 b.red,.tsKpiRow b.red{color:#E82127;}
-  .tsBars{display:flex;align-items:flex-end;gap:6px;margin-top:14px;height:120px;padding-top:18px;}
-  .tsBarCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;height:100%;}
-  .tsBarCol .v{font-size:11px;font-weight:600;margin-bottom:2px;}
-  .tsBarCol i{display:block;width:100%;background:#E82127;border-radius:6px 6px 2px 2px;}
-  .tsBarCol .n{font-size:10px;color:#8E8E93;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .tsMuted{font-size:12px;color:var(--secondary);margin-top:6px;}
-  .tsList{margin-top:8px;}
-  .tsRow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 0;border-top:.5px solid var(--sep);}
-  .tsRow b{font-weight:600;white-space:nowrap;}
-  .tsChgT{font-size:17px;font-weight:700;}
-  .tsChgS{font-size:12px;color:var(--secondary);}
-  .tsPair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
-  .tsPair b{display:block;font-size:24px;font-weight:800;line-height:1.1;}
-  .tsPair b.red{color:#E82127;}
-  .tsPair span{font-size:12px;color:var(--secondary);}
-  .tsG4{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .tsTime{margin-top:14px;}
-  .tsTRow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
-  .tsTRow b{font-weight:600;}
-  .sbar2{height:14px;border-radius:999px;background:#E5E5EA;overflow:hidden;display:flex;margin:8px 0 4px;}
-  .sbar2 i{display:block;height:100%;}
-  .sbar2 .dr{background:#0A7AFF;}
-  .sbar2 .ch{background:#E82127;}
-  .tsLeg{display:flex;gap:16px;font-size:13px;color:var(--secondary);flex-wrap:wrap;}
-  .tsLeg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
-  .tsLeg b{color:var(--label);font-weight:600;}
-  .tsEff{margin-top:14px;border-top:.5px solid var(--sep);padding-top:6px;}
-  .tsEffH{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:14px;font-weight:700;padding:8px 0;user-select:none;}
-  .tsEff.closed .tsEffB{display:none;}
-  .tsEff.closed .chev{transform:rotate(-90deg);}
-  .tsRate{display:grid;grid-template-columns:minmax(80px,110px) 1fr 56px;gap:8px 8px;align-items:center;font-size:13px;margin-top:8px;}
-  .tsRate .l{color:var(--secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .tsRate .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-  .tsRate .dot{height:10px;position:relative;border-radius:999px;background:linear-gradient(90deg,#34C759,#FF9500,#E82127);opacity:.25;}
-  .tsRate .dotw{position:relative;height:10px;}
-  .tsRate .pin{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E82127;transform:translateX(-9px);box-sizing:border-box;}
-  .tsRate .pin.g{border-color:#34C759;}
-  .tsRate .pin.o{border-color:#FF9500;}
-  .tsSpark{margin-top:14px;}
-  .tsSpark svg{width:100%;height:70px;display:block;overflow:visible;}
-  .tsKpiRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
-  .tsLoc{margin-top:12px;}
-  .tsLoc a{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--label);text-decoration:none;padding:7px 0;border-top:.5px solid var(--sep);}
-  .tsLoc a span{color:var(--secondary);white-space:nowrap;}
-  .tsEmpty{font-size:14px;color:var(--secondary);}
+  /* Stats section — design/sf-move-stats-mockup.html, scoped under .stx */
+  .stx .eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8E8E93;margin:6px 0 4px;}
+  .stx h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px;}
+  .stx .sub{font-size:15px;color:var(--secondary);margin:0 0 16px;}
+  .stx .card{padding:16px;}
+  .stx .card h2{font-size:17px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .stx .card h2 small{font-size:13px;font-weight:500;color:var(--secondary);text-align:right;}
+  .stx .hero{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;}
+  .stx .ring{position:relative;width:150px;height:150px;}
+  .stx .ring svg{transform:rotate(-90deg);width:100%;height:100%;display:block;}
+  .stx .ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
+  .stx .ring b{font-size:34px;font-weight:800;letter-spacing:-.03em;display:block;line-height:1;}
+  .stx .ring span{font-size:12px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;}
+  .stx .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .stx .kpi{background:#EEF0F3;border-radius:12px;padding:8px 12px;text-align:center;min-width:0;}
+  .stx .kpi b{display:block;font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stx .kpi span{font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;}
+  .stx .stack{display:flex;height:14px;border-radius:999px;overflow:hidden;background:#E5E5EA;margin:8px 0 4px;}
+  .stx .stack i{display:block;height:100%;}
+  .stx .leg{display:flex;gap:16px;font-size:13px;color:var(--secondary);flex-wrap:wrap;}
+  .stx .leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+  .stx .leg b{color:var(--label);}
+  @media (max-width:699px){.stx .hero{grid-template-columns:120px 1fr;}.stx .ring{width:120px;height:120px;}.stx .ring b{font-size:28px;}}
+  .stx .bars{display:grid;grid-template-columns:78px 1fr 64px;gap:6px 8px;align-items:center;font-size:13px;}
+  .stx .bars .l{color:var(--secondary);white-space:nowrap;}
+  .stx .bars .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+  .stx .bars .v.est{color:#8E8E93;}
+  .stx .bar{height:16px;border-radius:6px;background:#E5E5EA;overflow:hidden;display:flex;}
+  .stx .bar i{display:block;height:100%;}
+  .stx .bar.plan{background:repeating-linear-gradient(45deg,#E5E5EA 0 6px,#EEF0F3 6px 12px);}
+  .stx .note{font-size:12px;color:#8E8E93;margin-top:8px;}
+  .stx .sess{display:flex;gap:6px;align-items:flex-end;height:120px;padding-top:18px;}
+  .stx .sess div{flex:1;background:#E82127;border-radius:6px 6px 2px 2px;position:relative;min-width:0;max-width:72px;}
+  .stx .sess div.ph{background:transparent;}
+  .stx .sess div b{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:var(--label);}
+  .stx .sess div span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:#8E8E93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stx .sessw{padding-bottom:22px;}
+  .stx .rate{display:grid;grid-template-columns:110px 1fr 56px;gap:6px 8px;align-items:center;font-size:13px;}
+  .stx .rate .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stx .rate .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;}
+  .stx .rate .dotw{position:relative;height:10px;}
+  .stx .rate .dot{height:10px;background:linear-gradient(90deg,#34C759,#FF9500,#E82127);border-radius:999px;opacity:.25;}
+  .stx .rate .pin{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E82127;transform:translateX(-9px);box-sizing:border-box;}
+  .stx .rate .pin.g{border-color:#34C759;}
+  .stx .rate .pin.o{border-color:#FF9500;}
+  .stx .spark{width:100%;height:70px;display:block;overflow:visible;}
+  .stx .empty{font-size:13px;color:#8E8E93;}
   .daterow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 4px;}
   .daterow label{font-size:16px;font-weight:600;}
   .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
@@ -427,15 +395,7 @@
   /* ---------- responsive: iPad and wider (≥700px). Everything above this block is the phone layout and is unchanged ---------- */
   @media (min-width:700px){
     .wrap{max-width:1040px;padding:8px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));}   /* 16px sides: an 820px iPad then fits two 386px columns */
-    /* card grids: two columns once ~780px of content is available (iPad portrait and up), one below; rows top-aligned so a folded card stays short */
-    #phaseGroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start;margin-bottom:16px;}
-    #phaseGroups>.card{margin-bottom:0;min-width:0;}
-    /* Sort, Pack, Spend: two-column masonry so short cards leave no vertical gaps */
-    #sortGroups,#packGroups,#spendDays{column-count:2;column-gap:16px;}
-    #sortGroups>.card,#packGroups>.card,#spendDays>.card{break-inside:avoid;display:inline-block;width:100%;margin:0 0 16px;vertical-align:top;}
-    /* Trip: map hero, mileage row, stats and stop cards stay full width; only the day-cards/charging pair splits */
-    .tsGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
-    .tsProgR{border-top:0;border-left:.5px solid var(--sep);padding-top:0;padding-left:16px;}
+    /* every card on every tab spans the full 1040px column — no grids, no masonry */
     /* text lines never run past ~70ch, whatever the column width */
     .sec-note,.check>span,.check .cd,.item .name,.item .note,.refblock,.fact,.tripstop .hot,.tripstop .sc,.tripstop .nm,.sprow .t,.unote,.hint,.imp-note,.est,.spc p{max-width:70ch;}
     /* Trip hero spans the full column; aspect is kept and height capped at 70vh — the SVG "slice"s (crops sky + Mexico), never letterboxes or distorts */
@@ -603,7 +563,7 @@
       <div class="tripstat" id="tripStat">0 of 0 mi</div>
       <div class="chgrow" id="chgRow"></div>
     </div>
-    <div id="tripStats"></div>
+    <div id="tripStats" class="stx"></div>
     <div class="triptoggle">
       <div><div class="tl">Track trip</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Track trip"><span class="knob"></span></button>
@@ -636,7 +596,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v49 · Sep 7</div>
+  <div class="appver">SF Move · v50 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2079,90 +2039,85 @@ var ACCENTS = {
       var rolls=days.filter(function(r){return r.rolled;}).map(function(r){return r.rolled.getHours()*60+r.rolled.getMinutes();});
       if(rolls.length){var rollMin=rolls.reduce(function(a,b){return a+b;},0)/rolls.length,last=addDays(departDate(),TRIP_DAYS-1);eta=new Date(last.getFullYear(),last.getMonth(),last.getDate(),0,Math.round(rollMin+hrsPerDay*60));}
     }
-    return{days:days,done:done,left:left,pct:TOTAL_MI?done/TOTAL_MI*100:0,elapsed:elapsed,driveMin:anyD2d?driveMin:null,chMin:chMinTot,kwh:kwh,cost:cost,perKwh:perKwh,perMi:perMi,whmi:whmi,proj:proj,
+    return{days:days,done:done,left:left,pct:TOTAL_MI?done/TOTAL_MI*100:0,elapsed:elapsed,driveMin:anyD2d?driveMin:null,chMin:chMinTot,kwh:kwh,cost:cost,perKwh:perKwh,perMi:perMi,whmi:whmi,proj:proj,movingMph:(anyD2d&&driveMin>0)?milesD2d/(driveMin/60):null,
       best:rated[0]||null,worst:rated.length>1?rated[rated.length-1]:null,rated:rated,fast:fast,eta:eta,hrsPerDay:hrsPerDay,d2dMph:d2dMph,remDays:remDays};
   }
-  var tsDaySel=null;   /* day selector — UI only, never persisted */
-  function fmtDate2(d){var MOS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return WD[d.getDay()]+", "+MOS[d.getMonth()]+" "+d.getDate();}
+  /* ---------- STATS: seven cards after design/sf-move-stats-mockup.html, wired to CHARGES, rolled/arrivedAt, STOPS miles and spend ---------- */
+  var WD3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   function num(v){return Math.round(v).toLocaleString();}
-  function rateColor(t){var h=t<0.5?140-110*(t/0.5):30-30*((t-0.5)/0.5);return "hsl("+Math.round(h)+",72%,46%)";}   /* cheapest green → orange → priciest red */
-  function dayShell(d){var st=stopForDay(d);if(!st)return null;return{d:d,stop:st,rolled:null,arrived:null,miles:st.mi,ch:[],kwh:0,cost:0,chMin:0,d2d:null,drive:null,mph:null,longest:null,whmi:null};}
+  function halfH(h){var r=Math.round(h*2)/2,w=Math.floor(r);return (r===w?w:(w?w+"½":"½"))+"h";}   /* 6.5 → "6½h" */
+  function chgShort(c,all){   /* "Buc-ee's" from a parenthetical, else the city; a duplicated city gets its state */
+    var par=/\(([^)]+)\)/.exec(c.name||"");if(par)return par[1];
+    var place=chgPlace(c),city=place.split(",")[0].trim(),st=(place.split(",")[1]||"").trim();
+    var dup=(all||[]).some(function(o){return o!==c&&chgPlace(o).split(",")[0].trim()===city;});   /* another session in a same-named city (even a nicknamed one) → add the state */
+    return dup&&st?city+" "+st:city;
+  }
+  function realCharges(){return CHARGES.filter(function(c){return !c.planned&&c.kwh>0;}).sort(function(a,b){return chgTs(a)-chgTs(b);});}
+  function stCard(title,small,body){var c=el("div","card");c.innerHTML='<h2>'+title+(small?'<small>'+small+'</small>':'')+'</h2>'+body;return c;}
+  function dayLabelRow(d){var dt=addDays(departDate(),d-1);return WD3[dt.getDay()]+" · Day "+d;}
   function renderStats(){
     var w=document.getElementById("tripStats");if(!w)return;w.innerHTML="";
-    var t=tripStats(),latest=t.days.length?Math.max.apply(null,t.days.map(function(r){return r.d;})):0;
-    var cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(latest,todayDay()||1)));
-    if(tsDaySel===null||tsDaySel<1||tsDaySel>TRIP_DAYS)tsDaySel=cur;
-    var head=el("div","tsHead",'<div><div class="tsTitle">Trip stats</div><div class="tsSub">On the road to San Francisco</div></div><label class="tsSel">Day <select id="tsDay" aria-label="Day shown"></select></label>');
-    var sel=head.querySelector("select");
-    for(var d=1;d<=TRIP_DAYS;d++){var o=document.createElement("option");o.value=d;o.textContent=d+" of "+TRIP_DAYS;if(d===tsDaySel)o.selected=true;sel.appendChild(o);}
-    sel.addEventListener("change",function(){tsDaySel=+this.value;renderStats();});
-    w.appendChild(head);
-    var pc=el("div","card tsCard tsProg");
-    pc.innerHTML='<div class="tsProgL"><div class="tsBig">'+num(t.done)+' mi</div><div class="tsOf">of '+num(TOTAL_MI)+' mi <span class="pill">'+Math.round(t.pct)+'%</span></div><div class="tsBar"><i style="width:'+Math.min(100,t.pct).toFixed(1)+'%"></i></div><div class="tsRem">'+num(t.left)+' mi remaining</div></div>'+
-      '<div class="tsProgR"><div class="tsK">Estimated arrival</div><div class="tsV">'+(t.eta?esc(fmtDate2(t.eta)):"—")+'</div><div class="tsV2">'+(t.eta?"~"+esc(fmtTime(t.eta)):"—")+'</div><div class="tsNote">'+(t.hrsPerDay?hm(t.hrsPerDay*60)+' door-to-door/day · '+t.remDays+' planned day'+(t.remDays===1?"":"s")+' left':'needs one completed day')+'</div></div>';
-    w.appendChild(pc);
-    var grid=el("div","tsGrid"),colL=el("div","tsCol"),colR=el("div","tsCol"),shown=[];
-    for(var dd=tsDaySel;dd>=1;dd--){var r=dayStats(dd);if(!r&&dd===tsDaySel)r=dayShell(dd);if(r)shown.push(r);}
-    if(!shown.length)colL.appendChild(el("div","card tsCard tsEmpty","Nothing logged yet — tap Rolling on a stop card when you leave."));
-    shown.forEach(function(r){colL.appendChild(dayCard(r));});
-    colR.appendChild(chargingCard(t));
-    grid.appendChild(colL);grid.appendChild(colR);w.appendChild(grid);
-  }
-  function dayCard(r){
-    var done=!!(r.arrived||state.trip.arrived[r.stop.id]),today=r.d===todayDay();
-    var c=el("div","card tsCard tsDay"+(done?" done":"")),lab=done?"Completed · Day "+r.d:(today?"Today · ":"")+"Day "+r.d;
-    var h='<div class="tsDayH"><span class="tsLab">'+esc(lab)+'</span>'+(done?'':'<span class="pill live">In progress</span>')+'</div><div class="tsStop">'+esc(r.stop.name)+'</div>';
-    if(!done){
-      h+='<div class="tsLine">'+num(r.miles)+' mi planned · Departed <b>'+(r.rolled?esc(fmtTime(r.rolled)):"—")+'</b></div>';
-      h+=r.ch.length?'<div class="tsList">'+r.ch.map(function(x){return '<div class="tsRow"><span>'+esc(fmtTime(chgTs(x)))+' · '+esc(chgPlace(x))+'</span><b>'+(Math.round((x.kwh||0)*10)/10)+' kWh · '+money2(x.cost||0)+'</b></div>';}).join("")+'</div>':'<div class="tsMuted">No charging stops logged yet</div>';
-    }else{
-      h+='<div class="tsLine">Departed <b>'+(r.rolled?esc(fmtTime(r.rolled)):"—")+'</b> → Arrived <b>'+(r.arrived?esc(fmtTime(r.arrived)):"—")+'</b></div>';
-      h+='<div class="tsKpis three"><div><span>Total</span><b>'+hm(r.d2d)+'</b></div><div><span>Driving</span><b>'+hm(r.drive)+'</b></div><div><span>Charging</span><b class="red">'+hm(r.ch.length?r.chMin:null)+'</b></div></div>';
-      h+='<div class="tsKpis two"><div><span>Average speed</span><b>'+dash(r.mph,function(v){return Math.round(v)+" mph";})+'</b></div><div><span>Longest stint</span><b>'+dash(r.longest,function(v){return Math.round(v)+" mi";})+'</b></div></div>';
-      if(r.ch.length){var mx=Math.max.apply(null,r.ch.map(function(x){return x.kwh||0;}))||1;
-        h+='<div class="tsBars">'+r.ch.map(function(x){return '<div class="tsBarCol"><span class="v">'+(Math.round((x.kwh||0)*10)/10)+'</span><i style="height:'+Math.max(4,Math.round((x.kwh||0)/mx*60))+'px"></i><span class="n">'+esc(chgPlace(x).split(",")[0])+'</span></div>';}).join("")+'</div><div class="tsMuted">kWh per session</div>';
-      }else h+='<div class="tsMuted">No charging stops logged</div>';
-    }
-    c.innerHTML=h;return c;
-  }
-  function chargingCard(t){
-    var c=el("div","card tsCard tsChg"),real=CHARGES.filter(function(x){return !x.planned&&x.kwh>0;});
-    var dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):null,pc2=pd===null?null:100-pd;
-    var effOpen=state.collapsed["trip-eff"]===undefined?(window.innerWidth>=700):!state.collapsed["trip-eff"];
-    var h='<div class="tsChgT">Charging</div><div class="tsChgS">Trip to date</div>'+
-      '<div class="tsPair"><div><b class="red">'+money2(t.cost)+'</b><span>Spent so far</span></div><div><b>'+dash(t.proj,function(v){return "~"+money(v);})+'</b><span>Estimated remaining</span></div></div>'+
-      '<div class="tsG4"><div><span>Stops</span><b>'+real.length+'</b></div><div><span>kWh</span><b>'+(Math.round(t.kwh*10)/10)+'</b></div><div><span>Avg $/kWh</span><b>'+dash(t.perKwh,function(v){return "$"+v.toFixed(2);})+'</b></div><div><span>$/mi</span><b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b></div></div>'+
-      '<div class="tsTime"><div class="tsK">Recorded travel time</div>'+
-      '<div class="tsTRow"><span>Driving</span><b>'+hm(dr)+(pd!==null?' · '+pd+'%':'')+'</b></div><div class="tsTRow"><span>Charging</span><b>'+hm(chm||null)+(pc2!==null?' · '+pc2+'%':'')+'</b></div>'+
-      (sum?'<div class="sbar2"><i class="dr" style="width:'+pd+'%"></i><i class="ch" style="width:'+pc2+'%"></i></div><div class="tsLeg"><span><i style="background:#0A7AFF"></i>Driving <b>'+pd+'%</b></span><span><i style="background:#E82127"></i>Charging <b>'+pc2+'%</b></span></div>':'')+'</div>';
-    /* efficiency & locations */
-    var rated=t.rated,pins='',list='';
+    var t=tripStats(),real=realCharges(),cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(t.elapsed,todayDay()||1))),curStop=stopForDay(cur);
+    w.appendChild(el("div",null,'<p class="eyebrow">Trip tab › Stats</p><h1>Stats</h1><p class="sub">Graphs first, numbers second.</p>'));
+    /* 1 · Trip */
+    var pct=Math.max(0,Math.min(100,t.pct)),dash=402,dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):null,pc=pd===null?null:100-pd;
+    w.appendChild(stCard("Trip","Day "+cur+" of "+TRIP_DAYS+(curStop?" · "+esc(curStop.name):""),
+      '<div class="hero"><div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="64" fill="none" stroke="#E5E5EA" stroke-width="14"/><circle cx="75" cy="75" r="64" fill="none" stroke="#0A7AFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+dash+'" stroke-dashoffset="'+(dash*(1-pct/100)).toFixed(1)+'"/></svg><div class="c"><div><b>'+Math.round(pct)+'%</b><span>'+num(t.done)+' of '+num(TOTAL_MI)+' mi</span></div></div></div>'+
+      '<div><div class="kpis"><div class="kpi"><b>'+hm(dr)+'</b><span>driving</span></div><div class="kpi"><b>'+hm(chm||null)+'</b><span>charging</span></div><div class="kpi"><b>'+dash2(t.movingMph,function(v){return Math.round(v)+" mph";})+'</b><span>moving avg</span></div></div>'+
+      '<div class="stack">'+(sum?'<i style="width:'+pd+'%;background:#0A7AFF"></i><i style="width:'+pc+'%;background:#E82127"></i>':'')+'</div>'+
+      '<div class="leg"><span><i style="background:#0A7AFF"></i>Driving <b>'+(pd===null?"—":pd+"%")+'</b></span><span><i style="background:#E82127"></i>Charging <b>'+(pc===null?"—":pc+"%")+'</b></span><span>ETA SF · <b>'+(t.eta?esc(WD3[t.eta.getDay()]+" ~"+fmtTime(t.eta)):"—")+'</b></span></div></div></div>'));
+    /* 2 · Miles per day */
+    var rows=[],maxMi=0;for(var d=1;d<=TRIP_DAYS;d++){var st=stopForDay(d),ds=dayStats(d);rows.push({d:d,st:st,ds:ds,done:!!(ds&&(ds.arrived||state.trip.arrived[st.id]))});maxMi=Math.max(maxMi,st?st.mi:0);}
+    w.appendChild(stCard("Miles per day","planned vs driven",'<div class="bars">'+rows.map(function(r){var mi=r.st?r.st.mi:0;
+      return '<div class="l">'+dayLabelRow(r.d)+'</div>'+(r.done?'<div class="bar"><i style="width:'+(maxMi?mi/maxMi*100:0).toFixed(0)+'%;background:#0A7AFF"></i></div><div class="v">'+num(mi)+'</div>':'<div class="bar plan"></div><div class="v est">'+num(mi)+'</div>');}).join("")+'</div><p class="note">Bar width = miles. Hatched = not driven yet.</p>'));
+    /* 3 · Hours per day */
+    var hrs=rows.map(function(r){var ds=r.ds,mi=r.st?r.st.mi:0;
+      if(r.done&&ds&&ds.d2d!==null)return{r:r,min:ds.d2d,drive:Math.max(0,ds.drive),ch:ds.chMin,est:false};
+      var e=(t.d2dMph&&mi)?mi/t.d2dMph*60:null;return{r:r,min:e,est:true};});
+    var maxMin=Math.max.apply(null,hrs.map(function(h){return h.min||0;}).concat([1]));
+    w.appendChild(stCard("Hours per day","driving · charging",'<div class="bars">'+hrs.map(function(h){
+      if(!h.est)return '<div class="l">'+dayLabelRow(h.r.d)+'</div><div class="bar"><i style="width:'+(h.drive/maxMin*100).toFixed(0)+'%;background:#0A7AFF"></i><i style="width:'+(h.ch/maxMin*100).toFixed(0)+'%;background:#E82127"></i></div><div class="v">'+hm(h.min)+'</div>';
+      return '<div class="l">'+dayLabelRow(h.r.d)+'</div><div class="bar plan"></div><div class="v est">'+(h.min?"~"+halfH(h.min/60):"—")+'</div>';}).join("")+'</div><p class="note">Door to door. Estimates use your running pace + Wh/mi.</p>'));
+    /* 4 · Charging sessions */
+    var maxK=Math.max.apply(null,real.map(function(c){return c.kwh;}).concat([1])),slots=Math.max(0,8-real.length);
+    var stint=null,prev=0,prevName="Start";real.forEach(function(c){var m=locate({lat:c.lat,lng:c.lng}).miles,len=m-prev;if(stint===null||len>stint.len)stint={len:len,from:prevName,to:chgShort(c,real)};prev=m;prevName=chgShort(c,real);});
+    var avgMin=real.length?real.reduce(function(a,c){return a+(c.min||0);},0)/real.length:null,fast=t.fast;
+    w.appendChild(stCard("Charging sessions","kWh per stop · "+real.length+" stop"+(real.length===1?"":"s")+" · "+(Math.round(t.kwh*10)/10)+" kWh · "+money2(t.cost),
+      (real.length?'<div class="sessw"><div class="sess">'+real.map(function(c){return '<div style="height:'+Math.max(4,Math.round(c.kwh/maxK*100))+'%"><b>'+(Math.round(c.kwh*10)/10)+'</b><span>'+esc(chgShort(c,real))+'</span></div>';}).join("")+Array(slots+1).join('<div class="ph" style="height:0"></div>')+'</div></div>':'<div class="empty">No sessions logged yet</div>')+
+      '<div class="leg" style="margin-top:6px"><span>Longest stint <b>'+(stint?Math.round(stint.len)+" mi":"—")+'</b>'+(stint?' ('+esc(stint.from)+' → '+esc(stint.to)+')':'')+'</span><span>Avg session <b>'+dash2(avgMin,function(v){return Math.round(v)+" min";})+'</b></span><span>Fastest <b>'+(fast?esc(chgShort(fast.c,real))+" · "+fast.v.toFixed(1)+" kWh/min":"—")+'</b></span></div>'));
+    /* 5 · Price per kWh */
+    var rated=t.rated,pins='';
     if(rated.length){var lo=rated[0].r,hi=rated[rated.length-1].r,span=hi-lo||1;
-      pins='<div class="tsRate">'+rated.map(function(x,i){var pos=(x.r-lo)/span,rank=rated.length>1?i/(rated.length-1):0,cls=pos>0.67?"":((pos<0.34&&rank<0.5)?" g":" o");   /* red = priciest third; green = cheap and in the lower half; orange between */
-        return '<div class="l">'+esc(chgPlace(x.c))+'</div><div class="dotw"><div class="dot"></div><div class="pin'+cls+'" style="left:'+(pos*100).toFixed(1)+'%"></div></div><div class="v">$'+x.r.toFixed(2)+'</div>';}).join("")+'</div>'+
-        '<div class="tsMuted">Cheapest to priciest stop so far'+(t.perKwh?' · average $'+t.perKwh.toFixed(2):'')+'</div>';}
-    else pins='<div class="tsMuted">No sessions yet</div>';
-    var pts=t.days.filter(function(r){return r.whmi!==null;}),spark='';
-    if(pts.length){var vals=pts.map(function(r){return r.whmi;}),EPA=270,lo2=Math.min.apply(null,vals.concat([EPA]))*0.85,hi2=Math.max.apply(null,vals.concat([EPA]))*1.15,W=300,H=70,byDay={};
-      pts.forEach(function(r){byDay[r.d]=r;});
-      var X=function(d){return 20+(d-1)*(W-40)/Math.max(1,TRIP_DAYS-1);},Y=function(v){return 50-(v-lo2)/(hi2-lo2)*36;};
-      var pl=pts.map(function(r){return X(r.d).toFixed(1)+","+Y(r.whmi).toFixed(1);}).join(" "),svgIn='';
-      svgIn+='<line x1="0" y1="'+Y(EPA).toFixed(1)+'" x2="'+W+'" y2="'+Y(EPA).toFixed(1)+'" stroke="#E5E5EA" stroke-dasharray="3 3"/><text x="0" y="'+(Y(EPA)-4).toFixed(1)+'" font-size="9" fill="#8E8E93">EPA ≈ 270</text>';
-      if(pts.length>1)svgIn+='<polyline points="'+pl+'" fill="none" stroke="#0A7AFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-      for(var dd=1;dd<=TRIP_DAYS;dd++){var r=byDay[dd];
-        if(r)svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(r.whmi).toFixed(1)+'" r="4.5" fill="#0A7AFF"/><text x="'+X(dd).toFixed(1)+'" y="'+(Y(r.whmi)-8).toFixed(1)+'" font-size="10" text-anchor="middle" font-weight="600" fill="#1C1C1E">'+Math.round(r.whmi)+'</text><text x="'+X(dd).toFixed(1)+'" y="64" font-size="10" text-anchor="middle" fill="#6E6E73">Day '+dd+'</text>';
-        else svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(EPA).toFixed(1)+'" r="3" fill="#C7CBD1"/>';}
-      spark='<div class="tsSpark"><div class="tsK">Wh/mi by day</div><svg viewBox="0 0 300 70" aria-hidden="true">'+svgIn+'</svg>'+
-        '<div class="tsKpiRow"><div><span>Wh/mi</span><b>'+dash(t.whmi,function(v){return Math.round(v);})+'</b></div><div><span>$/mi</span><b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b></div><div><span>Charging to SF</span><b class="red">'+dash(t.proj,function(v){return "~"+money(v);})+'</b></div></div></div>';}
-    else spark='<div class="tsMuted">Wh/mi appears after the first completed day</div>';
-    list='<div class="tsLoc"><div class="tsK">Charging locations</div>'+(real.length?real.map(function(x){return '<a href="https://maps.apple.com/?address='+encodeURIComponent(x.addr||x.name)+'" target="_blank" rel="noopener"><span style="color:var(--label)">'+esc(chgPlace(x))+'</span><span>'+esc(fmtShort(parseYMD(x.date))+" "+(x.time||""))+' · '+(Math.round((x.kwh||0)*10)/10)+' kWh · '+money2(x.cost||0)+'</span></a>';}).join(""):'<div class="tsMuted">None yet</div>')+'</div>';
-    h+='<div class="tsEff'+(effOpen?"":" closed")+'"><div class="tsEffH" role="button" tabindex="0" aria-expanded="'+(effOpen?"true":"false")+'">Efficiency &amp; charging locations <span class="chev">▼</span></div><div class="tsEffB"><div class="tsK">$/kWh by stop</div>'+pins+spark+list+'</div></div>';
-    c.innerHTML=h;
-    var eh=c.querySelector(".tsEffH");
-    function togE(){state.collapsed["trip-eff"]=effOpen;save(state);renderStats();}   /* store "collapsed" = it was open */
-    eh.addEventListener("click",togE);eh.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togE();}});
-    return c;
+      pins='<div class="rate">'+rated.map(function(x,i){var pos=(x.r-lo)/span,rank=rated.length>1?i/(rated.length-1):0,cls=pos>0.67?"":((pos<0.34&&rank<0.5)?" g":" o");
+        return '<div class="l">'+esc(chgShort(x.c,real))+'</div><div class="dotw"><div class="dot"></div><div class="pin'+cls+'" style="left:'+(pos*100).toFixed(0)+'%"></div></div><div class="v">$'+x.r.toFixed(2)+'</div>';}).join("")+'</div>';}
+    else pins='<div class="empty">No sessions logged yet</div>';
+    w.appendChild(stCard("Price per kWh","best → worst",pins+'<p class="note">Scale runs from cheapest to priciest stop so far.'+(t.perKwh?' Average $'+t.perKwh.toFixed(2)+'.':'')+'</p>'));
+    /* 6 · Efficiency */
+    var pts=t.days.filter(function(r){return r.whmi!==null;}),byDay={};pts.forEach(function(r){byDay[r.d]=r;});
+    var vals=pts.map(function(r){return r.whmi;}),EPA=270,lo2=Math.min.apply(null,vals.concat([EPA]))*0.85,hi2=Math.max.apply(null,vals.concat([EPA]))*1.15,W=300;
+    var X=function(d){return 20+(d-1)*(W-40)/Math.max(1,TRIP_DAYS-1);},Y=function(v){return 50-(v-lo2)/(hi2-lo2)*36;},svgIn='';
+    svgIn+='<line x1="0" y1="'+Y(EPA).toFixed(1)+'" x2="'+W+'" y2="'+Y(EPA).toFixed(1)+'" stroke="#E5E5EA" stroke-dasharray="3 3"/><text x="0" y="'+(Y(EPA)-4).toFixed(1)+'" font-size="9" fill="#8E8E93">EPA ≈ 270</text>';
+    if(pts.length>1)svgIn+='<polyline points="'+pts.map(function(r){return X(r.d).toFixed(1)+","+Y(r.whmi).toFixed(1);}).join(" ")+'" fill="none" stroke="#0A7AFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+    var gray='';for(var dd=1;dd<=TRIP_DAYS;dd++){var r6=byDay[dd];
+      if(r6)svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(r6.whmi).toFixed(1)+'" r="4.5" fill="#0A7AFF"/><text x="'+X(dd).toFixed(1)+'" y="'+(Y(r6.whmi)-8).toFixed(1)+'" font-size="10" text-anchor="middle" font-weight="600">'+Math.round(r6.whmi)+'</text><text x="'+X(dd).toFixed(1)+'" y="64" font-size="10" text-anchor="middle" fill="#6E6E73">Day '+dd+'</text>';
+      else gray+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(EPA).toFixed(1)+'" r="3"/>';}
+    if(gray)svgIn+='<g fill="#C7CBD1">'+gray+'</g>';
+    w.appendChild(stCard("Efficiency","Wh/mi by day",'<svg class="spark" viewBox="0 0 300 70" aria-hidden="true">'+svgIn+'</svg>'+
+      '<div class="kpis"><div class="kpi"><b>'+dash2(t.whmi,function(v){return Math.round(v);})+'</b><span>Wh/mi</span></div><div class="kpi"><b>'+dash2(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b><span>per mile</span></div><div class="kpi"><b>'+dash2(t.proj,function(v){return "~"+money(v);})+'</b><span>charging to SF</span></div></div>'));
+    /* 7 · Spend per day */
+    var sp=spendTotals(),SPC={charging:"#E82127",hotel:"#AF52DE",groceries:"#30B0C7",kane:"#34C759",food:"#FF9500",tolls:"#8E8E93",parking:"#8E8E93",misc:"#8E8E93"},ORDER=["charging","hotel","groceries","kane","food","tolls","parking","misc"];
+    var perKwhEst=t.perKwh||KWH_FALLBACK,whEst=t.whmi?t.whmi/1000:KWH_PER_MI,drows=rows.map(function(r){
+      var act={},tot=0,hasAct=false;state.spend.entries.forEach(function(e){if(e.day===r.d&&!e.planned){act[e.cat]=(act[e.cat]||0)+e.amount;tot+=e.amount;hasAct=true;}});
+      if(hasAct&&r.d<=cur)return{r:r,act:act,tot:tot,est:false};
+      var mi=r.st?r.st.mi:0,plan=0;state.spend.entries.forEach(function(e){if(e.day===r.d&&e.planned)plan+=e.amount;});
+      return{r:r,tot:plan+mi*whEst*perKwhEst+sp.foodDay,est:true};});
+    var maxS=Math.max.apply(null,drows.map(function(x){return x.tot;}).concat([1]));
+    w.appendChild(stCard("Spend per day",money(sp.soFar)+" so far · ~"+money(sp.proj)+" projected",'<div class="bars">'+drows.map(function(x){
+      if(!x.est)return '<div class="l">'+dayLabelRow(x.r.d)+'</div><div class="bar">'+ORDER.filter(function(k){return x.act[k];}).map(function(k){return '<i style="width:'+(x.act[k]/maxS*100).toFixed(1)+'%;background:'+SPC[k]+'"></i>';}).join("")+'</div><div class="v">'+money(x.tot)+'</div>';
+      return '<div class="l">'+dayLabelRow(x.r.d)+'</div><div class="bar plan"></div><div class="v est">~'+money(x.tot)+'</div>';}).join("")+'</div>'+
+      '<div class="leg" style="margin-top:8px"><span><i style="background:#E82127"></i>Charging</span><span><i style="background:#AF52DE"></i>Hotel</span><span><i style="background:#30B0C7"></i>Groceries</span><span><i style="background:#34C759"></i>Kane</span><span><i style="background:#FF9500"></i>Food</span><span><i style="background:#8E8E93"></i>Tolls · misc</span></div>'));
   }
+  function dash2(v,f){return (v===null||v===undefined||isNaN(v))?"—":f(v);}
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
   function onFix(p){
