@@ -1,0 +1,127 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>SF Move · Stats mockup</title>
+<style>
+:root{--bg:#F2F2F7;--card:#fff;--ink:#1C1C1E;--mute:#6E6E73;--line:#E5E5EA;--blue:#0A7AFF;--red:#E82127;--green:#34C759;--orange:#FF9500;--purple:#AF52DE;--teal:#30B0C7;--gray:#8E8E93;--soft:#EEF0F3;--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--r:16px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:var(--s5) var(--s4) 60px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);margin:0 0 var(--s1)}
+h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:0 0 var(--s1)}
+.sub{font-size:15px;color:var(--mute);margin:0 0 var(--s4)}
+.card{background:var(--card);border-radius:var(--r);padding:var(--s4);margin-bottom:var(--s3)}
+.card h2{font-size:17px;font-weight:700;margin:0 0 var(--s3);display:flex;justify-content:space-between;align-items:baseline}
+.card h2 small{font-size:13px;font-weight:500;color:var(--mute)}
+.hero{display:grid;grid-template-columns:150px 1fr;gap:var(--s4);align-items:center}
+.ring{position:relative;width:150px;height:150px}.ring svg{transform:rotate(-90deg)}.ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring b{font-size:34px;font-weight:800;letter-spacing:-.03em;display:block;line-height:1}.ring span{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2)}
+.kpi{background:var(--soft);border-radius:12px;padding:var(--s2) var(--s3);text-align:center}.kpi b{display:block;font-size:20px;font-weight:700;letter-spacing:-.01em}.kpi span{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
+.stack{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--line);margin:var(--s2) 0 var(--s1)}
+.stack i{display:block;height:100%}
+.leg{display:flex;gap:var(--s4);font-size:13px;color:var(--mute);flex-wrap:wrap}.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}.leg b{color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+@media(max-width:699px){.grid2{grid-template-columns:1fr}.hero{grid-template-columns:120px 1fr}.ring{width:120px;height:120px}.ring b{font-size:28px}}
+.bars{display:grid;grid-template-columns:78px 1fr 64px;gap:6px var(--s2);align-items:center;font-size:13px}
+.bars .l{color:var(--mute);white-space:nowrap}.bars .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.bar{height:16px;border-radius:6px;background:var(--line);overflow:hidden;display:flex}.bar i{display:block;height:100%}
+.bar.plan{background:repeating-linear-gradient(45deg,#E5E5EA 0 6px,#EEF0F3 6px 12px)}
+.note{font-size:12px;color:var(--gray);margin-top:var(--s2)}
+.sess{display:flex;gap:6px;align-items:flex-end;height:120px;padding-top:18px}
+.sess div{flex:1;background:var(--red);border-radius:6px 6px 2px 2px;position:relative;min-width:0}
+.sess div b{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:var(--ink)}
+.sess div span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sessw{padding-bottom:22px}
+.rate{display:grid;grid-template-columns:110px 1fr 56px;gap:6px var(--s2);align-items:center;font-size:13px}
+.rate .dot{height:10px;position:relative;background:linear-gradient(90deg,#34C759,#FF9500,#E82127);border-radius:999px;opacity:.25}
+.rate .pin{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--red);transform:translateX(-9px)}
+.rate .pin.g{border-color:var(--green)}.rate .pin.o{border-color:var(--orange)}
+.spark{width:100%;height:70px}
+.ft{font-size:11px;color:#AEAEB2;text-align:center;margin-top:var(--s4)}
+.kicker{font-size:13px;color:var(--mute);margin:0 0 var(--s3);line-height:1.45}
+</style></head><body><div class="wrap">
+<p class="eyebrow">Mockup · Trip tab › Stats</p><h1>Stats</h1><p class="sub">Graphs first, numbers second. Full width on iPad, stacked on phone.</p>
+<p class="kicker">Demo state: end of Day 1. Days 2–6 are planned (hatched) until they happen.</p>
+
+<div class="card">
+  <h2>Trip <small>Day 1 of 6 · Springfield, MO</small></h2>
+  <div class="hero">
+    <div class="ring"><svg viewBox="0 0 150 150" width="100%" height="100%"><circle cx="75" cy="75" r="64" fill="none" stroke="#E5E5EA" stroke-width="14"/><circle cx="75" cy="75" r="64" fill="none" stroke="#0A7AFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="402" stroke-dashoffset="323"/></svg><div class="c"><div><b>20%</b><span>505 of 2,569 mi</span></div></div></div>
+    <div>
+      <div class="kpis"><div class="kpi"><b>7h 29m</b><span>driving</span></div><div class="kpi"><b>1h 50m</b><span>charging</span></div><div class="kpi"><b>67 mph</b><span>moving avg</span></div></div>
+      <div class="stack"><i style="width:80%;background:var(--blue)"></i><i style="width:20%;background:var(--red)"></i></div>
+      <div class="leg"><span><i style="background:var(--blue)"></i>Driving <b>80%</b></span><span><i style="background:var(--red)"></i>Charging <b>20%</b></span><span>ETA SF · <b>Fri ~4 PM</b></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="grid2">
+<div class="card">
+  <h2>Miles per day <small>planned vs driven</small></h2>
+  <div class="bars">
+    <div class="l">Sun · Day 1</div><div class="bar"><i style="width:93%;background:var(--blue)"></i></div><div class="v">505</div>
+    <div class="l">Mon · Day 2</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">545</div>
+    <div class="l">Tue · Day 3</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">289</div>
+    <div class="l">Wed · Day 4</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">465</div>
+    <div class="l">Thu · Day 5</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">375</div>
+    <div class="l">Fri · Day 6</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">390</div>
+  </div>
+  <p class="note">Bar width = miles. Hatched = not driven yet.</p>
+</div>
+<div class="card">
+  <h2>Hours per day <small>driving · charging</small></h2>
+  <div class="bars">
+    <div class="l">Sun · Day 1</div><div class="bar"><i style="width:74%;background:var(--blue)"></i><i style="width:18%;background:var(--red)"></i></div><div class="v">9h 19m</div>
+    <div class="l">Mon · Day 2</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~9h</div>
+    <div class="l">Tue · Day 3</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~5h</div>
+    <div class="l">Wed · Day 4</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~8h</div>
+    <div class="l">Thu · Day 5</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~6½h</div>
+    <div class="l">Fri · Day 6</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~7h</div>
+  </div>
+  <p class="note">Door to door. Estimates use your running pace + Wh/mi.</p>
+</div>
+</div>
+
+<div class="card">
+  <h2>Charging sessions <small>kWh per stop · 5 stops · 191.5 kWh · $72.36</small></h2>
+  <div class="sessw"><div class="sess">
+    <div style="height:65%"><b>29.8</b><span>Normal</span></div>
+    <div style="height:96%"><b>43.8</b><span>Springfield IL</span></div>
+    <div style="height:80%"><b>36.6</b><span>Fenton</span></div>
+    <div style="height:78%"><b>35.7</b><span>Rolla</span></div>
+    <div style="height:100%"><b>45.6</b><span>Buc-ee's</span></div>
+    <div style="height:0;background:transparent"></div><div style="height:0;background:transparent"></div><div style="height:0;background:transparent"></div>
+  </div></div>
+  <div class="leg" style="margin-top:6px"><span>Longest stint <b>131 mi</b> (Fenton → Rolla)</span><span>Avg session <b>22 min</b></span><span>Fastest <b>Normal · 2.1 kWh/min</b></span></div>
+</div>
+
+<div class="grid2">
+<div class="card">
+  <h2>Price per kWh <small>best → worst</small></h2>
+  <div class="rate">
+    <div class="l">Normal</div><div class="dot"><div class="pin g" style="left:0%"></div></div><div class="v">$0.35</div>
+    <div class="l">Springfield IL</div><div class="dot"><div class="pin g" style="left:11%"></div></div><div class="v">$0.36</div>
+    <div class="l">Rolla</div><div class="dot"><div class="pin o" style="left:22%"></div></div><div class="v">$0.37</div>
+    <div class="l">Buc-ee's</div><div class="dot"><div class="pin o" style="left:22%"></div></div><div class="v">$0.37</div>
+    <div class="l">Fenton</div><div class="dot"><div class="pin" style="left:100%"></div></div><div class="v">$0.44</div>
+  </div>
+  <p class="note">Scale runs from cheapest to priciest stop so far. Average $0.38.</p>
+</div>
+<div class="card">
+  <h2>Efficiency <small>Wh/mi by day</small></h2>
+  <svg class="spark" viewBox="0 0 300 70"><line x1="0" y1="35" x2="300" y2="35" stroke="#E5E5EA" stroke-dasharray="3 3"/><text x="0" y="31" font-size="9" fill="#8E8E93">EPA ≈ 270</text><polyline points="20,14 70,14" fill="none" stroke="#0A7AFF" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="14" r="4.5" fill="#0A7AFF"/><text x="20" y="60" font-size="10" text-anchor="middle" fill="#6E6E73">Day 1</text><text x="20" y="8" font-size="10" text-anchor="middle" font-weight="600">379</text><g fill="#C7CBD1"><circle cx="90" cy="35" r="3"/><circle cx="145" cy="35" r="3"/><circle cx="200" cy="35" r="3"/><circle cx="255" cy="35" r="3"/></g></svg>
+  <div class="kpis"><div class="kpi"><b>379</b><span>Wh/mi</span></div><div class="kpi"><b>$0.14</b><span>per mile</span></div><div class="kpi"><b>~$290</b><span>charging to SF</span></div></div>
+</div>
+</div>
+
+<div class="card">
+  <h2>Spend per day <small>$302 so far · ~$1,340 projected</small></h2>
+  <div class="bars">
+    <div class="l">Sun · Day 1</div><div class="bar"><i style="width:24%;background:var(--red)"></i><i style="width:56%;background:var(--purple)"></i><i style="width:12%;background:var(--teal)"></i><i style="width:8%;background:var(--green)"></i></div><div class="v">$302</div>
+    <div class="l">Mon · Day 2</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~$260</div>
+    <div class="l">Tue · Day 3</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~$275</div>
+    <div class="l">Wed · Day 4</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~$110</div>
+    <div class="l">Thu · Day 5</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~$70</div>
+    <div class="l">Fri · Day 6</div><div class="bar plan"></div><div class="v" style="color:var(--gray)">~$80</div>
+  </div>
+  <div class="leg" style="margin-top:8px"><span><i style="background:var(--red)"></i>Charging</span><span><i style="background:var(--purple)"></i>Hotel</span><span><i style="background:var(--teal)"></i>Groceries</span><span><i style="background:var(--green)"></i>Kane</span><span><i style="background:var(--orange)"></i>Food</span><span><i style="background:var(--gray)"></i>Tolls · misc</span></div>
+</div>
+<p class="ft">Stats mockup · charging is Tesla red throughout · replaces the text Stats card</p>
+</div></body></html>
