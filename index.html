@@ -362,8 +362,7 @@
   .seg button.on{background:#fff;font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);}
   .seg button:active{transform:scale(.97);}
   .trctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .sech{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:30px 0 12px;}   /* plain section header, never a card */
-  .sech.flex{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .trsec{display:none;}.trsec.on{display:block;}   /* one section at a time, chosen by the segmented control */
   .grp-h{font-size:13px;font-weight:400;color:var(--secondary);text-transform:uppercase;letter-spacing:.02em;padding:0 16px 7px;margin-top:4px;}
   .grp-h.flex{display:flex;justify-content:space-between;align-items:center;text-transform:none;font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--label);padding:0 0 10px;}
   .grp{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:22px;}
@@ -647,9 +646,9 @@
   <div class="page" id="page-trip" data-title="Trip">
     <div class="trhead">
       <div><div class="tr-eb">Southern route</div><h1>Trip to San Francisco</h1></div>
-      <div class="trctl"><span class="tr-dp" id="trDayPill">Day 1 of 6</span></div>
+      <div class="trctl"><div class="seg" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div><span class="tr-dp" id="trDayPill">Day 1 of 6</span></div>
     </div>
-    <section id="trOverview">
+    <section class="trsec on" id="trOverview">
     <div class="trcard trbar" id="tripBar"></div>
     <div class="trcard trmap">
       <div class="trmapw">
@@ -731,12 +730,9 @@
     </div>
     <div class="trcard trsum" id="chgSummary" role="button" tabindex="0"></div>
     </section>
-    <h2 class="sech">Daily</h2>
-    <section id="trDaily"></section>
-    <h2 class="sech">Charging</h2>
-    <section id="trCharging"></section>
-    <h2 class="sech">Itinerary</h2>
-    <section id="trItinerary"><div class="itin"><div><div class="trackcard">
+    <section class="trsec" id="trDaily"></section>
+    <section class="trsec" id="trCharging"></section>
+    <section class="trsec" id="trItinerary"><div class="itin"><div><div class="trackcard">
       <div><div class="tl">Trip tracking</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Trip tracking"><span class="knob"></span></button>
     </div><div id="tripStops"></div><div id="tripPlaces"></div></div><aside class="itinrail trrail" id="itinRail"></aside></div></section>
@@ -746,17 +742,14 @@
   <div class="page" id="page-spend" data-title="Spend">
     <div class="trhead">
       <div><div class="tr-eb">Trip costs</div><h1>Spend</h1></div>
-      <div class="trctl"><button class="btn go spAddHead" type="button" data-add="1">Add expense</button></div>
+      <div class="trctl"><div class="seg" id="spendSeg" role="tablist" aria-label="Spend section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="transactions">Transactions</button><button type="button" role="tab" data-s="planned">Planned</button></div><button class="btn go spAddHead" type="button" data-add="1">Add expense</button></div>
     </div>
-    <section id="spOverview"></section>
-    <h2 class="sech flex"><span>Transactions</span><span id="spDayPick"></span></h2>
-    <section id="spTransactions"></section>
-    <h2 class="sech">Planned &amp; pending</h2>
-    <section id="spPlanned"></section>
-    <section id="spNote"></section>
+    <section class="trsec on" id="spOverview"></section>
+    <section class="trsec" id="spTransactions"></section>
+    <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v68 · Sep 7</div>
+  <div class="appver">SF Move · v69 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1968,12 +1961,14 @@ var ACCENTS = {
     sum.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();setMapMode(mapMode()==="chg"?"route":"chg");}});
     function railTap(e){
       var b=e.target.closest("[data-stop]");if(!b)return;
+      if(tripSeg()!=="itinerary")setTripSeg("itinerary");   /* the stop cards live in Itinerary */
       scrollToEl(document.querySelector('#tripStops .card[data-stop="'+b.getAttribute("data-stop")+'"]'));
     }
     rail.addEventListener("click",railTap);document.getElementById("itinRail").addEventListener("click",railTap);
+    document.getElementById("tripSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setTripSeg(b.getAttribute("data-s"));});
     document.getElementById("tripPlaces").addEventListener("click",function(e){var b=e.target.closest("[data-place]");if(b)openPlace(b.getAttribute("data-place"));});
     document.getElementById("trDaily").addEventListener("click",function(e){
-      var g=e.target.closest("[data-goto]");if(g){state.stats=state.stats||{};state.stats.chgDay=+g.getAttribute("data-day");save(state);renderChargingSec();scrollToEl(document.getElementById("trCharging"));return;}
+      var g=e.target.closest("[data-goto]");if(g){state.stats=state.stats||{};state.stats.chgDay=+g.getAttribute("data-day");setTripSeg("charging");return;}
       var r=e.target.closest(".row[data-day]");if(r){STV.day=+r.getAttribute("data-day");renderDaily();}
     });
     document.getElementById("trDaily").addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
@@ -2344,7 +2339,8 @@ var ACCENTS = {
     return out;
   }
   function placeIdx(id){var cl=pinClusters();for(var i=0;i<cl.length;i++)if(cl[i].list.some(function(x){return x.id===id;}))return i;return -1;}
-  function openPlace(id){   /* Itinerary row → the map in Places mode with that pin's popover open */
+  function openPlace(id){   /* Itinerary row → Overview, Places layer, that pin's popover */
+    if(tripSeg()!=="overview")setTripSeg("overview");
     if(mapMode()!=="places")setMapMode("places");
     var i=placeIdx(id);if(i<0)return;
     document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
@@ -2401,7 +2397,15 @@ var ACCENTS = {
     syncMapSeg();buildPins();renderCharging();updateLOD(Z.s);
   }
   /* ---------- TRIP sections: one scrolling page — Overview · Daily · Charging · Itinerary ---------- */
-  function scrollToEl(el){if(el)el.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});}   /* one page now: the old segments are just places to scroll to */
+  function scrollToEl(el){if(el)el.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});}
+  var TRIP_SECS=["overview","daily","charging","itinerary"];
+  function tripSeg(){var s=state.ui&&state.ui.tripSeg;return TRIP_SECS.indexOf(s)>=0?s:"overview";}
+  function syncTripSeg(){
+    var g=document.getElementById("tripSeg");if(!g)return;var k=tripSeg();
+    Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");});
+    TRIP_SECS.forEach(function(x){var e=document.getElementById("tr"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
+  }
+  function setTripSeg(k){state.ui=state.ui||{};state.ui.tripSeg=k;save(state);renderStats();}
   var IC={bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
     clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
@@ -2462,7 +2466,7 @@ var ACCENTS = {
       row({ic:IC.clock,bg:"#007AFF",t1:"Time at chargers",v1:real.length?hm(t.chMin):"—"}));
     w.innerHTML='<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+ttd+'</div></div>';
   }
-  function renderStats(){renderTripTop();renderDaily();renderChargingSec();}   /* every Trip section, from the same data */
+  function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();}   /* every Trip section, from the same data */
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
   function onFix(p){
@@ -2650,11 +2654,15 @@ var ACCENTS = {
   }
   function renderSpend(newId){seedSpend();seedCharges();seedExpenses();seedPlaces();syncNow();renderSpendAll(newId);}
 
-  /* ---------- SPEND: one scrolling page — hero · By category · Add expense · Transactions · Planned (state.ui.spendDay, never synced) + the Add expense sheet ---------- */
+  /* ---------- SPEND sections: Overview · Transactions · Planned (state.ui.spendSeg / spendDay, never synced) + the Add expense sheet ---------- */
+  var SPEND_SECS=["overview","transactions","planned"];
+  function spendSeg(){var s=state.ui&&state.ui.spendSeg;return SPEND_SECS.indexOf(s)>=0?s:"overview";}
   function spendDay(){var d=state.ui&&state.ui.spendDay;return (typeof d==="number"&&d>=0&&d<=TRIP_DAYS)?d:currentDay();}
-  function goSpend(sec,day){   /* one scrolling page: the old segments are just places to scroll to */
-    if(typeof day==="number"){state.ui=state.ui||{};state.ui.spendDay=day;save(state);renderSpendAll();}
-    scrollToEl(document.getElementById(sec==="planned"?"spPlanned":"spTransactions").previousElementSibling);
+  function setSpendSeg(k,day){state.ui=state.ui||{};state.ui.spendSeg=k;if(typeof day==="number")state.ui.spendDay=day;save(state);renderSpendAll();}
+  function syncSpendSeg(){
+    var g=document.getElementById("spendSeg");if(!g)return;var k=spendSeg();
+    Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");});
+    SPEND_SECS.forEach(function(x){var e=document.getElementById("sp"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
   }
   function catIcon(c){return '<span class="ic emoji" style="background:'+c.c+'">'+c.e+'</span>';}
   function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
@@ -2694,22 +2702,24 @@ var ACCENTS = {
       '<div class="rates"><div>'+(t.perMile===null?"—":"$"+t.perMile.toFixed(2)+" / mi")+'<span>per mile</span></div><div>'+(t.perDay===null?"—":money(t.perDay)+" / day")+'<span>per day</span></div></div>'+
       '<p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span> <span class="sep">·</span> <a href="#" id="importLink">Import</a></p></div>'+
       grp("By category",cats.length?cats.map(function(c){return row({ic:c.e,bg:c.c,cls:"emoji",t1:c.l,v1:money2(t.byCat[c.id])});}).join(""):row({t1:"Nothing recorded yet",mute:true}))+
+      '<div class="grp">'+row({ic:IC.cal,bg:"#007AFF",t1:"Today"+(cs?" · "+esc(cs.short):""),t2:money2(today)+" recorded · "+nch+(nch===1?" charge":" charges"),chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="'+cd+'"'})+
+      row({ic:IC.clock,bg:"#FF9500",t1:"Planned &amp; pending",t2:np+" planned · ~"+money(pl)+" still to confirm",chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})+'</div>'+
       '<button class="btn go spadd" type="button" data-add="1">Add expense</button>'+
+      '<div class="grp-h">How the projection is built</div><div class="grp"><p class="spest" id="spEst"></p></div>'+
       '<span id="spProj2" hidden></span><span id="spSoFar" hidden></span><span id="spProj" hidden></span><span id="kMile" hidden></span><span id="kDay" hidden></span><span id="kMiles" hidden></span><span id="spBar" hidden></span><span id="spLegend" hidden></span>';
-    document.getElementById("spNote").innerHTML='<div class="grp-h">How the projection is built</div><div class="grp"><p class="spest" id="spEst"></p></div>';
     renderSpendTop();   /* budget line, projection footnote and the hidden legacy figures the tests and export read */
   }
   function renderSpendTransactions(newId){
     var w=document.getElementById("spTransactions");if(!w)return;
     var d=spendDay(),opts=[];for(var i=1;i<=TRIP_DAYS;i++)opts.push([i,i===1?"Day 1 & pre-trip":"Day "+i+" · "+stopForDay(i).short]);opts.push([0,"Pre-trip"]);
-    document.getElementById("spDayPick").innerHTML=pillSel(d===1?"Day 1 &amp; pre-trip":spendDayTitle(d),"spendDay",opts,d);   /* the picker sits in the section header */
+    var head='<div class="grp-h flex"><span>Transactions</span>'+pillSel(d===1?"Day 1 &amp; pre-trip":spendDayTitle(d),"spendDay",opts,d)+'</div>';
     function group(day){
       var list=state.spend.entries.filter(function(e){return e.day===day&&!e.planned;}).sort(function(a,b){return b.ts-a.ts;}),tot=0;list.forEach(function(e){tot+=e.amount;});
       var g=el("div");g.innerHTML='<div class="grp-h">'+esc(spendDayTitle(day))+(day>0?' · '+esc(fmtDay(addDays(departDate(),day-1))):'')+' · '+money2(tot)+'</div>';
       var box=el("div","grp");if(list.length)list.forEach(function(e){box.appendChild(txRow(e,e.id===newId));});else box.innerHTML=row({t1:"Nothing recorded for "+spendDayTitle(day),mute:true});
       g.appendChild(box);return g;
     }
-    w.innerHTML="";w.appendChild(group(d));if(d===1)w.appendChild(group(0));
+    w.innerHTML=head;w.appendChild(group(d));if(d===1)w.appendChild(group(0));
     var pl=0,np=0;state.spend.entries.forEach(function(e){if(e.planned){pl+=e.amount;np++;}});
     w.appendChild(el("div","grp",row({ic:IC.cal,bg:"#8E8E93",t1:"Pre-trip",t2:"Ship Sticks and other costs before wheels up",chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="0"'})+
       row({ic:IC.clock,bg:"#FF9500",t1:"Pending costs",t2:np+" planned · ~"+money(pl),chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})));
@@ -2723,7 +2733,7 @@ var ACCENTS = {
       var g=el("div");g.innerHTML='<div class="grp-h">'+esc(spendDayTitle(day))+' · ~'+money(tot)+'</div>';
       var box=el("div","grp");list.forEach(function(e){box.appendChild(planRow(e));});g.appendChild(box);w.appendChild(g);});
   }
-  function renderSpendAll(newId){renderSpendOverview();renderSpendTransactions(newId);renderSpendPlanned();}
+  function renderSpendAll(newId){syncSpendSeg();renderSpendOverview();renderSpendTransactions(newId);renderSpendPlanned();}
   function openAddSheet(day){   /* full-screen on a phone, centred on an iPad; saves to the picked day */
     var d=(typeof day==="number")?day:currentDay(),cat=spCat,back=el("div","sheet-back");
     var opts=[];for(var i=1;i<=TRIP_DAYS;i++)opts.push([i,"Day "+i+" · "+stopForDay(i).short]);opts.push([0,"Pre-trip"]);
@@ -2747,7 +2757,7 @@ var ACCENTS = {
         var v=parseFloat(String(amt.value).replace(/[^0-9.]/g,""));if(!(v>0)){amt.focus();return;}
         var s=stopForDay(d),en={id:"e"+Date.now(),amount:v,cat:cat,note:back.querySelector(".note").value.trim(),day:d,stopId:s?s.id:null,ts:Date.now(),planned:false,billsLater:false};
         if(cat==="charging"){var k=parseFloat(String(back.querySelector(".kwh").value).replace(/[^0-9.]/g,""));if(k>0)en.kwh=k;}
-        state.spend.entries.push(en);state.ui=state.ui||{};state.ui.spendDay=d;save(state);
+        state.spend.entries.push(en);state.ui=state.ui||{};state.ui.spendSeg="transactions";state.ui.spendDay=d;save(state);
         back.remove();renderSpend(en.id);toast("Added to "+spendDayTitle(d));
       }
     });
@@ -2755,9 +2765,10 @@ var ACCENTS = {
   }
   function wireSpendUI(){
     var pg=document.getElementById("page-spend");
+    document.getElementById("spendSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setSpendSeg(b.getAttribute("data-s"));});
     pg.addEventListener("click",function(e){
-      if(e.target.closest("[data-add]")){openAddSheet(spendDay());return;}
-      var g=e.target.closest("[data-goto]");if(g){goSpend(g.getAttribute("data-goto"),g.hasAttribute("data-day")?+g.getAttribute("data-day"):undefined);return;}
+      if(e.target.closest("[data-add]")){openAddSheet(spendSeg()==="transactions"?spendDay():currentDay());return;}
+      var g=e.target.closest("[data-goto]");if(g){setSpendSeg(g.getAttribute("data-goto"),g.hasAttribute("data-day")?+g.getAttribute("data-day"):undefined);return;}
       if(e.target.closest("#budgetLink")){e.preventDefault();editBudget();return;}
       if(e.target.closest("#importLink")){e.preventDefault();openImportSheet();return;}
     });
