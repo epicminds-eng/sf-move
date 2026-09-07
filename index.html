@@ -461,7 +461,7 @@
     <div class="sign">
       <div class="route" id="tripRoute">Southern route</div>
       <h1>Trip</h1>
-      <div class="sub">Springfield · Weatherford · Albuquerque · Mom's · LA · SF</div>
+      <div class="sub">Springfield · Amarillo · Albuquerque · Mom's · LA · SF</div>
     </div>
     <div class="tripmap">
       <button class="mapreset" id="mapReset" type="button" aria-hidden="true" tabindex="-1">Reset</button>
@@ -564,7 +564,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v45 · Sep 7</div>
+  <div class="appver">SF Move · v46 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -586,7 +586,7 @@
       items:[
         {id:"decide-place", t:"Decide on the SF spot (or line up 2\u20133 backups)", d:"Sign the lease \u2014 confirm small dogs allowed, in writing; confirm what furniture it comes with"},
         {id:"car-service", t:"Tesla pre-trip check: tire rotation + tread/pressure", d:"~2,555 mi \u2014 also worth a quick check of wipers and cabin filter"},
-        {id:"route-plan", t:"Route + hotels \u2014 see Trip tab", d:"Springfield MO \u00b7 Weatherford \u00b7 Albuquerque \u00b7 Mom\u0027s (1 night) \u00b7 Seychelle\u0027s \u00b7 SF"},
+        {id:"route-plan", t:"Route + hotels \u2014 see Trip tab", d:"Springfield MO \u00b7 Amarillo \u00b7 Albuquerque \u00b7 Mom\u0027s (1 night) \u00b7 Seychelle\u0027s \u00b7 SF"},
         {id:"gear-decisions", t:"Make the gear calls", d:"Launch monitor car-vs-ship \u00b7 gamer clubs car-vs-Ship Sticks \u00b7 bench ship-vs-rebuy \u00b7 AB coaster sell? \u00b7 iMac/monitor/printer/mirror/Hue fates \u00b7 which cooler rides \u2014 numbers coming from Claude"}
       ]
     },
@@ -959,6 +959,15 @@ var ACCENTS = {
   })();
   ["rolla","okc","santarosa","calumet","payson","milan"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   state.spend=state.spend||{};state.spend.entries=state.spend.entries||[];   /* spend tab — additive */
+  if(!state.trip.day2AmarilloV1){   /* Day 2 moved Weatherford → Amarillo: stamps, arrived flag and spend rows follow the stop; planned hotel/pet rows are re-estimated, actuals untouched */
+    ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.weatherford!==undefined){if(o.amarillo===undefined)o.amarillo=o.weatherford;delete o.weatherford;}});
+    state.spend.entries.forEach(function(e){
+      if(e.stopId==="weatherford")e.stopId="amarillo";
+      if(e.planned&&e.id==="seed-h2"){e.amount=120;e.note="Amarillo hotel";}
+      if(e.planned&&e.id==="seed-p2"){e.amount=50;e.note="Pet fee";}
+    });
+    state.trip.day2AmarilloV1=true;save(state);
+  }
   if(!state.spend.day1HotelV1){   /* Day 1 hotel became Candlewood Springfield (actual exp-002): retire the planned Quality Inn row, reprice the planned pet fee; confirmed actuals are left alone */
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h1"&&e.planned);});
     state.spend.entries.forEach(function(e){if(e.id==="seed-p1"&&e.planned){e.amount=25;e.note="Pet fee · Candlewood";}});
@@ -987,7 +996,7 @@ var ACCENTS = {
   function fmtShort(d){return MO[d.getMonth()]+" "+d.getDate();}
   function fmtDay(d){return WD[d.getDay()]+" "+fmtShort(d);}
   function departDate(){return parseYMD(state.trip.departDate||"2026-09-06");}
-  function hotelUrl(base,d){return base+"?startDate="+ymd(d)+"&endDate="+ymd(addDays(d,1))+"&rm1=a1";}   /* Day N start = departDate + (N-1) */
+  function hotelUrl(base,d){return base+(base.indexOf("?")>=0?"&":"?")+"startDate="+ymd(d)+"&endDate="+ymd(addDays(d,1))+"&rm1=a1";}   /* Day N start = departDate + (N-1) */
   function renderDates(){
     var d0=departDate(),eve=addDays(d0,-1);
     var now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
@@ -1455,12 +1464,11 @@ var ACCENTS = {
       hotel:"Candlewood Suites Springfield \u00b7 1920 E Kerr St", detail:"Pets $25/night \u00b7 kitchen suite \u00b7 crated dogs OK alone",
       maps:"https://maps.apple.com/?address=1920%20E%20Kerr%20St%2C%20Springfield%2C%20MO%2065803",
       q:"Tesla%20Supercharger%20Springfield%20MO"},   /* already booked on Orbitz (exp-002), so no booking link */
-    {id:"weatherford",day:"Day 2",  name:"Weatherford, OK",      short:"Weatherford",lat:35.5262,  lng:-98.7076,  mi:350, off:1, backup:"okc",
-      hotel:"Home2 Suites by Hilton \u00b7 401 S Washington", detail:"Pets $75/stay \u00b7 check-in 3 PM \u00b7 free parking",
-      maps:"https://maps.apple.com/?address=401%20S%20Washington%2C%20Weatherford%2C%20OK%2073096",
-      q:"Tesla%20Supercharger%20Weatherford%20OK",
-      orbitz:"https://www.orbitz.com/Weatherford-Hotels-Home2-Suites-By-Hilton-Weatherford.h74838452.Hotel-Information"},
-    {id:"abq",     day:"Day 3",    name:"Albuquerque, NM",      short:"Albuquerque",lat:35.099215,lng:-106.590972,mi:475, off:2, backup:"santarosa",
+    {id:"amarillo",day:"Day 2",     name:"Amarillo, TX",         short:"Amarillo",   lat:35.2220,  lng:-101.8313, mi:545, off:1, backup:"shamrock",
+      hotel:"Hotel TBD",
+      q:"Tesla%20Supercharger%20Amarillo%20TX",
+      orbitz:"https://www.orbitz.com/Hotel-Search?destination=Amarillo%2C%20Texas", orbitzLabel:"Hotels on Orbitz"},   /* search, not a property: dates are derived */
+    {id:"abq",     day:"Day 3",    name:"Albuquerque, NM",      short:"Albuquerque",lat:35.099215,lng:-106.590972,mi:289, off:2, backup:"santarosa",
       hotel:"Sonesta ES Suites \u00b7 3300 Prospect Ave NE", detail:"Check-in 4 PM \u00b7 call ahead if after 9 PM \u00b7 pets $75/stay",
       maps:"https://maps.apple.com/?address=3300%20Prospect%20Ave%20NE%2C%20Albuquerque%2C%20NM%2087107",
       q:"Tesla%20Supercharger%20Albuquerque%20NM",
@@ -1478,7 +1486,7 @@ var ACCENTS = {
   /* backups for Day 1\u20133: drawn as small hollow gray nodes, never part of progress math */
   var BACKUPS=[
     {id:"rolla",    name:"Rolla, MO",         lat:37.9514, lng:-91.7713,  q:"Tesla%20Supercharger%20Rolla%20MO"},
-    {id:"okc",      name:"Oklahoma City, OK", lat:35.4676, lng:-97.5164,  q:"Tesla%20Supercharger%20Oklahoma%20City%20OK"},
+    {id:"shamrock", name:"Shamrock, TX",      lat:35.2140, lng:-100.2490, q:"Tesla%20Supercharger%20Shamrock%20TX"},
     {id:"santarosa",name:"Santa Rosa, NM",    lat:34.9381, lng:-104.6825, q:"Tesla%20Supercharger%20Santa%20Rosa%20NM", lbl:[0,11]}   /* label only where it can\u0027t collide */
   ];
   var TOTAL_MI=STOPS.reduce(function(a,s){return a+s.mi;},0);
@@ -1515,8 +1523,8 @@ var ACCENTS = {
     {n:"Springfield MO",  lat:37.2440, lng:-93.2718,  stop:"strobert"},   /* Candlewood Suites, 1920 E Kerr St */
     {n:"Tulsa",           lat:36.1540, lng:-95.9928},
     {n:"OKC",             lat:35.4676, lng:-97.5164},
-    {n:"Weatherford",     lat:35.5262, lng:-98.7076,  stop:"weatherford"},
-    {n:"Amarillo",        lat:35.2220, lng:-101.8313},
+    {n:"Weatherford",     lat:35.5262, lng:-98.7076},
+    {n:"Amarillo",        lat:35.2220, lng:-101.8313, stop:"amarillo"},
     {n:"Santa Rosa",      lat:34.9381, lng:-104.6825},
     {n:"Albuquerque",     lat:35.099215,lng:-106.590972,stop:"abq"},   /* Sonesta ES Suites, 3300 Prospect Ave NE */
     {n:"Milan",           lat:35.1697, lng:-107.8909},
@@ -1531,7 +1539,7 @@ var ACCENTS = {
   ];
   var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
   /* node label placement: [dx, dy, anchor] per stop */
-  var LBL=[[-6,-4,"end"],[4,12,"start"],[-2,13,"middle"],[0,-8,"middle"],[0,14,"middle"],[0,14,"middle"],[0,-8,"middle"]];   /* option B label offsets */
+  var LBL=[[-6,-4,"end"],[4,12,"start"],[4,14,"start"],[0,-8,"middle"],[0,14,"middle"],[0,14,"middle"],[0,-8,"middle"]];   /* option B label offsets */
 
   /* mockup projection (verbatim): lon -125.5→-84.5, lat 25→49.5 onto 380×300; the viewBox now shows the whole canvas */
   function proj(lat,lng){return{x:(lng+125.5)/41*380,y:(49.5-lat)/24.5*300};}
@@ -1656,7 +1664,7 @@ var ACCENTS = {
   var SHIELDS=[
     {t:"I-55",  lat:40.15, lng:-89.35,  k:"i"},
     {t:"I-44",  lat:36.75, lng:-95.10,  k:"i"},
-    {t:"I-40",  lat:35.20, lng:-102.90, k:"i"},
+    {t:"I-40",  lat:35.20, lng:-103.40, k:"i"},
     {t:"AZ-87", lat:33.95, lng:-111.50, k:"s"},
     {t:"I-10",  lat:33.30, lng:-113.50, k:"i"},
     {t:"I-5",   lat:36.60, lng:-120.90, k:"i"}
@@ -1913,11 +1921,11 @@ var ACCENTS = {
       row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();tog();}});
       card.appendChild(row);
       if(i>0)card.appendChild(stampRow(s));   /* Rolling button → "Rolled 8:32 AM" chip; "Arrived 5:49 PM" chip; tap a chip to edit its time */
-      if(s.maps){   /* hotel buttons; the Orbitz one only while a booking link exists */
-        card.appendChild(el("div","btns"+(s.orbitz?" three":""),
-          '<a class="btn" href="'+s.maps+'">Hotel in Apple Maps</a>'+
-          '<a class="btn" href="https://maps.apple.com/?q='+s.q+'">Supercharger</a>'+
-          (s.orbitz?'<a class="btn go" href="'+hotelUrl(s.orbitz,dt)+'">Booking on Orbitz</a>':'')));
+      if(s.maps||s.orbitz){   /* hotel map (when booked) · Supercharger · Orbitz (booking page or a hotel search) */
+        card.appendChild(el("div","btns"+((s.maps&&s.orbitz)?" three":""),
+          (s.maps?'<a class="btn" href="'+s.maps+'">Hotel in Apple Maps</a>':'')+
+          (s.q?'<a class="btn" href="https://maps.apple.com/?q='+s.q+'">Supercharger</a>':'')+
+          (s.orbitz?'<a class="btn go" href="'+hotelUrl(s.orbitz,dt)+'">'+esc(s.orbitzLabel||"Booking on Orbitz")+'</a>':'')));
       }else{
         var url=s.url||(s.q?"https://maps.apple.com/?q="+s.q:null);
         if(url)card.appendChild(el("div","btns",'<a class="btn" href="'+url+'">'+esc(s.linkLabel||"Supercharger in Apple Maps")+'</a>'+(s.sc2?'<a class="lnk" href="'+s.sc2+'">Supercharger</a>':'')));
@@ -2093,13 +2101,13 @@ var ACCENTS = {
     var t=Date.now();
     function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:true,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
     state.spend.entries=state.spend.entries.concat([
-      P("seed-h2",110,"hotel","Home2 Suites Weatherford",2,"weatherford"),
+      P("seed-h2",120,"hotel","Amarillo hotel",2,"amarillo"),
       P("seed-h3",140,"hotel","Sonesta ES Suites Albuquerque",3,"abq"),
       P("seed-p1",25,"kane","Pet fee · Candlewood",1,"strobert"),
-      P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"weatherford"),
+      P("seed-p2",50,"kane","Pet fee",2,"amarillo"),
       P("seed-p3",75,"kane","Pet fee · Sonesta",3,"abq"),
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
-      P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"weatherford",{billsLater:true}),
+      P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo",{billsLater:true}),
       P("seed-m0",240,"misc","Ship Sticks · 3 pieces",0,null)
     ]);
     state.spend.seededV1=true;saveSeed(state);
