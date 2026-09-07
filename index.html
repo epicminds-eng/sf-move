@@ -234,6 +234,11 @@
   .pinpop .l span:last-child{color:#111214;font-weight:600;}
   .pinpop a{display:inline-block;margin-top:9px;font-weight:600;color:#2F6BFF;text-decoration:none;}
   .pinpop .x{position:absolute;top:6px;right:8px;border:0;background:none;font-family:inherit;font-size:16px;line-height:1;color:#9CA3AF;cursor:pointer;padding:4px;}
+  .trrailw{display:none;}   /* the rail is iPad and wider: on a phone the Itinerary stop cards already cover it */
+  .upnext{display:flex;align-items:center;gap:8px;padding:13px 16px;border-top:1px solid #E9EBEF;font-size:15px;white-space:nowrap;overflow:hidden;}
+  .upnext .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8E8E93;flex:none;}
+  .upnext .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;}
+  .upnext .d{color:#2F6BFF;font-weight:600;flex:none;margin-left:auto;}
   .trrail{padding:18px 20px 20px;border-top:1px solid #E9EBEF;}
   .trrail .tr-eb{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8E8E93;}
   .trrail .tr-nx{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1.1;}
@@ -266,6 +271,8 @@
   @media (min-width:900px){
     .trmap{display:grid;grid-template-columns:70% 30%;}   /* the card grows to the taller of map and rail: the rail is never cut, and the map centres in its column */
     .trmapw{align-self:center;width:100%;}
+    .trrailw{display:block;}
+    .upnext{display:none;}
     .trmap .trrail{border-top:0;border-left:1px solid #E9EBEF;height:100%;}
   }
   /* map paint */
@@ -719,6 +726,7 @@
       </svg>
       <div class="pinpop" id="pinPop" hidden></div>
       </div>
+      <div class="upnext" id="upNext"></div>
       <div class="trrailw"><div class="trrail" id="tripRail"></div></div>
     </div>
     <div class="trcard trsum" id="chgSummary" role="button" tabindex="0"></div>
@@ -748,7 +756,7 @@
     <section id="spNote"></section>
   </div>
 
-  <div class="appver">SF Move · v64 · Sep 7</div>
+  <div class="appver">SF Move · v65 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2297,6 +2305,8 @@ var ACCENTS = {
         '<span class="tr-tx"><span class="tr-nm">'+esc(i===0?"Chicago":s.short)+'</span><span class="tr-sb">'+sub+'</span></span></button>';
     }).join("");
     ws.forEach(function(w){w.innerHTML=head+steps;});
+    var up=document.getElementById("upNext");   /* phone: one line under the map instead of the rail */
+    if(up)up.innerHTML='<span class="k">Up next</span><span class="n">'+esc(ns?ns.name:"San Francisco")+'</span><span class="d">'+(ns?"~"+num(CUM[nx]-pos)+" mi away":"arrived")+'</span>';
   }
   function renderCharging(){   /* the summary bar under the map; tapping it turns the map's Charging stops mode on */
     var w=document.getElementById("chgSummary");if(!w)return;
