@@ -277,53 +277,85 @@
   .stampEd{display:inline-flex;gap:6px;align-items:center;}
   .stampEd input{font-family:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .stampEd .btn{font-size:13px;padding:7px 10px;}
-  /* Stats section — design/sf-move-stats-mockup.html, scoped under .stx */
-  .stx .eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8E8E93;margin:6px 0 4px;}
-  .stx h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px;}
-  .stx .sub{font-size:15px;color:var(--secondary);margin:0 0 16px;}
-  .stx .card{padding:16px;}
-  .stx .card h2{font-size:17px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
-  .stx .card h2 small{font-size:13px;font-weight:500;color:var(--secondary);text-align:right;}
-  .stx .hero{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;}
-  .stx .ring{position:relative;width:150px;height:150px;}
-  .stx .ring svg{transform:rotate(-90deg);width:100%;height:100%;display:block;}
-  .stx .ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
-  .stx .ring b{font-size:34px;font-weight:800;letter-spacing:-.03em;display:block;line-height:1;}
-  .stx .ring span{font-size:12px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;}
-  .stx .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .stx .kpi{background:#EEF0F3;border-radius:12px;padding:8px 12px;text-align:center;min-width:0;}
-  .stx .kpi b{display:block;font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .stx .kpi span{font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;}
-  .stx .stack{display:flex;height:14px;border-radius:999px;overflow:hidden;background:#E5E5EA;margin:8px 0 4px;}
-  .stx .stack i{display:block;height:100%;}
-  .stx .leg{display:flex;gap:16px;font-size:13px;color:var(--secondary);flex-wrap:wrap;}
-  .stx .leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
-  .stx .leg b{color:var(--label);}
-  @media (max-width:699px){.stx .hero{grid-template-columns:120px 1fr;}.stx .ring{width:120px;height:120px;}.stx .ring b{font-size:28px;}}
-  .stx .bars{display:grid;grid-template-columns:78px 1fr 64px;gap:6px 8px;align-items:center;font-size:13px;}
-  .stx .bars .l{color:var(--secondary);white-space:nowrap;}
-  .stx .bars .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-  .stx .bars .v.est{color:#8E8E93;}
-  .stx .bar{height:16px;border-radius:6px;background:#E5E5EA;overflow:hidden;display:flex;}
-  .stx .bar i{display:block;height:100%;}
-  .stx .bar.plan{background:repeating-linear-gradient(45deg,#E5E5EA 0 6px,#EEF0F3 6px 12px);}
-  .stx .note{font-size:12px;color:#8E8E93;margin-top:8px;}
-  .stx .sess{display:flex;gap:6px;align-items:flex-end;height:120px;padding-top:18px;}
-  .stx .sess div{flex:1;background:#E82127;border-radius:6px 6px 2px 2px;position:relative;min-width:0;max-width:72px;}
-  .stx .sess div.ph{background:transparent;}
-  .stx .sess div b{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:var(--label);}
-  .stx .sess div span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:#8E8E93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .stx .sessw{padding-bottom:22px;}
-  .stx .rate{display:grid;grid-template-columns:110px 1fr 56px;gap:6px 8px;align-items:center;font-size:13px;}
-  .stx .rate .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .stx .rate .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;}
-  .stx .rate .dotw{position:relative;height:10px;}
-  .stx .rate .dot{height:10px;background:linear-gradient(90deg,#34C759,#FF9500,#E82127);border-radius:999px;opacity:.25;}
-  .stx .rate .pin{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E82127;transform:translateX(-9px);box-sizing:border-box;}
-  .stx .rate .pin.g{border-color:#34C759;}
-  .stx .rate .pin.o{border-color:#FF9500;}
-  .stx .spark{width:100%;height:70px;display:block;overflow:visible;}
-  .stx .empty{font-size:13px;color:#8E8E93;}
+  /* Stats section — design/sf-move-stats-dashboard-mockup.html, scoped under .stx (mockup palette kept literal) */
+  .stx{--sx-ink:#111214;--sx-mute:#6B7280;--sx-faint:#9CA3AF;--sx-line:#E9EBEF;--sx-soft:#F3F4F7;--sx-acc:#2F6BFF;--sx-red:#E82127;color:var(--sx-ink);}
+  .stx .top{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin:6px 0 16px;}
+  .stx h1{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:0 0 2px;}
+  .stx .sub{font-size:14px;color:var(--sx-mute);margin:0;}
+  .stx .pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .stx .pill{position:relative;display:inline-flex;align-items:center;gap:8px;background:#fff;border:0;border-radius:999px;padding:12px 18px;font-family:inherit;font-size:14px;font-weight:500;color:var(--sx-ink);box-shadow:0 1px 2px rgba(17,18,20,.04);cursor:pointer;flex:none;}
+  .stx .pill.on{background:linear-gradient(135deg,#2F6BFF,#6C9BFF);color:#fff;}
+  .stx .pill i{font-style:normal;color:var(--sx-faint);}
+  .stx .pill.on i{color:rgba(255,255,255,.8);}
+  .stx .pill select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none;}   /* native picker sits over the pill */
+  .stx .pill:active{transform:scale(.97);}
+  .stx .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .stx .kpi{background:#fff;border-radius:24px;padding:18px 18px;position:relative;min-height:128px;min-width:0;box-shadow:0 1px 2px rgba(0,0,0,.05);text-align:left;}   /* text-align + span reset: the Spend tab's .kpi rules share the class name */
+  .stx .kpi span{font-size:inherit;color:inherit;text-transform:none;letter-spacing:0;}
+  .stx .kpi .t{font-size:13px;color:var(--sx-mute);margin-bottom:12px;}
+  .stx .kpi .n{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:wrap;row-gap:8px;}
+  .stx .kpi .d{font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;background:#E8F0FF;color:var(--sx-acc);white-space:nowrap;text-transform:none;letter-spacing:0;}
+  .stx .kpi .d.bad{background:#FEECEC;color:#DC2626;}.stx .kpi .d.good{background:#E7F8EE;color:#15803D;}
+  .stx .kpi .s{font-size:13px;color:var(--sx-mute);margin-top:14px;}.stx .kpi .s b{color:var(--sx-ink);font-weight:600;}
+  .stx .kpi.acc{background:linear-gradient(160deg,#2F6BFF 0%,#5B8BFF 60%,#8EB0FF 100%);color:#fff;}
+  .stx .kpi.acc .t,.stx .kpi.acc .s{color:rgba(255,255,255,.85);}.stx .kpi.acc .s b{color:#fff;}.stx .kpi.acc .d{background:rgba(255,255,255,.22);color:#fff;}
+  .stx .card{background:#fff;border-radius:24px;padding:20px;margin-bottom:16px;overflow:hidden;}
+  .stx .card h2{font-size:20px;font-weight:700;margin:0;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .stx .card h2 .pill{padding:8px 14px;font-size:13px;background:var(--sx-soft);box-shadow:none;}
+  .stx .hb{display:grid;grid-template-columns:104px 1fr 64px;gap:14px 10px;align-items:center;font-size:14px;margin-top:22px;}
+  .stx .hb .l{color:var(--sx-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stx .hb .l small{display:block;font-size:11px;color:var(--sx-faint);overflow:hidden;text-overflow:ellipsis;}
+  .stx .hb .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}.stx .hb .v.g{color:var(--sx-faint);font-weight:500;}
+  .stx .hb .tr{height:22px;border-radius:8px;background:var(--sx-soft);position:relative;overflow:hidden;}
+  .stx .hb .tr i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:#DFE3E9;}
+  .stx .hb .tr i.on{background:repeating-linear-gradient(135deg,#2F6BFF 0 3px,#7FA6FF 3px 7px);}
+  .stx .hb .tr i.r{background:var(--sx-red);}
+  .stx .hb .tr i.seg{border-radius:0;}
+  .stx .hb .row{display:contents;cursor:pointer;}
+  .stx .hb .row.sel .l{color:var(--sx-ink);font-weight:600;}
+  .stx .tip{margin-top:20px;background:var(--sx-soft);border-radius:16px;padding:14px 16px;font-size:14px;}
+  .stx .tip b{display:block;margin-bottom:8px;font-weight:600;}.stx .tip div{display:flex;justify-content:space-between;color:var(--sx-mute);margin-top:4px;}.stx .tip div span:last-child{color:var(--sx-ink);font-weight:600;}
+  .stx .tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:#E2E5EA;}.stx .tip i.b{background:var(--sx-acc);}.stx .tip i.r{background:var(--sx-red);}
+  .stx .ring{position:relative;width:220px;height:130px;margin:18px auto 6px;}
+  .stx .ring svg{width:100%;height:100%;overflow:visible;display:block;}
+  .stx .ring .c{position:absolute;left:0;right:0;bottom:-4px;text-align:center;}.stx .ring .c b{display:block;font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;}.stx .ring .c span{font-size:12px;color:var(--sx-mute);}
+  .stx .mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;}
+  .stx .mini.three{grid-template-columns:repeat(3,1fr);margin-top:30px;}
+  .stx .mini div{background:var(--sx-soft);border-radius:16px;padding:14px;min-width:0;}
+  .stx .mini .t{font-size:12px;color:var(--sx-mute);margin-bottom:12px;background:none;border-radius:0;padding:0;}
+  .stx .mini .n{font-size:22px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:wrap;row-gap:6px;background:none;border-radius:0;padding:0;}
+  .stx .mini .d{font-size:10px;font-weight:600;padding:3px 7px;border-radius:999px;background:#FEF3C7;color:#B45309;white-space:nowrap;}.stx .mini .d.k{background:#111214;color:#fff;}
+  .stx .spd{margin-top:22px;display:grid;gap:14px;font-size:14px;}
+  .stx .spd .r{display:grid;grid-template-columns:90px 1fr 46px;align-items:center;gap:12px;}
+  .stx .spd .r span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stx .spd .bar{height:8px;border-radius:999px;background:var(--sx-soft);overflow:hidden;}
+  .stx .spd .bar i{display:block;height:100%;background:var(--sx-acc);border-radius:999px;}
+  .stx .spd .r b{text-align:right;font-variant-numeric:tabular-nums;}
+  .stx .note{font-size:13px;color:var(--sx-mute);margin:18px 0 0;}
+  .stx .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:18px;}
+  .stx table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px;}
+  .stx th{font-weight:500;color:var(--sx-mute);text-align:left;padding:12px 10px;background:var(--sx-soft);white-space:nowrap;}
+  .stx th:first-child{border-radius:12px 0 0 12px;}.stx th:last-child{border-radius:0 12px 12px 0;text-align:right;}
+  .stx th.on{color:var(--sx-ink);font-weight:600;}
+  .stx td{padding:14px 10px;border-bottom:1px solid var(--sx-line);white-space:nowrap;}.stx td:last-child{text-align:right;font-weight:600;}
+  .stx .st{display:inline-flex;align-items:center;gap:8px;font-weight:600;}.stx .st i{width:30px;height:30px;border-radius:10px;background:#FEECEC;color:var(--sx-red);display:grid;place-items:center;font-style:normal;font-size:13px;flex:none;}
+  .stx .tag{font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;background:#E7F8EE;color:#15803D;border:0;cursor:default;}   /* the Sort tab's .tag buttons share the class name */.stx .tag.o{background:#FEF3C7;color:#B45309;}.stx .tag.r{background:#FEECEC;color:#DC2626;}
+  .stx .empty{font-size:14px;color:var(--sx-mute);margin-top:18px;}
+  .stx .kpi.flash,.stx .card.flash{animation:sxFlash .4s ease-out;}
+  @keyframes sxFlash{from{opacity:.55;transform:scale(.99);}to{opacity:1;transform:none;}}
+  @media (min-width:700px){
+    .stx .top{flex-direction:row;justify-content:space-between;align-items:flex-end;}
+    .stx .kpis{gap:16px;}.stx .kpi{padding:22px 24px;min-height:140px;}.stx .kpi .n{font-size:36px;gap:10px;}.stx .kpi .t{font-size:14px;margin-bottom:14px;}.stx .kpi .s{margin-top:18px;}
+    .stx .card{padding:24px;}
+    .stx .hb{grid-template-columns:128px 1fr 74px;gap:14px 12px;}
+    .stx .mini .t{font-size:13px;margin-bottom:14px;}.stx .mini div{padding:16px;}
+    .stx table{font-size:14px;}.stx th{padding:14px 12px;}.stx td{padding:16px 12px;}
+  }
+  /* Filter sheet (Stats) */
+  .fsheet .frow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--sep);}
+  .fsheet .frow:last-of-type{border-bottom:0;}
+  .fsheet .frow .fl{font-size:16px;font-weight:600;}
+  .fsheet .frow .fs{font-size:13px;color:var(--secondary);margin-top:2px;}
   .daterow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 4px;}
   .daterow label{font-size:16px;font-weight:600;}
   .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
@@ -596,7 +628,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v50 · Sep 7</div>
+  <div class="appver">SF Move · v51 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -991,6 +1023,7 @@ var ACCENTS = {
   })();
   ["rolla","okc","santarosa","calumet","payson","milan"].forEach(function(k){delete state.trip.arrived[k];});   /* route change: replaced stops reset */
   state.spend=state.spend||{};state.spend.entries=state.spend.entries||[];   /* spend tab — additive */
+  state.stats=state.stats||{};   /* Stats dashboard view state (scope, filters, per-card pills) — additive */
   if(!state.trip.day2AmarilloV1){   /* Day 2 moved Weatherford → Amarillo: stamps, arrived flag and spend rows follow the stop; planned hotel/pet rows are re-estimated, actuals untouched */
     ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.weatherford!==undefined){if(o.amarillo===undefined)o.amarillo=o.weatherford;delete o.weatherford;}});
     state.spend.entries.forEach(function(e){
@@ -2042,8 +2075,8 @@ var ACCENTS = {
     return{days:days,done:done,left:left,pct:TOTAL_MI?done/TOTAL_MI*100:0,elapsed:elapsed,driveMin:anyD2d?driveMin:null,chMin:chMinTot,kwh:kwh,cost:cost,perKwh:perKwh,perMi:perMi,whmi:whmi,proj:proj,movingMph:(anyD2d&&driveMin>0)?milesD2d/(driveMin/60):null,
       best:rated[0]||null,worst:rated.length>1?rated[rated.length-1]:null,rated:rated,fast:fast,eta:eta,hrsPerDay:hrsPerDay,d2dMph:d2dMph,remDays:remDays};
   }
-  /* ---------- STATS: seven cards after design/sf-move-stats-mockup.html, wired to CHARGES, rolled/arrivedAt, STOPS miles and spend ---------- */
-  var WD3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  /* ---------- STATS: dashboard after design/sf-move-stats-dashboard-mockup.html. Every control is live; view state lives in state.stats (additive, normal save path) ---------- */
+  var WD3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],WDL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   function num(v){return Math.round(v).toLocaleString();}
   function halfH(h){var r=Math.round(h*2)/2,w=Math.floor(r);return (r===w?w:(w?w+"½":"½"))+"h";}   /* 6.5 → "6½h" */
   function chgShort(c,all){   /* "Buc-ee's" from a parenthetical, else the city; a duplicated city gets its state */
@@ -2052,72 +2085,156 @@ var ACCENTS = {
     var dup=(all||[]).some(function(o){return o!==c&&chgPlace(o).split(",")[0].trim()===city;});   /* another session in a same-named city (even a nicknamed one) → add the state */
     return dup&&st?city+" "+st:city;
   }
+  var CITY_ABBR={Springfield:"Spfld",Albuquerque:"ABQ"};
+  function chgTiny(c,all){var s=chgShort(c,all);for(var k in CITY_ABBR)s=s.replace(k,CITY_ABBR[k]);return s;}   /* fits the 90px column, as in the mockup */
   function realCharges(){return CHARGES.filter(function(c){return !c.planned&&c.kwh>0;}).sort(function(a,b){return chgTs(a)-chgTs(b);});}
-  function stCard(title,small,body){var c=el("div","card");c.innerHTML='<h2>'+title+(small?'<small>'+small+'</small>':'')+'</h2>'+body;return c;}
-  function dayLabelRow(d){var dt=addDays(departDate(),d-1);return WD3[dt.getDay()]+" · Day "+d;}
+  function dash2(v,f){return (v===null||v===undefined||isNaN(v))?"—":f(v);}
+  function dayTitle(d){var dt=addDays(departDate(),d-1);return WDL[dt.getDay()]+" · Day "+d;}
+  var ST_DEF={scope:"trip",showPlanned:true,sessionsScope:"scoped",costUnit:"kwh",milesMetric:"miles",arcMetric:"miles",chgDay:null,speedUnit:"kwh",sort:"time"};
+  function stS(){var s=state.stats||{},o={};for(var k in ST_DEF)o[k]=(s[k]===undefined||s[k]===null)?ST_DEF[k]:s[k];return o;}   /* defaults never written until the user touches a control */
+  function stSet(k,v){state.stats=state.stats||{};state.stats[k]=v;save(state);renderStats();}
+  var STV={sel:null};   /* Miles-per-day row selection — view-only, not persisted */
+  function scopeDay(){var s=stS().scope;return s==="trip"?null:Math.max(1,Math.min(TRIP_DAYS,+s||1));}
+  function dayProg(d){   /* planned miles, miles so far and flags for one day */
+    var st=stopForDay(d),k=STOPS.indexOf(st),pr=tripProgress(),so=Math.max(0,Math.min(st.mi,pr.miles-CUM[k-1])),done=!!state.trip.arrived[st.id];
+    return{st:st,k:k,mi:st.mi,so:done?st.mi:so,done:done,started:done||so>0||!!state.trip.rolled[st.id]};
+  }
+  function scopeStats(){   /* the numbers every card reads, for the page-wide scope */
+    var t=tripStats(),sd=scopeDay(),o={t:t,day:sd,sessions:[],d2d:null,drive:null,mph:null,chMin:0,kwh:0,cost:0,miles:0,rem:0};
+    if(sd===null){
+      o.label="Whole trip";o.sessions=realCharges();o.miles=t.done;o.rem=t.left;o.kwh=t.kwh;o.cost=t.cost;o.mph=t.movingMph;
+      var d2d=0,dr=0,any=false;t.days.forEach(function(r){o.chMin+=r.chMin;if(r.d2d!==null){any=true;d2d+=r.d2d;dr+=Math.max(0,r.drive);}});
+      if(any){o.d2d=d2d;o.drive=dr;}
+    }else{
+      var ds=dayStats(sd),dp=dayProg(sd);o.label="Day "+sd;o.ds=ds;o.miles=dp.so;o.rem=dp.mi-dp.so;o.leg=dp;
+      if(ds){o.sessions=ds.ch.filter(function(c){return c.kwh>0;});o.kwh=ds.kwh;o.cost=ds.cost;o.chMin=ds.chMin;o.d2d=ds.d2d;o.drive=ds.drive;o.mph=ds.mph;}
+    }
+    o.stops=o.sessions.length;o.perKwh=o.kwh>0?o.cost/o.kwh:null;o.perMi=(o.miles>0&&o.cost>0)?o.cost/o.miles:null;
+    o.avgMin=o.stops?o.chMin/o.stops:null;o.longest=o.sessions.reduce(function(a,c){return (!a||(c.min||0)>(a.min||0))?c:a;},null);
+    o.pct=TOTAL_MI?o.miles/TOTAL_MI*100:0;o.share=(o.d2d>0)?o.chMin/o.d2d*100:null;
+    return o;
+  }
+  function kpi(cls,t,n,badge,bcls,s){return '<div class="kpi'+(cls?' '+cls:'')+'"><div class="t">'+t+'</div><div class="n">'+n+(badge?' <span class="d'+(bcls?' '+bcls:'')+'">'+badge+'</span>':'')+'</div><div class="s">'+s+'</div></div>';}
+  function mini(t,n,badge,bcls){return '<div><div class="t">'+t+'</div><div class="n">'+n+(badge?' <span class="d'+(bcls?' '+bcls:'')+'">'+badge+'</span>':'')+'</div></div>';}
+  function pillSel(label,name,opts,val){return '<label class="pill">'+label+' <i>⌄</i><select data-sel="'+name+'" aria-label="'+esc(label)+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+esc(o[1])+'</option>';}).join("")+'</select></label>';}
+  function card(title,pill,body){var c=el("div","card");c.innerHTML='<h2>'+title+(pill||'')+'</h2>'+body;return c;}
+  var SORTS=[{k:"time",l:"time",dir:"asc",f:function(c){return chgTs(c);}},{k:"kwh",l:"kWh",dir:"desc",f:function(c){return c.kwh;}},{k:"rate",l:"rate",dir:"asc",f:function(c){return chgRate(c);}},{k:"min",l:"minutes",dir:"desc",f:function(c){return c.min||0;}},{k:"cost",l:"cost",dir:"desc",f:function(c){return c.cost||0;}}];
+  function chgRate(c){return c.rate>0?c.rate:(c.cost>0&&c.kwh>0?c.cost/c.kwh:0);}
   function renderStats(){
     var w=document.getElementById("tripStats");if(!w)return;w.innerHTML="";
-    var t=tripStats(),real=realCharges(),cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(t.elapsed,todayDay()||1))),curStop=stopForDay(cur);
-    w.appendChild(el("div",null,'<p class="eyebrow">Trip tab › Stats</p><h1>Stats</h1><p class="sub">Graphs first, numbers second.</p>'));
-    /* 1 · Trip */
-    var pct=Math.max(0,Math.min(100,t.pct)),dash=402,dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):null,pc=pd===null?null:100-pd;
-    w.appendChild(stCard("Trip","Day "+cur+" of "+TRIP_DAYS+(curStop?" · "+esc(curStop.name):""),
-      '<div class="hero"><div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="64" fill="none" stroke="#E5E5EA" stroke-width="14"/><circle cx="75" cy="75" r="64" fill="none" stroke="#0A7AFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+dash+'" stroke-dashoffset="'+(dash*(1-pct/100)).toFixed(1)+'"/></svg><div class="c"><div><b>'+Math.round(pct)+'%</b><span>'+num(t.done)+' of '+num(TOTAL_MI)+' mi</span></div></div></div>'+
-      '<div><div class="kpis"><div class="kpi"><b>'+hm(dr)+'</b><span>driving</span></div><div class="kpi"><b>'+hm(chm||null)+'</b><span>charging</span></div><div class="kpi"><b>'+dash2(t.movingMph,function(v){return Math.round(v)+" mph";})+'</b><span>moving avg</span></div></div>'+
-      '<div class="stack">'+(sum?'<i style="width:'+pd+'%;background:#0A7AFF"></i><i style="width:'+pc+'%;background:#E82127"></i>':'')+'</div>'+
-      '<div class="leg"><span><i style="background:#0A7AFF"></i>Driving <b>'+(pd===null?"—":pd+"%")+'</b></span><span><i style="background:#E82127"></i>Charging <b>'+(pc===null?"—":pc+"%")+'</b></span><span>ETA SF · <b>'+(t.eta?esc(WD3[t.eta.getDay()]+" ~"+fmtTime(t.eta)):"—")+'</b></span></div></div></div>'));
-    /* 2 · Miles per day */
-    var rows=[],maxMi=0;for(var d=1;d<=TRIP_DAYS;d++){var st=stopForDay(d),ds=dayStats(d);rows.push({d:d,st:st,ds:ds,done:!!(ds&&(ds.arrived||state.trip.arrived[st.id]))});maxMi=Math.max(maxMi,st?st.mi:0);}
-    w.appendChild(stCard("Miles per day","planned vs driven",'<div class="bars">'+rows.map(function(r){var mi=r.st?r.st.mi:0;
-      return '<div class="l">'+dayLabelRow(r.d)+'</div>'+(r.done?'<div class="bar"><i style="width:'+(maxMi?mi/maxMi*100:0).toFixed(0)+'%;background:#0A7AFF"></i></div><div class="v">'+num(mi)+'</div>':'<div class="bar plan"></div><div class="v est">'+num(mi)+'</div>');}).join("")+'</div><p class="note">Bar width = miles. Hatched = not driven yet.</p>'));
-    /* 3 · Hours per day */
-    var hrs=rows.map(function(r){var ds=r.ds,mi=r.st?r.st.mi:0;
-      if(r.done&&ds&&ds.d2d!==null)return{r:r,min:ds.d2d,drive:Math.max(0,ds.drive),ch:ds.chMin,est:false};
-      var e=(t.d2dMph&&mi)?mi/t.d2dMph*60:null;return{r:r,min:e,est:true};});
-    var maxMin=Math.max.apply(null,hrs.map(function(h){return h.min||0;}).concat([1]));
-    w.appendChild(stCard("Hours per day","driving · charging",'<div class="bars">'+hrs.map(function(h){
-      if(!h.est)return '<div class="l">'+dayLabelRow(h.r.d)+'</div><div class="bar"><i style="width:'+(h.drive/maxMin*100).toFixed(0)+'%;background:#0A7AFF"></i><i style="width:'+(h.ch/maxMin*100).toFixed(0)+'%;background:#E82127"></i></div><div class="v">'+hm(h.min)+'</div>';
-      return '<div class="l">'+dayLabelRow(h.r.d)+'</div><div class="bar plan"></div><div class="v est">'+(h.min?"~"+halfH(h.min/60):"—")+'</div>';}).join("")+'</div><p class="note">Door to door. Estimates use your running pace + Wh/mi.</p>'));
-    /* 4 · Charging sessions */
-    var maxK=Math.max.apply(null,real.map(function(c){return c.kwh;}).concat([1])),slots=Math.max(0,8-real.length);
-    var stint=null,prev=0,prevName="Start";real.forEach(function(c){var m=locate({lat:c.lat,lng:c.lng}).miles,len=m-prev;if(stint===null||len>stint.len)stint={len:len,from:prevName,to:chgShort(c,real)};prev=m;prevName=chgShort(c,real);});
-    var avgMin=real.length?real.reduce(function(a,c){return a+(c.min||0);},0)/real.length:null,fast=t.fast;
-    w.appendChild(stCard("Charging sessions","kWh per stop · "+real.length+" stop"+(real.length===1?"":"s")+" · "+(Math.round(t.kwh*10)/10)+" kWh · "+money2(t.cost),
-      (real.length?'<div class="sessw"><div class="sess">'+real.map(function(c){return '<div style="height:'+Math.max(4,Math.round(c.kwh/maxK*100))+'%"><b>'+(Math.round(c.kwh*10)/10)+'</b><span>'+esc(chgShort(c,real))+'</span></div>';}).join("")+Array(slots+1).join('<div class="ph" style="height:0"></div>')+'</div></div>':'<div class="empty">No sessions logged yet</div>')+
-      '<div class="leg" style="margin-top:6px"><span>Longest stint <b>'+(stint?Math.round(stint.len)+" mi":"—")+'</b>'+(stint?' ('+esc(stint.from)+' → '+esc(stint.to)+')':'')+'</span><span>Avg session <b>'+dash2(avgMin,function(v){return Math.round(v)+" min";})+'</b></span><span>Fastest <b>'+(fast?esc(chgShort(fast.c,real))+" · "+fast.v.toFixed(1)+" kWh/min":"—")+'</b></span></div>'));
-    /* 5 · Price per kWh */
-    var rated=t.rated,pins='';
-    if(rated.length){var lo=rated[0].r,hi=rated[rated.length-1].r,span=hi-lo||1;
-      pins='<div class="rate">'+rated.map(function(x,i){var pos=(x.r-lo)/span,rank=rated.length>1?i/(rated.length-1):0,cls=pos>0.67?"":((pos<0.34&&rank<0.5)?" g":" o");
-        return '<div class="l">'+esc(chgShort(x.c,real))+'</div><div class="dotw"><div class="dot"></div><div class="pin'+cls+'" style="left:'+(pos*100).toFixed(0)+'%"></div></div><div class="v">$'+x.r.toFixed(2)+'</div>';}).join("")+'</div>';}
-    else pins='<div class="empty">No sessions logged yet</div>';
-    w.appendChild(stCard("Price per kWh","best → worst",pins+'<p class="note">Scale runs from cheapest to priciest stop so far.'+(t.perKwh?' Average $'+t.perKwh.toFixed(2)+'.':'')+'</p>'));
-    /* 6 · Efficiency */
-    var pts=t.days.filter(function(r){return r.whmi!==null;}),byDay={};pts.forEach(function(r){byDay[r.d]=r;});
-    var vals=pts.map(function(r){return r.whmi;}),EPA=270,lo2=Math.min.apply(null,vals.concat([EPA]))*0.85,hi2=Math.max.apply(null,vals.concat([EPA]))*1.15,W=300;
-    var X=function(d){return 20+(d-1)*(W-40)/Math.max(1,TRIP_DAYS-1);},Y=function(v){return 50-(v-lo2)/(hi2-lo2)*36;},svgIn='';
-    svgIn+='<line x1="0" y1="'+Y(EPA).toFixed(1)+'" x2="'+W+'" y2="'+Y(EPA).toFixed(1)+'" stroke="#E5E5EA" stroke-dasharray="3 3"/><text x="0" y="'+(Y(EPA)-4).toFixed(1)+'" font-size="9" fill="#8E8E93">EPA ≈ 270</text>';
-    if(pts.length>1)svgIn+='<polyline points="'+pts.map(function(r){return X(r.d).toFixed(1)+","+Y(r.whmi).toFixed(1);}).join(" ")+'" fill="none" stroke="#0A7AFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-    var gray='';for(var dd=1;dd<=TRIP_DAYS;dd++){var r6=byDay[dd];
-      if(r6)svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(r6.whmi).toFixed(1)+'" r="4.5" fill="#0A7AFF"/><text x="'+X(dd).toFixed(1)+'" y="'+(Y(r6.whmi)-8).toFixed(1)+'" font-size="10" text-anchor="middle" font-weight="600">'+Math.round(r6.whmi)+'</text><text x="'+X(dd).toFixed(1)+'" y="64" font-size="10" text-anchor="middle" fill="#6E6E73">Day '+dd+'</text>';
-      else gray+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(EPA).toFixed(1)+'" r="3"/>';}
-    if(gray)svgIn+='<g fill="#C7CBD1">'+gray+'</g>';
-    w.appendChild(stCard("Efficiency","Wh/mi by day",'<svg class="spark" viewBox="0 0 300 70" aria-hidden="true">'+svgIn+'</svg>'+
-      '<div class="kpis"><div class="kpi"><b>'+dash2(t.whmi,function(v){return Math.round(v);})+'</b><span>Wh/mi</span></div><div class="kpi"><b>'+dash2(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b><span>per mile</span></div><div class="kpi"><b>'+dash2(t.proj,function(v){return "~"+money(v);})+'</b><span>charging to SF</span></div></div>'));
-    /* 7 · Spend per day */
+    var S=stS(),o=scopeStats(),t=o.t,sd=o.day,cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(t.elapsed,todayDay()||1)));
+    var scopeOpts=[["trip","Whole trip"]];for(var d=1;d<=TRIP_DAYS;d++){var so=stopForDay(d);scopeOpts.push([d,"Day "+d+" · "+so.short]);}
+    var filtOn=!S.showPlanned||S.sessionsScope!=="scoped"||S.costUnit!=="kwh";
+    w.appendChild(el("div","top",'<div><h1>Trip stats</h1><p class="sub">Chicago → San Francisco · Day '+cur+' of '+TRIP_DAYS+(sd?' · showing Day '+sd:'')+'</p></div>'+
+      '<div class="pills">'+pillSel(sd===null?"Whole trip":"Day "+sd,"scope",scopeOpts,S.scope)+'<button class="pill" type="button" data-act="export">⇧ Export</button><button class="pill'+(filtOn?' on':'')+'" type="button" data-act="filter">⚙ Filter</button></div>'));
+    /* KPI tiles */
+    var costBadge=S.costUnit==="mi"?dash2(o.perMi,function(v){return "$"+v.toFixed(2)+"/mi";}):dash2(o.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";});
+    w.appendChild(el("div","kpis",
+      kpi("acc","Miles driven",o.miles>0?num(o.miles):"—",o.miles>0?"↑ "+Math.round(o.pct)+"%":"",null,sd===null?"Remaining: <b>"+num(o.rem)+" mi</b>":"Leg: <b>"+num(o.leg.mi)+" mi</b> to "+esc(o.leg.st.short))+
+      kpi(null,"Charging spend",o.cost>0?money(o.cost):"—",o.cost>0?costBadge:"",null,sd===null?"Projected to SF: <b>"+dash2(t.proj,function(v){return "~"+money(v);})+"</b>":"Trip to date: <b>"+(t.cost>0?money(t.cost):"—")+"</b>")+
+      kpi(null,"Time on the road",hm(o.d2d),o.share!==null?Math.round(o.share)+"% charging":"","bad","Driving: <b>"+hm(o.drive)+"</b>"+(o.mph?" · "+Math.round(o.mph)+" mph":""))+
+      kpi(null,"Time at chargers",o.stops?hm(o.chMin):"—",o.avgMin!==null?"avg "+Math.round(o.avgMin)+"m":"",null,o.longest?"Longest: <b>"+hm(o.longest.min)+"</b> "+esc(chgShort(o.longest,o.sessions))+" · "+o.stops+" stop"+(o.stops===1?"":"s"):"No sessions yet")));
+    /* Miles per day — metric pill cycles Miles → Hours → Spend; a row tap fills the detail panel */
     var sp=spendTotals(),SPC={charging:"#E82127",hotel:"#AF52DE",groceries:"#30B0C7",kane:"#34C759",food:"#FF9500",tolls:"#8E8E93",parking:"#8E8E93",misc:"#8E8E93"},ORDER=["charging","hotel","groceries","kane","food","tolls","parking","misc"];
-    var perKwhEst=t.perKwh||KWH_FALLBACK,whEst=t.whmi?t.whmi/1000:KWH_PER_MI,drows=rows.map(function(r){
-      var act={},tot=0,hasAct=false;state.spend.entries.forEach(function(e){if(e.day===r.d&&!e.planned){act[e.cat]=(act[e.cat]||0)+e.amount;tot+=e.amount;hasAct=true;}});
-      if(hasAct&&r.d<=cur)return{r:r,act:act,tot:tot,est:false};
-      var mi=r.st?r.st.mi:0,plan=0;state.spend.entries.forEach(function(e){if(e.day===r.d&&e.planned)plan+=e.amount;});
-      return{r:r,tot:plan+mi*whEst*perKwhEst+sp.foodDay,est:true};});
-    var maxS=Math.max.apply(null,drows.map(function(x){return x.tot;}).concat([1]));
-    w.appendChild(stCard("Spend per day",money(sp.soFar)+" so far · ~"+money(sp.proj)+" projected",'<div class="bars">'+drows.map(function(x){
-      if(!x.est)return '<div class="l">'+dayLabelRow(x.r.d)+'</div><div class="bar">'+ORDER.filter(function(k){return x.act[k];}).map(function(k){return '<i style="width:'+(x.act[k]/maxS*100).toFixed(1)+'%;background:'+SPC[k]+'"></i>';}).join("")+'</div><div class="v">'+money(x.tot)+'</div>';
-      return '<div class="l">'+dayLabelRow(x.r.d)+'</div><div class="bar plan"></div><div class="v est">~'+money(x.tot)+'</div>';}).join("")+'</div>'+
-      '<div class="leg" style="margin-top:8px"><span><i style="background:#E82127"></i>Charging</span><span><i style="background:#AF52DE"></i>Hotel</span><span><i style="background:#30B0C7"></i>Groceries</span><span><i style="background:#34C759"></i>Kane</span><span><i style="background:#FF9500"></i>Food</span><span><i style="background:#8E8E93"></i>Tolls · misc</span></div>'));
+    var perKwhEst=t.perKwh||KWH_FALLBACK,whEst=t.whmi?t.whmi/1000:KWH_PER_MI,rows=[];
+    for(d=1;d<=TRIP_DAYS;d++){
+      var dp=dayProg(d),ds=dayStats(d),r={d:d,dp:dp,ds:ds,dt:addDays(departDate(),d-1)};
+      r.hrs=(ds&&ds.d2d!==null)?{min:ds.d2d,drive:Math.max(0,ds.drive),ch:ds.chMin,est:false}:{min:(t.d2dMph&&dp.mi)?dp.mi/t.d2dMph*60:null,est:true};
+      var act={},tot=0,has=false;state.spend.entries.forEach(function(e){if(e.day===d&&!e.planned){act[e.cat]=(act[e.cat]||0)+e.amount;tot+=e.amount;has=true;}});
+      if(has&&d<=cur)r.sp={act:act,tot:tot,est:false};
+      else{var plan=0;state.spend.entries.forEach(function(e){if(e.day===d&&e.planned)plan+=e.amount;});r.sp={tot:plan+dp.mi*whEst*perKwhEst+sp.foodDay,est:true};}
+      if(S.showPlanned||dp.started)rows.push(r);
+    }
+    var sel=STV.sel||sd||Math.max(1,rows.filter(function(r){return r.dp.done;}).map(function(r){return r.d;}).pop()||1),M=S.milesMetric,ML={miles:"Miles",hours:"Hours",spend:"Spend"};
+    var maxMi=Math.max.apply(null,rows.map(function(r){return r.dp.mi;}).concat([1])),maxMin=Math.max.apply(null,rows.map(function(r){return r.hrs.min||0;}).concat([1])),maxS=Math.max.apply(null,rows.map(function(r){return r.sp.tot;}).concat([1]));
+    var hb=rows.map(function(r){var bar,val;
+      if(M==="hours"){var h=r.hrs;if(!h.est){var a=h.drive/maxMin*100,b=h.ch/maxMin*100;bar='<i class="on seg" style="width:'+a.toFixed(1)+'%"></i><i class="r seg" style="left:'+a.toFixed(1)+'%;width:'+b.toFixed(1)+'%"></i>';val='<div class="v">'+hm(h.min)+'</div>';}
+        else{bar='<i style="width:'+(h.min?(h.min/maxMin*100).toFixed(1):0)+'%"></i>';val='<div class="v g">'+(h.min?"~"+halfH(h.min/60):"—")+'</div>';}}
+      else if(M==="spend"){var x=r.sp;if(!x.est){var L=0;bar=ORDER.filter(function(k){return x.act[k];}).map(function(k){var wd=x.act[k]/maxS*100,s='<i class="seg" style="left:'+L.toFixed(1)+'%;width:'+wd.toFixed(1)+'%;background:'+SPC[k]+'"></i>';L+=wd;return s;}).join("");val='<div class="v">'+money(x.tot)+'</div>';}
+        else{bar='<i style="width:'+(x.tot/maxS*100).toFixed(1)+'%"></i>';val='<div class="v g">~'+money(x.tot)+'</div>';}}
+      else{var p=r.dp;if(p.done||p.so>0){bar='<i class="on" style="width:'+(p.so/maxMi*100).toFixed(1)+'%"></i>';val='<div class="v">'+num(p.so)+'</div>';}
+        else{bar='<i style="width:'+(p.mi/maxMi*100).toFixed(1)+'%"></i>';val='<div class="v g">~'+num(p.mi)+'</div>';}}
+      return '<div class="row'+(r.d===sel?' sel':'')+'" data-d="'+r.d+'" role="button" tabindex="0"><div class="l">'+WD3[r.dt.getDay()]+'<small>Day '+r.d+' · '+esc(r.dp.st.short)+'</small></div><div class="tr">'+bar+'</div>'+val+'</div>';}).join("");
+    var sr=rows.filter(function(r){return r.d===sel;})[0],tip='';
+    if(sr){var sds=sr.ds,dn=sr.dp.done||sr.dp.so>0;
+      tip='<div class="tip"><b>'+dayTitle(sr.d)+'</b>'+
+        '<div><span><i class="b"></i>Miles</span><span>'+(dn?num(sr.dp.so):"~"+num(sr.dp.mi))+'</span></div>'+
+        '<div><span><i class="r"></i>Charging</span><span>'+((sds&&sds.ch.length)?hm(sds.chMin)+" · "+money(sds.cost):"—")+'</span></div>'+
+        '<div><span><i></i>Door to door</span><span>'+(sr.hrs.est?(sr.hrs.min?"~"+halfH(sr.hrs.min/60):"—"):hm(sr.hrs.min))+'</span></div>'+
+        '<div><span><i></i>Spend</span><span>'+(sr.sp.est?"~":"")+money(sr.sp.tot)+'</span></div></div>';}
+    w.appendChild(card("Miles per day",'<button class="pill" type="button" data-act="metric">'+ML[M]+' <i>⌄</i></button>',(rows.length?'<div class="hb">'+hb+'</div>':'<div class="empty">No driven days yet — turn on planned days in Filter.</div>')+tip));
+    /* Trip progress — "…" cycles the arc metric */
+    var A=S.arcMetric,p,cap,daysDone=STOPS.filter(function(s,i){return i>0&&state.trip.arrived[s.id];}).length;
+    if(A==="days"){p=daysDone/TRIP_DAYS;cap=daysDone+" of "+TRIP_DAYS+" days";}
+    else if(A==="spend"){p=sp.proj>0?sp.soFar/sp.proj:0;cap="of projected spend · "+money(sp.soFar)+" of ~"+money(sp.proj);}
+    else{p=TOTAL_MI?t.done/TOTAL_MI:0;cap="of the drive · "+num(t.done)+" of "+num(TOTAL_MI)+" mi";}
+    p=Math.max(0,Math.min(1,p));var LEN=301.6,mx=110-96*Math.cos(Math.PI*p),my=110-96*Math.sin(Math.PI*p);
+    w.appendChild(card("Trip progress",'<button class="pill" type="button" data-act="arc" aria-label="Change progress metric">…</button>',
+      '<div class="ring"><svg viewBox="0 0 220 120"><path d="M14 110 A96 96 0 0 1 206 110" fill="none" stroke="#E9EBEF" stroke-width="5" stroke-linecap="round"/><path d="M14 110 A96 96 0 0 1 206 110" fill="none" stroke="#2F6BFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+LEN+'" stroke-dashoffset="'+(LEN*(1-p)).toFixed(1)+'"/><circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="6" fill="#fff" stroke="#2F6BFF" stroke-width="3"/></svg><div class="c"><b>'+Math.round(p*100)+'%</b><span>'+cap+'</span></div></div>'+
+      '<div class="mini">'+mini("Charging stops"+(sd?" · Day "+sd:""),String(o.stops),o.kwh>0?(Math.round(o.kwh*10)/10)+" kWh":"")+mini("ETA SF",t.eta?WD3[t.eta.getDay()]:"—",t.eta?fmtTime(t.eta):"","k")+'</div>'));
+    /* Minutes at each charger — its own day picker */
+    var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||1,cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):(sd||lastChg),cds=dayStats(cd),cs=cds?cds.ch.filter(function(c){return c.min>0;}):[];
+    var dayOpts=[];for(d=1;d<=TRIP_DAYS;d++)dayOpts.push([d,"Day "+d+" · "+stopForDay(d).short]);
+    var maxC=Math.max.apply(null,cs.map(function(c){return c.min;}).concat([1])),cmin=0;cs.forEach(function(c){cmin+=c.min;});
+    var cm=cds?cds.miles:0,cshare=(cds&&cds.d2d>0)?cmin/cds.d2d*100:null;
+    w.appendChild(card("Minutes at each charger",pillSel("Day "+cd,"chgDay",dayOpts,cd),
+      (cs.length?'<div class="hb">'+cs.map(function(c){var ratio=c.min/maxC;return '<div class="l">'+esc(chgTiny(c,cs))+'<small>'+fmtTime(chgTs(c))+'</small></div><div class="tr"><i class="r" style="width:'+(ratio*100).toFixed(0)+'%;opacity:'+Math.max(.35,ratio).toFixed(2)+'"></i></div><div class="v">'+hm(c.min)+'</div>';}).join("")+'</div>':'<div class="empty">No sessions logged for Day '+cd+'</div>')+
+      '<div class="mini three">'+mini("Charging share of day",dash2(cshare,function(v){return Math.round(v)+"%";}),cshare!==null?hm(cmin)+" / "+hm(cds.d2d):"")+mini("Minutes per 100 mi",(cs.length&&cm)?String(Math.round(cmin/cm*100)):"—",cs.length?"min":"","k")+mini("Stops per 100 mi",(cs.length&&cm)?(cs.length/cm*100).toFixed(1):"—",cs.length&&cm?"every ~"+num(cm/cs.length)+" mi":"","k")+'</div>'));
+    /* Charging speed — pill toggles kWh/min ↔ $/min */
+    var U=S.speedUnit,sv=o.sessions.filter(function(c){return c.min>0;}).map(function(c){return{c:c,v:U==="usd"?(c.cost||0)/c.min:c.kwh/c.min};}).sort(function(a,b){return b.v-a.v;}),maxV=sv.length?sv[0].v:1;
+    var note=sv.length?(U==="usd"?"Costliest minute was "+esc(chgShort(sv[0].c,o.sessions))+" at $"+sv[0].v.toFixed(2)+"/min — a slow plug at a high rate hurts twice.":"Fastest plug was "+esc(chgShort(sv[0].c,o.sessions))+" at "+sv[0].v.toFixed(2)+" kWh/min. Slower sessions = arrived with more battery."):"Log a charging session to rank the plugs.";
+    w.appendChild(card("Charging speed",'<button class="pill" type="button" data-act="unit">'+(U==="usd"?"$ / min":"kWh / min")+'</button>',
+      (sv.length?'<div class="spd">'+sv.map(function(x){return '<div class="r"><span>'+esc(chgTiny(x.c,o.sessions))+'</span><div class="bar"><i style="width:'+(maxV?x.v/maxV*100:0).toFixed(0)+'%"></i></div><b>'+(U==="usd"?"$"+x.v.toFixed(2):x.v.toFixed(2))+'</b></div>';}).join("")+'</div>':'<div class="empty">No sessions in this scope</div>')+'<p class="note">'+note+'</p>'));
+    /* Charging sessions table — sortable */
+    var srt=SORTS.filter(function(x){return x.k===S.sort;})[0]||SORTS[0],list=(S.sessionsScope==="all"?realCharges():o.sessions).slice();
+    list.sort(function(a,b){var x=srt.f(a),y=srt.f(b);return srt.dir==="asc"?x-y:y-x;});
+    var ranked=list.map(chgRate).sort(function(a,b){return a-b;}),n=ranked.length,arrow=srt.dir==="asc"?"↑":"↓";
+    function tagCls(c){var i=ranked.indexOf(chgRate(c));return n<2?"":(i<n/3?"":(i>=n*2/3?" r":" o"));}
+    var TH=[["Stop",null],["Day · time","time"],["kWh","kwh"],["Rate","rate"],["Minutes","min"],["kWh/min",null],["Cost","cost"]];
+    w.appendChild(card("Charging sessions",'<button class="pill" type="button" data-act="sort">↕ Sort by '+srt.l+' '+arrow+'</button>',
+      list.length?'<div class="tw"><table><thead><tr>'+TH.map(function(h){return '<th'+(h[1]===srt.k?' class="on"':'')+'>'+h[0]+(h[1]===srt.k?' '+arrow:'')+'</th>';}).join("")+'</tr></thead><tbody>'+
+      list.map(function(c){var dt=parseYMD(c.date);return '<tr><td><span class="st"><i>⚡︎</i>'+esc(chgPlace(c))+'</span></td><td>'+WD3[dt.getDay()]+' · '+fmtTime(chgTs(c))+'</td><td>'+c.kwh.toFixed(1)+'</td><td><span class="tag'+tagCls(c)+'">$'+chgRate(c).toFixed(2)+'</span></td><td>'+(c.min||"—")+'</td><td>'+(c.min>0?(c.kwh/c.min).toFixed(2):"—")+'</td><td>'+money2(c.cost||0)+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="empty">No sessions '+(S.sessionsScope==="all"?"logged yet":"in this scope — Filter › Sessions: all days")+'</div>'));
   }
-  function dash2(v,f){return (v===null||v===undefined||isNaN(v))?"—":f(v);}
+  function statsText(){   /* plain-text summary of the current scope for Export */
+    var o=scopeStats(),t=o.t,L=[];
+    L.push("SF Move · Trip stats · "+(o.day?dayTitle(o.day):"Whole trip · Day "+Math.max(1,t.elapsed)+" of "+TRIP_DAYS));
+    L.push("Miles "+(o.miles>0?num(o.miles):"—")+(o.day?"":" of "+num(TOTAL_MI))+" · "+Math.round(o.pct)+"% of the trip");
+    L.push("Door to door "+hm(o.d2d)+" · Driving "+hm(o.drive)+" · Charging "+(o.stops?hm(o.chMin):"—"));
+    L.push("Stops "+o.stops+" · "+(Math.round(o.kwh*10)/10)+" kWh · "+money2(o.cost)+" · "+dash2(o.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";}));
+    L.push("ETA SF "+(t.eta?WD3[t.eta.getDay()]+" "+fmtTime(t.eta):"—"));
+    return L.join("\n");
+  }
+  function exportStats(){
+    var txt=statsText();
+    function copy(){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast("Stats copied");},function(){showExportModal(txt,"Trip stats");});}else showExportModal(txt,"Trip stats");}
+    if(navigator.share){navigator.share({title:"SF Move · Trip stats",text:txt}).catch(function(err){if(!(err&&err.name==="AbortError"))copy();});}else copy();
+  }
+  function openStatsFilter(){
+    function frow(k,l,s,on){return '<div class="frow"><div><div class="fl">'+l+'</div><div class="fs">'+s+'</div></div><button class="sw'+(on?' on':'')+'" type="button" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="'+esc(l)+'" data-f="'+k+'"><span class="knob"></span></button></div>';}
+    function body(){var s=stS();return '<h2>Filter stats</h2>'+frow("showPlanned","Show planned days","Future days in Miles per day, with ~ estimates",s.showPlanned)+frow("sessionsScope","Sessions: all days","Off = the table follows the page scope",s.sessionsScope==="all")+frow("costUnit","Spend per mile","Charging spend badge in $/mi instead of $/kWh",s.costUnit==="mi")+'<div class="mbtns"><button class="btn go" type="button" data-close="1">Done</button></div>';}
+    var back=el("div","modal-back",'<div class="modal fsheet" id="statsFilter">'+body()+'</div>'),m=back.firstChild;
+    back.addEventListener("click",function(e){if(e.target===back||e.target.getAttribute("data-close"))back.remove();});
+    m.addEventListener("click",function(e){var b=e.target.closest("[data-f]");if(!b)return;var k=b.getAttribute("data-f"),on=!b.classList.contains("on");
+      stSet(k,k==="showPlanned"?on:(k==="sessionsScope"?(on?"all":"scoped"):(on?"mi":"kwh")));b.classList.toggle("on",on);b.setAttribute("aria-checked",on?"true":"false");});
+    document.body.appendChild(back);
+  }
+  (function(){   /* one delegated listener: the section re-renders on every change */
+    var w=document.getElementById("tripStats");if(!w)return;
+    function cyc(k,list){var s=stS(),i=list.indexOf(s[k]);stSet(k,list[(i+1)%list.length]);}
+    w.addEventListener("click",function(e){
+      var b=e.target.closest("[data-act]");
+      if(b){var a=b.getAttribute("data-act");
+        if(a==="export")exportStats();else if(a==="filter")openStatsFilter();
+        else if(a==="metric")cyc("milesMetric",["miles","hours","spend"]);else if(a==="arc")cyc("arcMetric",["miles","days","spend"]);
+        else if(a==="unit")cyc("speedUnit",["kwh","usd"]);else if(a==="sort")cyc("sort",SORTS.map(function(x){return x.k;}));
+        return;}
+      var r=e.target.closest(".row[data-d]");if(r){STV.sel=+r.getAttribute("data-d");renderStats();}
+    });
+    w.addEventListener("keydown",function(e){var r=e.target.closest(".row[data-d]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();STV.sel=+r.getAttribute("data-d");renderStats();}});
+    w.addEventListener("change",function(e){var s=e.target.closest("select[data-sel]");if(!s)return;
+      if(s.getAttribute("data-sel")==="scope"){STV.sel=null;state.stats=state.stats||{};state.stats.chgDay=null;stSet("scope",s.value==="trip"?"trip":+s.value);}
+      else stSet("chgDay",+s.value);});
+  })();
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
   function onFix(p){
