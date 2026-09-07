@@ -229,6 +229,7 @@
   .mapseg button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .mapseg button.on{background:#2F6BFF;color:#fff;}
   .pinpop{position:absolute;z-index:4;min-width:168px;max-width:230px;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 8px 26px rgba(17,18,20,.22);font-size:13px;transform:translate(-50%,-100%);animation:springIn .28s cubic-bezier(.22,1,.36,1);}
+  .pinpop.below{transform:translate(-50%,0);}   /* no room above the pin: the card drops below it instead */
   .pinpop b{display:block;font-size:14px;font-weight:700;margin-bottom:6px;}
   .pinpop .l{display:flex;justify-content:space-between;gap:12px;color:#6B7280;margin-top:3px;}
   .pinpop .l span:last-child{color:#111214;font-weight:600;}
@@ -363,7 +364,8 @@
   .seg button.on{background:#fff;font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);}
   .seg button:active{transform:scale(.97);}
   .seg.segfull{display:flex;width:100%;margin:2px 0 18px;}   /* the control under the hero: full width, one row, four equal tabs */
-  .seg.segfull button{flex:1;text-align:center;padding:9px 8px;}
+  .seg.segfull button{flex:1;text-align:center;padding:9px 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  @media (max-width:430px){.seg.segfull button{font-size:13px;padding:9px 3px;letter-spacing:-.01em;}}   /* five tabs on a 390 phone */
   @media (min-width:768px){.seg.segfull{max-width:560px;}}
   .trctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .trsec{display:none;}.trsec.on{display:block;}   /* one section at a time, chosen by the segmented control */
@@ -403,6 +405,7 @@
   .row[role=button]{cursor:pointer;}
   .row.today{background:#EEF4FF;}
   .row.sel .t1{font-weight:600;}
+  .row.pinon{background:#FFF4E5;}.row.pinon .t1{font-weight:600;}   /* this place's pin is open on the map */
   .pillst{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;flex:none;}
   .pillst.done{background:#E7F8EE;color:#15803D;}.pillst.today{background:var(--blue);color:#fff;}.pillst.plan{background:var(--fill);color:var(--secondary);}
   .statrow{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border-radius:12px;padding:6px 4px;margin-bottom:22px;}
@@ -461,6 +464,8 @@
   .sheet .amtf{display:flex;align-items:center;gap:4px;flex:1;justify-content:flex-end;font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;}
   .sheet .amtf span{color:var(--secondary);font-weight:500;}
   .sheet .amtf input{font-size:28px;font-weight:600;width:100%;}
+  .sheet .hint{font-size:13px;color:var(--secondary);padding:8px 16px 0;}
+  .sheet .fnd{flex:1;text-align:right;font-size:15px;color:var(--secondary);}
   .cattiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
   .cattile{display:flex;align-items:center;gap:12px;background:#fff;border:0;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:17px;color:var(--label);cursor:pointer;text-align:left;min-height:56px;transition:transform .12s ease-out;}
   .cattile .ic{font-size:15px;}
@@ -735,8 +740,8 @@
         <g id="seaG" class="mp-sea"></g>
         <g id="routeG"></g>
         <g id="lodG"></g>
-        <g id="pinG"></g>
         <g id="nodeG"></g>
+        <g id="pinG"></g>   <!-- above nodeG: the active layer's pins must win over the route stop markers they sit on -->
         <g id="posG" class="posg" opacity="0"><circle class="halo" r="9"/><circle class="dot" r="4.5"/></g>
         </g>
       </svg>
@@ -746,14 +751,15 @@
       <div class="trrailw"><div class="trrail" id="tripRail"></div></div>
     </div>
     <div class="trcard trsum" id="chgSummary" role="button" tabindex="0"></div>
-    <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
+    <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="places">Places</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
     <section class="trsec on" id="trOverview"></section>
     <section class="trsec" id="trDaily"></section>
     <section class="trsec" id="trCharging"></section>
+    <section class="trsec" id="trPlaces"></section>
     <section class="trsec" id="trItinerary"><div class="itin"><div><div class="trackcard">
       <div><div class="tl">Trip tracking</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Trip tracking"><span class="knob"></span></button>
-    </div><div id="tripStops"></div><div id="tripPlaces"></div></div><aside class="itinrail trrail" id="itinRail"></aside></div></section>
+    </div><div id="tripStops"></div></div><aside class="itinrail trrail" id="itinRail"></aside></div></section>
   </div>
 
   <!-- ================= SPEND ================= -->
@@ -767,7 +773,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v71 · Sep 7</div>
+  <div class="appver">SF Move · v72 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1080,7 +1086,7 @@ var ACCENTS = {
   function load(){try{var r=window.localStorage.getItem(KEY);return r?JSON.parse(r):mem;}catch(e){return mem;}}
   /* ---- change tracking: the state is flattened to dotted leaf paths; meta.touched[path] = ms of the last write (a path in touched with no leaf is a tombstone) ---- */
   var SYNC_SKIP={"trip.tracking":1,"spend.openDay":1,"spend.nowDay":1,"ui.mapMode":1,"ui.tripSeg":1,"ui.spendSeg":1,"ui.spendDay":1};   /* per-device UI state: tracked locally, never merged */
-  var ID_ARRAY=[/^spend\.entries$/,/^customTasks\.[^.]+$/,/^custom\.[^.]+$/];   /* arrays of {id,…}: each element is its own leaf "<array>.<id>" */
+  var ID_ARRAY=[/^spend\.entries$/,/^customTasks\.[^.]+$/,/^custom\.[^.]+$/,/^places$/];   /* arrays of {id,…}: each element is its own leaf "<array>.<id>" */
   function isIdArray(path){for(var i=0;i<ID_ARRAY.length;i++)if(ID_ARRAY[i].test(path))return true;return false;}
   function leaves(obj,prefix,out){
     out=out||{};
@@ -1164,6 +1170,7 @@ var ACCENTS = {
   state.spend=state.spend||{};state.spend.entries=state.spend.entries||[];   /* spend tab — additive */
   state.stats=state.stats||{};   /* Stats dashboard view state (scope, filters, per-card pills) — additive */
   state.ui=state.ui||{};         /* per-device view state — additive; ui.mapMode never syncs */
+  state.places=Array.isArray(state.places)?state.places:[];   /* places added from the phone, same shape as PLACES — additive, merged per id */
   if(!state.trip.day2AmarilloV1){   /* Day 2 moved Weatherford → Amarillo: stamps, arrived flag and spend rows follow the stop; planned hotel/pet rows are re-estimated, actuals untouched */
     ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.weatherford!==undefined){if(o.amarillo===undefined)o.amarillo=o.weatherford;delete o.weatherford;}});
     state.spend.entries.forEach(function(e){
@@ -1987,7 +1994,12 @@ var ACCENTS = {
     ov.addEventListener("click",railTap);
     ov.addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
     document.getElementById("tripSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setTripSeg(b.getAttribute("data-s"));});
-    document.getElementById("tripPlaces").addEventListener("click",function(e){var b=e.target.closest("[data-place]");if(b)openPlace(b.getAttribute("data-place"));});
+    var pls=document.getElementById("trPlaces");
+    pls.addEventListener("click",function(e){
+      if(e.target.closest("[data-addplace]")){openPlaceSheet();return;}
+      var b=e.target.closest("[data-place]");if(b)openPlace(b.getAttribute("data-place"));
+    });
+    pls.addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
     document.getElementById("trDaily").addEventListener("click",function(e){
       var g=e.target.closest("[data-goto]");if(g){state.stats=state.stats||{};state.stats.chgDay=+g.getAttribute("data-day");setTripSeg("charging");return;}
       var r=e.target.closest(".row[data-day]");if(r){STV.day=+r.getAttribute("data-day");renderDaily();}
@@ -2075,6 +2087,7 @@ var ACCENTS = {
     var t=clampZ(s,a.x-s*q.x,a.y-s*q.y);springTo(t.s,t.tx,t.ty,null,!animate);
   }
   function resetMapZoom(animate){zoomTo(1,null,animate);}
+  function centerOn(x,y,s,fy){var b=vb(),t=clampZ(s,b.x+b.w/2-s*x,b.y+b.h*(fy||0.5)-s*y);springTo(t.s,t.tx,t.ty,null,reducedMotion);}   /* put one map point at fy down the visible box, at scale s */
   var G=null;   /* the live gesture */
   function ptrList(){var a=[];for(var k in Z.ptrs)a.push(Z.ptrs[k]);return a;}
   function beginGesture(prev){
@@ -2182,20 +2195,27 @@ var ACCENTS = {
       });
       wrap.appendChild(card);
     });
-    renderPlacesList();
     renderStats();
   }
-  function renderPlacesList(){   /* "Places along the way": grouped by day; a tap shows the pin on the map */
-    var w=document.getElementById("tripPlaces");if(!w)return;
-    if(!PLACES.length){w.innerHTML="";return;}
-    var byDay={};PLACES.forEach(function(pl){var d=dayForDate(parseYMD(pl.date));(byDay[d]=byDay[d]||[]).push(pl);});
-    var out='<div class="grp-h flex"><span>Places along the way</span></div>';
+  function allPlaces(){   /* the code list plus anything added on the phone; every place path reads this, never PLACES */
+    return PLACES.concat((state.places||[]).filter(function(x){return x&&x.id&&isFinite(x.lat)&&isFinite(x.lng);}));
+  }
+  var PIN_PLACES=[];   /* the places whose pin is open: their rows stay lit */
+  function pinLit(ids){ids=ids||[];if(ids.join(",")===PIN_PLACES.join(","))return;PIN_PLACES=ids;renderPlacesSec();}
+  function renderPlacesSec(){   /* Trip › Places: grouped by day/town; a tap centres the pin on the map above */
+    var w=document.getElementById("trPlaces");if(!w)return;
+    var all=allPlaces(),byDay={},out="";
+    all.forEach(function(pl){var d=dayForDate(parseYMD(pl.date));(byDay[d]=byDay[d]||[]).push(pl);});
     Object.keys(byDay).map(Number).sort(function(a,b){return a-b;}).forEach(function(d){
       var st=stopForDay(d),list=byDay[d].sort(function(a,b){return chgTs(a)-chgTs(b);});
-      out+='<div class="grp-h">'+(d>0?"Day "+d+(st?" · "+esc(st.short):""):"Pre-trip")+'</div><div class="grp">'+list.map(function(pl){
-        return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),v1:pl.cost>0?money2(pl.cost):"",chev:true,attrs:' role="button" tabindex="0" data-place="'+pl.id+'"'});}).join("")+'</div>';
+      out+=grp((d>0?"Day "+d+(st?" · "+esc(st.short):""):"Pre-trip"),list.map(function(pl){
+        return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),
+          t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),
+          v1:pl.cost>0?money2(pl.cost):"",chev:true,cls:(PIN_PLACES.indexOf(pl.id)>=0?"pinon":""),
+          attrs:' role="button" tabindex="0" data-place="'+esc(pl.id)+'"'});}).join(""));
     });
-    w.innerHTML=out;
+    if(!all.length)out=grp("Places along the way",row({t1:"No places yet",t2:"The stops worth remembering land here",mute:true}));
+    w.innerHTML=out+'<div class="grp">'+row({ic:"pin",bg:TINT.place,t1:"Add a place",cls:"link",chev:true,attrs:' role="button" tabindex="0" data-addplace="1"'})+'</div>';
   }
   function p2(n){return ("0"+n).slice(-2);}
   function localISO(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())+"T"+p2(d.getHours())+":"+p2(d.getMinutes());}
@@ -2363,7 +2383,7 @@ var ACCENTS = {
     sight:"M0 -2.3L0.7 -0.8 2.3 -0.6 1.1 0.5 1.4 2.2 0 1.4-1.4 2.2-1.1 0.5-2.3 -0.6-0.7 -0.8Z"};
   var PLACE_G={food:"fork",coffee:"cup",sight:"star"};   /* the same glyphs the lists use */
   function pinClusters(){   /* the current layer's pins: logged sessions (planned never merge) or places, each merged within CLUSTER_R */
-    var out=[],src=mapMode()==="places"?PLACES:CHARGES;
+    var out=[],src=mapMode()==="places"?allPlaces():CHARGES;
     src.forEach(function(c){
       var p=proj(c.lat,c.lng);
       if(!c.planned){
@@ -2375,11 +2395,13 @@ var ACCENTS = {
     return out;
   }
   function placeIdx(id){var cl=pinClusters();for(var i=0;i<cl.length;i++)if(cl[i].list.some(function(x){return x.id===id;}))return i;return -1;}
-  function openPlace(id){   /* Itinerary row → the map (always on screen), Places layer, that pin's popover */
+  function openPlace(id){   /* Places row → the map above switches layer, centres on the pin and opens it */
     if(mapMode()!=="places")setMapMode("places");
     var i=placeIdx(id);if(i<0)return;
+    var g=pinClusters()[i];
     document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
-    setTimeout(function(){pinPopOpen(i);},reducedMotion?0:350);
+    centerOn(g.x,g.y,2.6,0.9);   /* low in the frame so the popover has room above it */
+    setTimeout(function(){pinPopOpen(i);},reducedMotion?0:520);
   }
   function buildPins(){
     var pg=document.getElementById("pinG");if(!pg)return;
@@ -2398,9 +2420,10 @@ var ACCENTS = {
     });
     collectMarkers();applyZoom();
   }
-  function pinPopClose(){var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}}
+  function pinPopClose(){var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}pinLit([]);}
   function pinPopOpen(i){
     var p=document.getElementById("pinPop"),g=pinClusters()[i];if(!p||!g)return;
+    pinLit(g.place?g.list.map(function(x){return x.id;}):[]);
     function maps(c){return "https://maps.apple.com/?q="+encodeURIComponent(c.addr||c.name)+(c.lat?"&ll="+c.lat+","+c.lng:"");}
     var html;
     if(g.place){
@@ -2425,7 +2448,13 @@ var ACCENTS = {
     var sx=Z.tx+Z.s*g.x,sy=Z.ty+Z.s*g.y;
     var lx=r.left-wr.left+(sx-b.x)/b.w*r.width,half=p.offsetWidth/2+8;   /* keep the card inside the map: it is centred on the pin, so clamp by half its width */
     p.style.left=Math.round(Math.max(half,Math.min(wr.width-half,lx)))+"px";
-    p.style.top=Math.round(r.top-wr.top+(sy-b.y)/b.h*r.height-10)+"px";
+    var mapTop=r.top-wr.top,mapH=r.height,py=mapTop+(sy-b.y)/b.h*r.height;
+    p.classList.remove("below");
+    var ph=p.offsetHeight,fitsAbove=(py-10-ph)>=mapTop+4,fitsBelow=(py+16+ph)<=mapTop+mapH-4;
+    p.classList.toggle("below",!fitsAbove&&fitsBelow);   /* above the pin by default; below it when only that fits */
+    var top=(!fitsAbove&&fitsBelow)?py+16:py-10;
+    if(fitsAbove||!fitsBelow)top=Math.max(mapTop+4+ph,Math.min(mapTop+mapH-4,top));   /* neither side fits on a short map: keep the whole card on it */
+    p.style.top=Math.round(top)+"px";
   }
   function setMapMode(m){
     state.ui=state.ui||{};state.ui.mapMode=m;save(state);
@@ -2433,7 +2462,7 @@ var ACCENTS = {
   }
   /* ---------- TRIP sections: one scrolling page — Overview · Daily · Charging · Itinerary ---------- */
   function scrollToEl(el){if(el)el.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});}
-  var TRIP_SECS=["overview","daily","charging","itinerary"];
+  var TRIP_SECS=["overview","daily","charging","places","itinerary"];
   function tripSeg(){var s=state.ui&&state.ui.tripSeg;return TRIP_SECS.indexOf(s)>=0?s:"overview";}
   function syncTripSeg(){
     var g=document.getElementById("tripSeg");if(!g)return;var k=tripSeg();
@@ -2525,7 +2554,7 @@ var ACCENTS = {
       row({ic:"clock",bg:TINT.charging,t1:"Time at chargers",v1:real.length?hm(t.chMin):"—"}));
     w.innerHTML='<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+ttd+'</div></div>';
   }
-  function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();}   /* every Trip section, from the same data */
+  function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();renderPlacesSec();}   /* every Trip section, from the same data */
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
   function onFix(p){
@@ -2699,12 +2728,12 @@ var ACCENTS = {
     });
     if(added)saveSeed(state);
   }
-  function isPlaceId(id){for(var i=0;i<PLACES.length;i++)if(PLACES[i].id===id)return true;return false;}
+  function isPlaceId(id){var a=allPlaces();for(var i=0;i<a.length;i++)if(a[i].id===id)return true;return false;}
   function placeTown(pl){var a=String(pl.addr||"").split(",");return a.length>=3?a[1].trim()+", "+a[2].trim().split(" ")[0]:(a[1]||pl.name).trim();}
   function seedPlaces(){   /* every render: a place with a cost becomes one actual entry under the place id, unless the user deleted it */
     var have={},dis=state.spend.dismissedPlaces||{},added=false;
     state.spend.entries.forEach(function(e){have[e.id]=true;});
-    PLACES.forEach(function(pl){
+    allPlaces().forEach(function(pl){
       if(!(pl.cost>0)||have[pl.id]||dis[pl.id])return;
       var d=dayForDate(parseYMD(pl.date)),st=stopForDay(d);
       state.spend.entries.push({id:pl.id,amount:+pl.cost,cat:pl.kind==="sight"?"misc":"food",note:pl.name+(pl.note?" · "+pl.note:""),day:d,stopId:st?st.id:null,ts:chgTs(pl),planned:false,billsLater:false});added=true;
@@ -2822,6 +2851,76 @@ var ACCENTS = {
       }
     });
     back.addEventListener("change",function(e){var sl=e.target.closest("select[data-sel=addDay]");if(!sl)return;d=+sl.value;back.querySelector(".shf .to").textContent="Save to "+spendDayTitle(d);sl.parentNode.firstChild.textContent=spendDayTitle(d)+" ";});
+  }
+  function placePoints(){   /* every named point the app already knows: stops, backups, route waypoints, LOD towns, logged chargers */
+    var out=[];
+    STOPS.forEach(function(x){out.push({n:x.name,lat:x.lat,lng:x.lng});});
+    BACKUPS.forEach(function(x){out.push({n:x.name,lat:x.lat,lng:x.lng});});
+    WAYPTS.forEach(function(x){out.push({n:x.n,lat:x.lat,lng:x.lng});});
+    TOWNS.forEach(function(x){out.push({n:x.n,lat:x.lat,lng:x.lng});});
+    CHARGES.forEach(function(x){out.push({n:chgPlace(x),lat:x.lat,lng:x.lng});});
+    return out;
+  }
+  function lookupPlace(q){   /* the whole address, then each comma-separated part: exact name, then prefix, then substring */
+    var raw=String(q||"").trim();if(!raw)return null;
+    var tries=[raw].concat(raw.split(",")).map(function(x){return x.trim().toLowerCase();}).filter(function(x){return x.length>=3;});
+    var pts=placePoints(),t,i;
+    for(t=0;t<tries.length;t++){
+      for(i=0;i<pts.length;i++)if(pts[i].n.toLowerCase()===tries[t])return pts[i];
+      for(i=0;i<pts.length;i++)if(pts[i].n.toLowerCase().indexOf(tries[t])===0)return pts[i];
+      for(i=0;i<pts.length;i++)if(pts[i].n.toLowerCase().indexOf(tries[t])>=0)return pts[i];
+    }
+    return null;
+  }
+  var PL_KINDS=[{id:"food",l:"Food",g:"fork"},{id:"coffee",l:"Coffee",g:"cup"},{id:"sight",l:"Sight",g:"star"}],plKind="food";
+  function openPlaceSheet(){   /* same sheet shape as Add expense: name, kind, town lookup or manual lat/lng, note, optional cost */
+    var d=tripDayNow(),kind=plKind,manual=false,back=el("div","sheet-back");   /* the day the Trip tab is on */
+    var opts=[];for(var i=1;i<=TRIP_DAYS;i++)opts.push([i,"Day "+i+" · "+stopForDay(i).short]);opts.push([0,"Pre-trip"]);
+    function dayLabel(x){return x>0?"Day "+x+" · "+stopForDay(x).short:"Pre-trip";}
+    back.innerHTML='<div class="sheet" role="dialog" aria-label="Add a place"><div class="shh"><button class="back" type="button" data-close="1" aria-label="Back">‹</button><b>Add a place</b><button class="cancel" type="button" data-close="1">Cancel</button></div>'+
+      '<div class="shb"><div class="grp-h">Details</div><div class="grp">'+
+      '<div class="row noic"><span class="lbl">Name</span><input class="pname" type="text" placeholder="Where was it?" aria-label="Name"></div>'+
+      '<div class="row noic"><span class="lbl">Day</span>'+pillSel(dayLabel(d),"plDay",opts,d)+'</div>'+
+      '<div class="row noic"><span class="lbl">Town</span><input class="ptown" type="text" placeholder="Town or address" aria-label="Town or address"></div>'+
+      '<div class="row noic"><span class="lbl">Note</span><input class="pnote" type="text" placeholder="Why it was worth it" aria-label="Note"></div>'+
+      '<div class="row noic"><span class="lbl">Cost</span><div class="amtf"><span>$</span><input class="pcost" type="text" inputmode="decimal" placeholder="0.00" aria-label="Cost"></div></div></div>'+
+      '<div class="grp-h">Kind</div><div class="cattiles">'+PL_KINDS.map(function(k){return '<button class="cattile'+(kind===k.id?" on":"")+'" type="button" data-kind="'+k.id+'">'+icon(k.g,TINT.place)+k.l+'</button>';}).join("")+'</div>'+
+      '<div class="grp-h">On the map</div><div class="grp">'+
+      '<div class="row noic"><span class="lbl">Found</span><span class="fnd">Type a town above</span></div>'+
+      '<div class="row noic"><span class="lbl">Latitude</span><input class="plat" type="text" inputmode="decimal" placeholder="35.1938" aria-label="Latitude"></div>'+
+      '<div class="row noic"><span class="lbl">Longitude</span><input class="plng" type="text" inputmode="decimal" placeholder="-101.9297" aria-label="Longitude"></div></div>'+
+      '<div class="hint">A town match fills these in — type them by hand to drop the pin exactly.</div></div>'+
+      '<div class="shf"><div class="to">Saves to '+esc(dayLabel(d))+'</div><button class="btn go" type="button" data-save="1">Add place</button></div></div>';
+    document.body.appendChild(back);
+    var nm=back.querySelector(".pname"),tw=back.querySelector(".ptown"),la=back.querySelector(".plat"),lo=back.querySelector(".plng"),fnd=back.querySelector(".fnd");
+    setTimeout(function(){nm.focus();},60);
+    function relook(){
+      var m=lookupPlace(tw.value);
+      if(m&&!manual){la.value=m.lat;lo.value=m.lng;}
+      fnd.textContent=m?m.n:(tw.value.trim()?"No match — enter lat/lng below":"Type a town above");
+    }
+    tw.addEventListener("input",relook);
+    la.addEventListener("input",function(){manual=true;fnd.textContent="Using the coordinates below";});
+    lo.addEventListener("input",function(){manual=true;fnd.textContent="Using the coordinates below";});
+    back.addEventListener("click",function(e){
+      if(e.target===back||e.target.closest("[data-close]")){back.remove();return;}
+      var kt=e.target.closest("[data-kind]");
+      if(kt){kind=kt.getAttribute("data-kind");plKind=kind;Array.prototype.forEach.call(back.querySelectorAll(".cattile"),function(b){b.classList.toggle("on",b.getAttribute("data-kind")===kind);});return;}
+      if(e.target.closest("[data-save]")){
+        var name=nm.value.trim();if(!name){nm.focus();return;}
+        var lat=parseFloat(la.value),lng=parseFloat(lo.value);
+        if(!isFinite(lat)||!isFinite(lng)){fnd.textContent="Needs a town match or lat/lng";(tw.value.trim()?la:tw).focus();return;}
+        var dt=addDays(departDate(),d>0?d-1:-1),now=new Date(),c=parseFloat(String(back.querySelector(".pcost").value).replace(/[^0-9.]/g,""));
+        var en={id:"pl-u"+Date.now(),name:name,kind:kind,addr:tw.value.trim()||name,lat:lat,lng:lng,
+          date:localISO(dt).slice(0,10),time:p2(now.getHours())+":"+p2(now.getMinutes()),note:back.querySelector(".pnote").value.trim(),cost:c>0?c:0};
+        state.places.push(en);state.ui=state.ui||{};state.ui.tripSeg="places";save(state);
+        back.remove();
+        if(mapMode()!=="places")setMapMode("places");
+        renderStats();renderSpend();openPlace(en.id);
+        toast("Added "+name+" to "+dayLabel(d));
+      }
+    });
+    back.addEventListener("change",function(e){var sl=e.target.closest("select[data-sel=plDay]");if(!sl)return;d=+sl.value;back.querySelector(".shf .to").textContent="Saves to "+dayLabel(d);sl.parentNode.firstChild.textContent=dayLabel(d)+" ";});
   }
   function wireSpendUI(){
     var pg=document.getElementById("page-spend");
