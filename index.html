@@ -277,19 +277,85 @@
   .stampEd{display:inline-flex;gap:6px;align-items:center;}
   .stampEd input{font-family:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .stampEd .btn{font-size:13px;padding:7px 10px;}
-  /* Stats card */
-  .stats .sd{padding:8px 16px 6px;}
-  .stats .sd + .sd{border-top:.5px solid var(--sep);}
-  .stats .sd h3{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;margin:0 0 2px;}
-  .stats .sd h3 span{font-size:13px;font-weight:600;color:var(--secondary);}
-  .stats .sl{font-size:13px;color:var(--secondary);padding:2px 0;line-height:1.4;}
-  .stats .sl b{color:var(--label);font-weight:600;}
-  .stats .sbar{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;display:flex;margin:6px 0 4px;}
-  .stats .sbar i{display:block;height:100%;}
-  .stats .sbar .dr{background:var(--blue);}
-  .stats .sbar .ch{background:#E82127;}
-  .stats .legend2{display:flex;gap:14px;font-size:12px;font-weight:600;color:var(--secondary);}
-  .stats .legend2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0;}
+  /* Trip stats section */
+  .tsHead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:4px 0 12px;}
+  .tsTitle{font-size:22px;font-weight:800;letter-spacing:.2px;}
+  .tsSub{font-size:13px;color:var(--secondary);}
+  .tsSel{font-size:13px;font-weight:600;color:var(--secondary);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .tsSel select{font-family:inherit;font-size:14px;font-weight:600;color:var(--label);background:var(--cell);border:1px solid var(--sep);border-radius:10px;padding:6px 8px;}
+  .tsCard{padding:14px 16px;}
+  .tsProg{display:flex;gap:16px;flex-wrap:wrap;}
+  .tsProgL{flex:1 1 220px;min-width:0;}
+  .tsProgR{flex:1 1 180px;border-top:.5px solid var(--sep);padding-top:12px;}
+  .tsBig{font-size:34px;font-weight:800;letter-spacing:.2px;line-height:1.05;}
+  .tsOf{font-size:13px;color:var(--secondary);margin:4px 0 8px;display:flex;align-items:center;gap:8px;}
+  .pill{font-size:11px;font-weight:700;background:var(--fill);color:var(--label);border-radius:999px;padding:3px 8px;}
+  .pill.live{background:#E82127;color:#fff;}
+  .tsBar{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;}
+  .tsBar i{display:block;height:100%;background:#0A7AFF;border-radius:4px;}
+  .tsRem{font-size:13px;color:var(--secondary);margin-top:6px;}
+  .tsK{font-size:11px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em;}
+  .tsV{font-size:17px;font-weight:700;margin-top:4px;}
+  .tsV2{font-size:24px;font-weight:800;color:#0A7AFF;line-height:1.1;}
+  .tsNote{font-size:12px;color:var(--secondary);margin-top:4px;}
+  .tsGrid{display:block;}
+  .tsDayH{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .tsLab{font-size:12px;font-weight:700;color:var(--secondary);letter-spacing:.04em;text-transform:uppercase;}
+  .tsStop{font-size:17px;font-weight:700;margin:2px 0 6px;}
+  .tsLine{font-size:14px;color:var(--secondary);}
+  .tsLine b{color:var(--label);font-weight:600;}
+  .tsKpis{display:grid;gap:8px;margin-top:10px;}
+  .tsKpis.three{grid-template-columns:repeat(3,1fr);}
+  .tsKpis.two{grid-template-columns:repeat(2,1fr);}
+  .tsKpis div,.tsG4 div,.tsKpiRow div{background:#EEF0F3;border-radius:12px;padding:8px 10px;min-width:0;text-align:center;}
+  .tsKpis span,.tsG4 span,.tsKpiRow span{display:block;font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+  .tsKpis b,.tsG4 b,.tsKpiRow b{display:block;font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tsKpis b.red,.tsG4 b.red,.tsKpiRow b.red{color:#E82127;}
+  .tsBars{display:flex;align-items:flex-end;gap:6px;margin-top:14px;height:120px;padding-top:18px;}
+  .tsBarCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;height:100%;}
+  .tsBarCol .v{font-size:11px;font-weight:600;margin-bottom:2px;}
+  .tsBarCol i{display:block;width:100%;background:#E82127;border-radius:6px 6px 2px 2px;}
+  .tsBarCol .n{font-size:10px;color:#8E8E93;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .tsMuted{font-size:12px;color:var(--secondary);margin-top:6px;}
+  .tsList{margin-top:8px;}
+  .tsRow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 0;border-top:.5px solid var(--sep);}
+  .tsRow b{font-weight:600;white-space:nowrap;}
+  .tsChgT{font-size:17px;font-weight:700;}
+  .tsChgS{font-size:12px;color:var(--secondary);}
+  .tsPair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  .tsPair b{display:block;font-size:24px;font-weight:800;line-height:1.1;}
+  .tsPair b.red{color:#E82127;}
+  .tsPair span{font-size:12px;color:var(--secondary);}
+  .tsG4{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .tsTime{margin-top:14px;}
+  .tsTRow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
+  .tsTRow b{font-weight:600;}
+  .sbar2{height:14px;border-radius:999px;background:#E5E5EA;overflow:hidden;display:flex;margin:8px 0 4px;}
+  .sbar2 i{display:block;height:100%;}
+  .sbar2 .dr{background:#0A7AFF;}
+  .sbar2 .ch{background:#E82127;}
+  .tsLeg{display:flex;gap:16px;font-size:13px;color:var(--secondary);flex-wrap:wrap;}
+  .tsLeg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+  .tsLeg b{color:var(--label);font-weight:600;}
+  .tsEff{margin-top:14px;border-top:.5px solid var(--sep);padding-top:6px;}
+  .tsEffH{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:14px;font-weight:700;padding:8px 0;user-select:none;}
+  .tsEff.closed .tsEffB{display:none;}
+  .tsEff.closed .chev{transform:rotate(-90deg);}
+  .tsRate{display:grid;grid-template-columns:minmax(80px,110px) 1fr 56px;gap:8px 8px;align-items:center;font-size:13px;margin-top:8px;}
+  .tsRate .l{color:var(--secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tsRate .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+  .tsRate .dot{height:10px;position:relative;border-radius:999px;background:linear-gradient(90deg,#34C759,#FF9500,#E82127);opacity:.25;}
+  .tsRate .dotw{position:relative;height:10px;}
+  .tsRate .pin{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E82127;transform:translateX(-9px);box-sizing:border-box;}
+  .tsRate .pin.g{border-color:#34C759;}
+  .tsRate .pin.o{border-color:#FF9500;}
+  .tsSpark{margin-top:14px;}
+  .tsSpark svg{width:100%;height:70px;display:block;overflow:visible;}
+  .tsKpiRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+  .tsLoc{margin-top:12px;}
+  .tsLoc a{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--label);text-decoration:none;padding:7px 0;border-top:.5px solid var(--sep);}
+  .tsLoc a span{color:var(--secondary);white-space:nowrap;}
+  .tsEmpty{font-size:14px;color:var(--secondary);}
   .daterow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 4px;}
   .daterow label{font-size:16px;font-weight:600;}
   .daterow input{font-family:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
@@ -362,8 +428,14 @@
   @media (min-width:700px){
     .wrap{max-width:1040px;padding:8px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));}   /* 16px sides: an 820px iPad then fits two 386px columns */
     /* card grids: two columns once ~780px of content is available (iPad portrait and up), one below; rows top-aligned so a folded card stays short */
-    #phaseGroups,#packGroups,#sortGroups,#tripStops,#spendDays{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start;margin-bottom:16px;}
-    #phaseGroups>.card,#packGroups>.card,#sortGroups>.card,#tripStops>.card,#spendDays>.card{margin-bottom:0;min-width:0;}
+    #phaseGroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start;margin-bottom:16px;}
+    #phaseGroups>.card{margin-bottom:0;min-width:0;}
+    /* Sort, Pack, Spend: two-column masonry so short cards leave no vertical gaps */
+    #sortGroups,#packGroups,#spendDays{column-count:2;column-gap:16px;}
+    #sortGroups>.card,#packGroups>.card,#spendDays>.card{break-inside:avoid;display:inline-block;width:100%;margin:0 0 16px;vertical-align:top;}
+    /* Trip: map hero, mileage row, stats and stop cards stay full width; only the day-cards/charging pair splits */
+    .tsGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+    .tsProgR{border-top:0;border-left:.5px solid var(--sep);padding-top:0;padding-left:16px;}
     /* text lines never run past ~70ch, whatever the column width */
     .sec-note,.check>span,.check .cd,.item .name,.item .note,.refblock,.fact,.tripstop .hot,.tripstop .sc,.tripstop .nm,.sprow .t,.unote,.hint,.imp-note,.est,.spc p{max-width:70ch;}
     /* Trip hero spans the full column; aspect is kept and height capped at 70vh — the SVG "slice"s (crops sky + Mexico), never letterboxes or distorts */
@@ -564,7 +636,7 @@
     </div>
   </div>
 
-  <div class="appver">SF Move · v48 · Sep 7</div>
+  <div class="appver">SF Move · v49 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2008,36 +2080,88 @@ var ACCENTS = {
       if(rolls.length){var rollMin=rolls.reduce(function(a,b){return a+b;},0)/rolls.length,last=addDays(departDate(),TRIP_DAYS-1);eta=new Date(last.getFullYear(),last.getMonth(),last.getDate(),0,Math.round(rollMin+hrsPerDay*60));}
     }
     return{days:days,done:done,left:left,pct:TOTAL_MI?done/TOTAL_MI*100:0,elapsed:elapsed,driveMin:anyD2d?driveMin:null,chMin:chMinTot,kwh:kwh,cost:cost,perKwh:perKwh,perMi:perMi,whmi:whmi,proj:proj,
-      best:rated[0]||null,worst:rated.length>1?rated[rated.length-1]:null,fast:fast,eta:eta,hrsPerDay:hrsPerDay,d2dMph:d2dMph,remDays:remDays};
+      best:rated[0]||null,worst:rated.length>1?rated[rated.length-1]:null,rated:rated,fast:fast,eta:eta,hrsPerDay:hrsPerDay,d2dMph:d2dMph,remDays:remDays};
   }
+  var tsDaySel=null;   /* day selector — UI only, never persisted */
+  function fmtDate2(d){var MOS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return WD[d.getDay()]+", "+MOS[d.getMonth()]+" "+d.getDate();}
+  function num(v){return Math.round(v).toLocaleString();}
+  function rateColor(t){var h=t<0.5?140-110*(t/0.5):30-30*((t-0.5)/0.5);return "hsl("+Math.round(h)+",72%,46%)";}   /* cheapest green → orange → priciest red */
+  function dayShell(d){var st=stopForDay(d);if(!st)return null;return{d:d,stop:st,rolled:null,arrived:null,miles:st.mi,ch:[],kwh:0,cost:0,chMin:0,d2d:null,drive:null,mph:null,longest:null,whmi:null};}
   function renderStats(){
     var w=document.getElementById("tripStats");if(!w)return;w.innerHTML="";
-    var t=tripStats(),open=!state.collapsed["trip-stats"];
-    var card=el("div","card stats"+(open?"":" closed"));
-    var head=el("div","sec-head",'<span class="t">Stats</span><span class="m">'+(t.elapsed?"Day "+t.elapsed+" of "+TRIP_DAYS:"not rolling yet")+' <span class="chev">\u25BC</span></span>');
-    head.setAttribute("role","button");head.setAttribute("tabindex","0");
-    function togC(){state.collapsed["trip-stats"]=!state.collapsed["trip-stats"];save(state);renderStats();}
-    head.addEventListener("click",togC);head.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togC();}});
-    card.appendChild(head);
-    var body=el("div","sec-body");
-    t.days.forEach(function(r){
-      var sd=el("div","sd");
-      sd.innerHTML='<h3>Day '+r.d+' \u00b7 '+esc(r.stop.short)+'<span>'+r.miles+' mi</span></h3>'+
-        '<div class="sl">Rolled <b>'+(r.rolled?esc(fmtTime(r.rolled)):"\u2014")+'</b> \u2192 Arrived <b>'+(r.arrived?esc(fmtTime(r.arrived)):"\u2014")+'</b> \u00b7 door-to-door <b>'+hm(r.d2d)+'</b></div>'+
-        '<div class="sl">Driving <b>'+hm(r.drive)+'</b> \u00b7 avg <b>'+dash(r.mph,function(v){return Math.round(v)+" mph";})+'</b> \u00b7 charging <b>'+hm(r.ch.length?r.chMin:null)+'</b></div>'+
-        '<div class="sl"><b>'+r.ch.length+'</b> charge'+(r.ch.length===1?"":"s")+' \u00b7 <b>'+(Math.round(r.kwh*10)/10)+' kWh</b> \u00b7 <b>'+money2(r.cost)+'</b> \u00b7 longest stint <b>'+dash(r.longest,function(v){return Math.round(v)+" mi";})+'</b> \u00b7 <b>'+dash(r.whmi,function(v){return Math.round(v)+" Wh/mi";})+'</b></div>';
-      body.appendChild(sd);
-    });
-    var tot=el("div","sd"),dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):0,pc=sum?100-pd:0;
-    tot.innerHTML='<h3>Trip<span>'+t.elapsed+' of '+TRIP_DAYS+' days</span></h3>'+
-      '<div class="sl"><b>'+Math.round(t.done)+'</b> of '+TOTAL_MI+' mi done \u00b7 <b>'+Math.round(t.left)+'</b> left \u00b7 <b>'+Math.round(t.pct)+'%</b></div>'+
-      (sum?'<div class="sbar"><i class="dr" style="width:'+pd+'%"></i><i class="ch" style="width:'+pc+'%"></i></div><div class="legend2"><span><i class="dr" style="background:var(--blue)"></i>Driving '+hm(dr)+' \u00b7 '+pd+'%</span><span><i style="background:#E82127"></i>Charging '+hm(chm)+' \u00b7 '+pc+'%</span></div>':'<div class="sl">Driving <b>\u2014</b> \u00b7 charging <b>'+hm(chm||null)+'</b></div>')+
-      '<div class="sl"><b>'+(Math.round(t.kwh*10)/10)+' kWh</b> \u00b7 <b>'+money2(t.cost)+'</b> \u00b7 <b>'+dash(t.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";})+'</b> \u00b7 <b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2)+"/mi";})+'</b> \u00b7 <b>'+dash(t.whmi,function(v){return Math.round(v)+" Wh/mi";})+'</b></div>'+
-      '<div class="sl">Remaining charging \u2248 <b>'+dash(t.proj,function(v){return money(v);})+'</b></div>'+
-      '<div class="sl">Best <b>'+(t.best?esc(chgPlace(t.best.c))+" $"+t.best.r.toFixed(2):"\u2014")+'</b> \u00b7 worst <b>'+(t.worst?esc(chgPlace(t.worst.c))+" $"+t.worst.r.toFixed(2):"\u2014")+'</b> \u00b7 fastest <b>'+(t.fast?esc(chgPlace(t.fast.c))+" "+t.fast.v.toFixed(2)+" kWh/min":"\u2014")+'</b></div>'+
-      '<div class="sl">ETA SF <b>'+(t.eta?esc(fmtDay(t.eta))+" ~"+esc(fmtTime(t.eta)):"\u2014")+'</b>'+(t.hrsPerDay?' \u00b7 '+hm(t.hrsPerDay*60)+' door-to-door/day at '+Math.round(t.d2dMph)+' mph':'')+'</div>';
-    body.appendChild(tot);
-    card.appendChild(body);w.appendChild(card);
+    var t=tripStats(),latest=t.days.length?Math.max.apply(null,t.days.map(function(r){return r.d;})):0;
+    var cur=Math.max(1,Math.min(TRIP_DAYS,Math.max(latest,todayDay()||1)));
+    if(tsDaySel===null||tsDaySel<1||tsDaySel>TRIP_DAYS)tsDaySel=cur;
+    var head=el("div","tsHead",'<div><div class="tsTitle">Trip stats</div><div class="tsSub">On the road to San Francisco</div></div><label class="tsSel">Day <select id="tsDay" aria-label="Day shown"></select></label>');
+    var sel=head.querySelector("select");
+    for(var d=1;d<=TRIP_DAYS;d++){var o=document.createElement("option");o.value=d;o.textContent=d+" of "+TRIP_DAYS;if(d===tsDaySel)o.selected=true;sel.appendChild(o);}
+    sel.addEventListener("change",function(){tsDaySel=+this.value;renderStats();});
+    w.appendChild(head);
+    var pc=el("div","card tsCard tsProg");
+    pc.innerHTML='<div class="tsProgL"><div class="tsBig">'+num(t.done)+' mi</div><div class="tsOf">of '+num(TOTAL_MI)+' mi <span class="pill">'+Math.round(t.pct)+'%</span></div><div class="tsBar"><i style="width:'+Math.min(100,t.pct).toFixed(1)+'%"></i></div><div class="tsRem">'+num(t.left)+' mi remaining</div></div>'+
+      '<div class="tsProgR"><div class="tsK">Estimated arrival</div><div class="tsV">'+(t.eta?esc(fmtDate2(t.eta)):"—")+'</div><div class="tsV2">'+(t.eta?"~"+esc(fmtTime(t.eta)):"—")+'</div><div class="tsNote">'+(t.hrsPerDay?hm(t.hrsPerDay*60)+' door-to-door/day · '+t.remDays+' planned day'+(t.remDays===1?"":"s")+' left':'needs one completed day')+'</div></div>';
+    w.appendChild(pc);
+    var grid=el("div","tsGrid"),colL=el("div","tsCol"),colR=el("div","tsCol"),shown=[];
+    for(var dd=tsDaySel;dd>=1;dd--){var r=dayStats(dd);if(!r&&dd===tsDaySel)r=dayShell(dd);if(r)shown.push(r);}
+    if(!shown.length)colL.appendChild(el("div","card tsCard tsEmpty","Nothing logged yet — tap Rolling on a stop card when you leave."));
+    shown.forEach(function(r){colL.appendChild(dayCard(r));});
+    colR.appendChild(chargingCard(t));
+    grid.appendChild(colL);grid.appendChild(colR);w.appendChild(grid);
+  }
+  function dayCard(r){
+    var done=!!(r.arrived||state.trip.arrived[r.stop.id]),today=r.d===todayDay();
+    var c=el("div","card tsCard tsDay"+(done?" done":"")),lab=done?"Completed · Day "+r.d:(today?"Today · ":"")+"Day "+r.d;
+    var h='<div class="tsDayH"><span class="tsLab">'+esc(lab)+'</span>'+(done?'':'<span class="pill live">In progress</span>')+'</div><div class="tsStop">'+esc(r.stop.name)+'</div>';
+    if(!done){
+      h+='<div class="tsLine">'+num(r.miles)+' mi planned · Departed <b>'+(r.rolled?esc(fmtTime(r.rolled)):"—")+'</b></div>';
+      h+=r.ch.length?'<div class="tsList">'+r.ch.map(function(x){return '<div class="tsRow"><span>'+esc(fmtTime(chgTs(x)))+' · '+esc(chgPlace(x))+'</span><b>'+(Math.round((x.kwh||0)*10)/10)+' kWh · '+money2(x.cost||0)+'</b></div>';}).join("")+'</div>':'<div class="tsMuted">No charging stops logged yet</div>';
+    }else{
+      h+='<div class="tsLine">Departed <b>'+(r.rolled?esc(fmtTime(r.rolled)):"—")+'</b> → Arrived <b>'+(r.arrived?esc(fmtTime(r.arrived)):"—")+'</b></div>';
+      h+='<div class="tsKpis three"><div><span>Total</span><b>'+hm(r.d2d)+'</b></div><div><span>Driving</span><b>'+hm(r.drive)+'</b></div><div><span>Charging</span><b class="red">'+hm(r.ch.length?r.chMin:null)+'</b></div></div>';
+      h+='<div class="tsKpis two"><div><span>Average speed</span><b>'+dash(r.mph,function(v){return Math.round(v)+" mph";})+'</b></div><div><span>Longest stint</span><b>'+dash(r.longest,function(v){return Math.round(v)+" mi";})+'</b></div></div>';
+      if(r.ch.length){var mx=Math.max.apply(null,r.ch.map(function(x){return x.kwh||0;}))||1;
+        h+='<div class="tsBars">'+r.ch.map(function(x){return '<div class="tsBarCol"><span class="v">'+(Math.round((x.kwh||0)*10)/10)+'</span><i style="height:'+Math.max(4,Math.round((x.kwh||0)/mx*60))+'px"></i><span class="n">'+esc(chgPlace(x).split(",")[0])+'</span></div>';}).join("")+'</div><div class="tsMuted">kWh per session</div>';
+      }else h+='<div class="tsMuted">No charging stops logged</div>';
+    }
+    c.innerHTML=h;return c;
+  }
+  function chargingCard(t){
+    var c=el("div","card tsCard tsChg"),real=CHARGES.filter(function(x){return !x.planned&&x.kwh>0;});
+    var dr=t.driveMin,chm=t.chMin,sum=(dr||0)+chm,pd=sum?Math.round((dr||0)/sum*100):null,pc2=pd===null?null:100-pd;
+    var effOpen=state.collapsed["trip-eff"]===undefined?(window.innerWidth>=700):!state.collapsed["trip-eff"];
+    var h='<div class="tsChgT">Charging</div><div class="tsChgS">Trip to date</div>'+
+      '<div class="tsPair"><div><b class="red">'+money2(t.cost)+'</b><span>Spent so far</span></div><div><b>'+dash(t.proj,function(v){return "~"+money(v);})+'</b><span>Estimated remaining</span></div></div>'+
+      '<div class="tsG4"><div><span>Stops</span><b>'+real.length+'</b></div><div><span>kWh</span><b>'+(Math.round(t.kwh*10)/10)+'</b></div><div><span>Avg $/kWh</span><b>'+dash(t.perKwh,function(v){return "$"+v.toFixed(2);})+'</b></div><div><span>$/mi</span><b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b></div></div>'+
+      '<div class="tsTime"><div class="tsK">Recorded travel time</div>'+
+      '<div class="tsTRow"><span>Driving</span><b>'+hm(dr)+(pd!==null?' · '+pd+'%':'')+'</b></div><div class="tsTRow"><span>Charging</span><b>'+hm(chm||null)+(pc2!==null?' · '+pc2+'%':'')+'</b></div>'+
+      (sum?'<div class="sbar2"><i class="dr" style="width:'+pd+'%"></i><i class="ch" style="width:'+pc2+'%"></i></div><div class="tsLeg"><span><i style="background:#0A7AFF"></i>Driving <b>'+pd+'%</b></span><span><i style="background:#E82127"></i>Charging <b>'+pc2+'%</b></span></div>':'')+'</div>';
+    /* efficiency & locations */
+    var rated=t.rated,pins='',list='';
+    if(rated.length){var lo=rated[0].r,hi=rated[rated.length-1].r,span=hi-lo||1;
+      pins='<div class="tsRate">'+rated.map(function(x,i){var pos=(x.r-lo)/span,rank=rated.length>1?i/(rated.length-1):0,cls=pos>0.67?"":((pos<0.34&&rank<0.5)?" g":" o");   /* red = priciest third; green = cheap and in the lower half; orange between */
+        return '<div class="l">'+esc(chgPlace(x.c))+'</div><div class="dotw"><div class="dot"></div><div class="pin'+cls+'" style="left:'+(pos*100).toFixed(1)+'%"></div></div><div class="v">$'+x.r.toFixed(2)+'</div>';}).join("")+'</div>'+
+        '<div class="tsMuted">Cheapest to priciest stop so far'+(t.perKwh?' · average $'+t.perKwh.toFixed(2):'')+'</div>';}
+    else pins='<div class="tsMuted">No sessions yet</div>';
+    var pts=t.days.filter(function(r){return r.whmi!==null;}),spark='';
+    if(pts.length){var vals=pts.map(function(r){return r.whmi;}),EPA=270,lo2=Math.min.apply(null,vals.concat([EPA]))*0.85,hi2=Math.max.apply(null,vals.concat([EPA]))*1.15,W=300,H=70,byDay={};
+      pts.forEach(function(r){byDay[r.d]=r;});
+      var X=function(d){return 20+(d-1)*(W-40)/Math.max(1,TRIP_DAYS-1);},Y=function(v){return 50-(v-lo2)/(hi2-lo2)*36;};
+      var pl=pts.map(function(r){return X(r.d).toFixed(1)+","+Y(r.whmi).toFixed(1);}).join(" "),svgIn='';
+      svgIn+='<line x1="0" y1="'+Y(EPA).toFixed(1)+'" x2="'+W+'" y2="'+Y(EPA).toFixed(1)+'" stroke="#E5E5EA" stroke-dasharray="3 3"/><text x="0" y="'+(Y(EPA)-4).toFixed(1)+'" font-size="9" fill="#8E8E93">EPA ≈ 270</text>';
+      if(pts.length>1)svgIn+='<polyline points="'+pl+'" fill="none" stroke="#0A7AFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+      for(var dd=1;dd<=TRIP_DAYS;dd++){var r=byDay[dd];
+        if(r)svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(r.whmi).toFixed(1)+'" r="4.5" fill="#0A7AFF"/><text x="'+X(dd).toFixed(1)+'" y="'+(Y(r.whmi)-8).toFixed(1)+'" font-size="10" text-anchor="middle" font-weight="600" fill="#1C1C1E">'+Math.round(r.whmi)+'</text><text x="'+X(dd).toFixed(1)+'" y="64" font-size="10" text-anchor="middle" fill="#6E6E73">Day '+dd+'</text>';
+        else svgIn+='<circle cx="'+X(dd).toFixed(1)+'" cy="'+Y(EPA).toFixed(1)+'" r="3" fill="#C7CBD1"/>';}
+      spark='<div class="tsSpark"><div class="tsK">Wh/mi by day</div><svg viewBox="0 0 300 70" aria-hidden="true">'+svgIn+'</svg>'+
+        '<div class="tsKpiRow"><div><span>Wh/mi</span><b>'+dash(t.whmi,function(v){return Math.round(v);})+'</b></div><div><span>$/mi</span><b>'+dash(t.perMi,function(v){return "$"+v.toFixed(2);})+'</b></div><div><span>Charging to SF</span><b class="red">'+dash(t.proj,function(v){return "~"+money(v);})+'</b></div></div></div>';}
+    else spark='<div class="tsMuted">Wh/mi appears after the first completed day</div>';
+    list='<div class="tsLoc"><div class="tsK">Charging locations</div>'+(real.length?real.map(function(x){return '<a href="https://maps.apple.com/?address='+encodeURIComponent(x.addr||x.name)+'" target="_blank" rel="noopener"><span style="color:var(--label)">'+esc(chgPlace(x))+'</span><span>'+esc(fmtShort(parseYMD(x.date))+" "+(x.time||""))+' · '+(Math.round((x.kwh||0)*10)/10)+' kWh · '+money2(x.cost||0)+'</span></a>';}).join(""):'<div class="tsMuted">None yet</div>')+'</div>';
+    h+='<div class="tsEff'+(effOpen?"":" closed")+'"><div class="tsEffH" role="button" tabindex="0" aria-expanded="'+(effOpen?"true":"false")+'">Efficiency &amp; charging locations <span class="chev">▼</span></div><div class="tsEffB"><div class="tsK">$/kWh by stop</div>'+pins+spark+list+'</div></div>';
+    c.innerHTML=h;
+    var eh=c.querySelector(".tsEffH");
+    function togE(){state.collapsed["trip-eff"]=effOpen;save(state);renderStats();}   /* store "collapsed" = it was open */
+    eh.addEventListener("click",togE);eh.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togE();}});
+    return c;
   }
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
