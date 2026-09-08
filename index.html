@@ -773,7 +773,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v74 · Sep 7</div>
+  <div class="appver">SF Move · v75 · Sep 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1151,6 +1151,10 @@ var ACCENTS = {
   if(!state.trip.rolledV1){   /* one-time backfill: Day 1 rolled 8:30 AM Sept 6; a time already entered by hand is kept */
     if(!state.trip.rolled.strobert)state.trip.rolled.strobert="2026-09-06T08:30";
     state.trip.rolledV1=true;save(state);
+  }
+  if(!state.trip.day2ArrivedV1){   /* one-time backfill: Day 2 (Amarillo) arrival 7:30 PM Sept 7; a time already entered by hand is kept */
+    if(!state.trip.arrivedAt.amarillo){state.trip.arrivedAt.amarillo="2026-09-07T19:30";state.trip.arrived.amarillo=true;}
+    state.trip.day2ArrivedV1=true;save(state);
   }
   /* departure date: the single source for every date in the app */
   (function(){
@@ -1748,7 +1752,8 @@ var ACCENTS = {
     {id:"chg-008", name:"Oklahoma City, OK \u2013 West Memorial", addr:"3437 W Memorial Rd, Oklahoma City, OK 73134", lat:35.6086, lng:-97.5766, date:"2026-09-07", time:"13:48", kwh:40.29, rate:0.46, cost:18.53, min:27},
     {id:"chg-009", name:"Calumet, OK \u2013 Cherokee Trading Post", addr:"245 S Walbaum Rd, Calumet, OK 73014", lat:35.6003, lng:-98.1236, date:"2026-09-07", time:"15:00", kwh:23.53, rate:0.56, cost:13.17, min:14},
     {id:"chg-010", name:"Elk City, OK", addr:"2001 E 7th St, Elk City, OK 73644", lat:35.4088, lng:-99.3854, date:"2026-09-07", time:"16:15", kwh:27.21, rate:0.48, cost:13.06, min:16},
-    {id:"chg-011", name:"Shamrock, TX", addr:"107 E 12th St, Shamrock, TX 79079", lat:35.2145, lng:-100.2490, date:"2026-09-07", time:"17:17", kwh:43.88, rate:0.38, cost:16.67, min:31}
+    {id:"chg-011", name:"Shamrock, TX", addr:"107 E 12th St, Shamrock, TX 79079", lat:35.2145, lng:-100.2490, date:"2026-09-07", time:"17:17", kwh:43.88, rate:0.38, cost:16.67, min:31},
+    {id:"chg-012", name:"Amarillo, TX \u2013 I-40 (Buc-ee\u0027s)", addr:"9900 I-40, Amarillo, TX 79118", lat:35.1725, lng:-101.7150, date:"2026-09-07", time:"18:58", kwh:37.12, rate:0.38, cost:14.10, min:18}
   ];
   /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
@@ -1757,7 +1762,8 @@ var ACCENTS = {
     {id:"exp-002", cat:"hotel", amount:168.72, note:"Candlewood Suites Springfield · booked Orbitz", date:"2026-09-06", time:"15:39"},
     {id:"exp-003", cat:"groceries", amount:24.83, note:"Walmart · Springfield MO", date:"2026-09-06", time:"18:40"},
     {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"},
-    {id:"exp-005", cat:"hotel", amount:314.98, note:"Home2 Suites Amarillo East · booked Orbitz", date:"2026-09-07", time:"17:30"}
+    {id:"exp-005", cat:"hotel", amount:314.98, note:"Home2 Suites Amarillo East · booked Orbitz", date:"2026-09-07", time:"17:30"},
+    {id:"exp-006", cat:"groceries", amount:41.10, note:"Walmart · Amarillo TX", date:"2026-09-07", time:"19:37"}
   ];
   /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
      entry under the same id (food/coffee → "food", sight → "misc"), so it counts exactly once. Never touch route miles, progress or charging stats. */
