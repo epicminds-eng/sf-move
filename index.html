@@ -207,15 +207,17 @@
   #page-spend .trhead{margin-bottom:18px;}
   .trhead .tr-dp{background:#E8F0FF;color:#2F6BFF;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;white-space:nowrap;flex:none;}
   .trcard{background:#fff;border-radius:24px;box-shadow:0 1px 2px rgba(0,0,0,.05);margin-bottom:16px;color:#111214;}
-  .trbar{padding:18px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;}
-  .trbar .tr-big{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;white-space:nowrap;}
-  .trbar .tr-big small{display:block;font-size:12px;font-weight:500;color:#6B7280;margin-top:5px;letter-spacing:0;}
-  .trbar .tr-tk{flex:1 1 220px;min-width:140px;height:8px;border-radius:999px;background:#E9EBEF;overflow:hidden;}
+  .trbar{padding:18px 20px 20px;}   /* one card: a row of evenly spaced figures, the track beneath it */
+  .trbar .tr-row{display:flex;align-items:baseline;gap:12px;}
+  .trbar .tr-cell{flex:1 1 0;min-width:0;text-align:center;}
+  .trbar .tr-cell:first-child{text-align:left;}   /* five equal columns; only the headline's type is larger, its width is not */
+  .trbar .tr-cell b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .trbar .tr-cell:first-child b{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;}
+  .trbar .tr-cell small{display:block;font-size:12px;font-weight:500;color:#6B7280;margin-top:4px;letter-spacing:0;}
+  .trbar .tr-cell.day b{color:#2F6BFF;}
+  .trbar .tr-tk{margin-top:16px;height:8px;border-radius:999px;background:#E9EBEF;overflow:hidden;}
   .trbar .tr-tk i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#6C9BFF);}
-  .trbar .tr-num{font-size:15px;font-weight:600;white-space:nowrap;}
-  .trbar .tr-num small{display:block;font-size:12px;font-weight:500;color:#6B7280;margin-top:3px;}
-  .trbar .tr-dv{width:1px;align-self:stretch;background:#E9EBEF;}
-  @media (max-width:699px){.trbar{gap:10px 14px;}.trbar .tr-tk{flex:1 0 100%;order:9;}.trbar .tr-dv{display:none;}}
+  @media (max-width:429px){.trbar{padding:16px 14px 18px;}.trbar .tr-row{gap:4px;}.trbar .tr-cell b{font-size:13.5px;}.trbar .tr-cell:first-child b{font-size:20px;}.trbar .tr-cell small{font-size:10.5px;}}
   .trmap{padding:0;overflow:hidden;}
   .trmapw{position:relative;}
   .trmap svg#tripSvg{width:100%;height:auto;display:block;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
@@ -302,7 +304,7 @@
   .nd.home.done{fill:#AF52DE;}
   .nl{font-size:9.5px;font-weight:500;fill:#1C1C1E;font-family:inherit;paint-order:stroke;stroke:#F5F3EE;stroke-width:3;stroke-linejoin:round;}
   .nl.b{font-weight:700;}   /* bold once the stop is behind you */
-  .posg{transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .3s ease-out;}   /* critically-damped spring, no overshoot */
+  .posg{pointer-events:none;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .3s ease-out;}   /* critically-damped spring, no overshoot. It is a readout, never a target: without pointer-events:none the live dot swallows taps on any pin it covers, and steals pan gestures */
   .posg .halo{fill:#0A7AFF;opacity:.18;}
   .posg .dot{fill:#0A7AFF;stroke:#fff;stroke-width:2;}
   /* level-of-detail layers: fade in with zoom, counter-scaled, opacity-only */
@@ -676,7 +678,6 @@
   <div class="page" id="page-trip" data-title="Trip">
     <div class="trhead">
       <div><div class="tr-eb">Southern route</div><h1>Trip to San Francisco</h1></div>
-      <span class="tr-dp" id="trDayPill">Day 1 of 6</span>
     </div>
     <div class="trcard trbar" id="tripBar"></div>
     <div class="trcard trmap">
@@ -779,7 +780,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v76 · Sep 8</div>
+  <div class="appver">SF Move · v77 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2036,7 +2037,10 @@ var ACCENTS = {
       var r=e.target.closest("[data-day]");if(r){STV.day=+r.getAttribute("data-day");renderDaily();}   /* v70 turned these rows into .brow bars, so a ".row[data-day]" match stopped selecting the day */
     });
     document.getElementById("trDaily").addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
-    document.getElementById("trCharging").addEventListener("change",function(e){var sl=e.target.closest("select[data-sel=chgDay]");if(sl)stSet("chgDay",+sl.value);});
+    document.getElementById("trCharging").addEventListener("change",function(e){
+      var sl=e.target.closest("select[data-sel=chgDay]");if(sl){stSet("chgDay",+sl.value);return;}
+      var hs=e.target.closest("select[data-sel=hlScope]");if(hs)stSet("hlScope",hs.value);
+    });
     /* translucent top bar per page: the small title fades in once the large title scrolls under it */
     Array.prototype.forEach.call(document.querySelectorAll(".page"),function(pg){
       var h=pg.querySelector(".sign h1,.trhead h1"),tb=el("div","topbar",'<span>'+esc(pg.getAttribute("data-title")||(h?h.textContent:""))+'</span>');
@@ -2045,7 +2049,8 @@ var ACCENTS = {
     var sc=document.getElementById("scroll");
     sc.addEventListener("scroll",function(){sc.classList.toggle("scrolled",sc.scrollTop>28);},{passive:true});
     zoomSvg.addEventListener("click",function(e){
-      var g=e.target.closest("[data-pin]");
+      var g=e.target.closest?e.target.closest("[data-pin]"):null;
+      if(!g){var el=document.elementFromPoint(e.clientX,e.clientY);g=(el&&el.closest)?el.closest("[data-pin]"):null;}   /* a captured pointer retargets the click to the <svg> itself (mouse and trackpad), so fall back to what is actually under the cursor */
       if(!g){pinPopClose();return;}
       if(G&&G.moved)return;   /* a pan that ended on a pin is not a tap */
       pinPopOpen(+g.getAttribute("data-pin"));
@@ -2180,7 +2185,7 @@ var ACCENTS = {
   window.addEventListener("resize",function(){if(!G&&!Z.anim){var t=clampZ(Z.s,Z.tx,Z.ty);Z.s=t.s;Z.tx=t.tx;Z.ty=t.ty;applyZoom();}});
   function renderTripStops(){   /* Itinerary: strict chronological order, start then Day 1 → Day 6, whatever the state */
     var wrap=document.getElementById("tripStops");wrap.innerHTML="";
-    var pos=Math.max(0,Math.min(TOTAL_MI,routePos())),curStop=stopForDay(tripDayNow()),cur=curStop?STOPS.indexOf(curStop):-1,order=[],i;
+    var pos=loggedMiles(),curStop=stopForDay(tripDayNow()),cur=curStop?STOPS.indexOf(curStop):-1,order=[],i;
     for(i=0;i<STOPS.length;i++)order.push(i);
     order.forEach(function(i){
       var s=STOPS[i],arr=!!state.trip.arrived[s.id],status=i===0?"start":(i===cur?"cur":(arr?"done":"up"));
@@ -2304,7 +2309,7 @@ var ACCENTS = {
   }
   function tripStats(){
     var days=[];for(var d=1;d<=TRIP_DAYS;d++){var r=dayStats(d);if(r)days.push(r);}
-    var done=tripProgress().miles,left=Math.max(0,TOTAL_MI-done);
+    var done=loggedMiles(),left=Math.max(0,TOTAL_MI-done);   /* was tripProgress().miles — the last ARRIVED stop, which lags what the map and the progress card show */
     /* every average is over COMPLETE days only — both stamps, believable span. The day under way is
        reported separately so a part-driven day never drags the pace down or the day count up. */
     var doneDays=days.filter(function(r){return r.complete;}),nDone=doneDays.length;
@@ -2349,7 +2354,7 @@ var ACCENTS = {
   function realCharges(){return CHARGES.filter(function(c){return !c.planned&&c.kwh>0;}).sort(function(a,b){return chgTs(a)-chgTs(b);});}
   function dash2(v,f){return (v===null||v===undefined||isNaN(v))?"—":f(v);}
   function dayTitle(d){var dt=addDays(departDate(),d-1);return WDL[dt.getDay()]+" · Day "+d;}
-  var ST_DEF={scope:"trip",showPlanned:true,sessionsScope:"scoped",costUnit:"kwh",milesMetric:"miles",arcMetric:"miles",chgDay:null,speedUnit:"kwh",sort:"time"};
+  var ST_DEF={scope:"trip",showPlanned:true,sessionsScope:"scoped",costUnit:"kwh",milesMetric:"miles",arcMetric:"miles",chgDay:null,hlScope:"day",speedUnit:"kwh",sort:"time"};
   function stS(){var s=state.stats||{},o={};for(var k in ST_DEF)o[k]=(s[k]===undefined||s[k]===null)?ST_DEF[k]:s[k];return o;}   /* defaults never written until the user touches a control */
   function stSet(k,v){state.stats=state.stats||{};state.stats[k]=v;save(state);renderStats();}
   var STV={day:null};   /* Daily row selection — view-only, not persisted */
@@ -2361,6 +2366,7 @@ var ACCENTS = {
   function chgRate(c){return c.rate>0?c.rate:(c.cost>0&&c.kwh>0?c.cost/c.kwh:0);}
   /* ---------- TRIP top section: header pill · progress bar · route rail · charging summary · charger pins ---------- */
   function mapMode(){var m=state.ui&&state.ui.mapMode;return (m==="chg"||m==="places")?m:"route";}
+  function loggedMiles(){return Math.max(0,Math.min(TOTAL_MI,routePos()));}   /* THE miles figure: what every screen shows, and the only denominator any rate may use */
   function routePos(){   /* live fix if tracking, else the furthest of: Arrived stops, logged (non-planned) charger positions */
     var pr=tripProgress();if(pr.live)return pr.miles;var m=pr.miles;
     CHARGES.forEach(function(c){if(c.planned||!c.date)return;var x=locate({lat:c.lat,lng:c.lng}).miles;if(x>m&&x<=TOTAL_MI)m=x;});
@@ -2368,10 +2374,9 @@ var ACCENTS = {
   }
   function nextStopIdx(pos){for(var i=1;i<STOPS.length;i++)if(CUM[i]>pos+0.5)return i;return -1;}
   function tripDayNow(){var t=tripStats();return Math.max(1,Math.min(TRIP_DAYS,Math.max(t.runDone+1,todayDay()||1)));}   /* the day after the last unbroken run of finished days, or the calendar day — a stray stamp further out moves neither */
-  function renderTripHead(){var p=document.getElementById("trDayPill");if(p)p.textContent="Day "+tripDayNow()+" of "+TRIP_DAYS;}
   function renderOverview(){   /* the hero above carries miles and charging; Overview adds the pace digest and, on phones, the route the rail shows on iPad */
     var w=document.getElementById("trOverview");if(!w)return;
-    var t=tripStats(),pos=Math.max(0,Math.min(TOTAL_MI,routePos())),nx=nextStopIdx(pos);
+    var t=tripStats(),pos=loggedMiles(),nx=nextStopIdx(pos);
     var lead='<div class="trlead"><div class="k">Time left in the car</div><div class="v">'+
       (t.timeLeft!==null?"~"+Math.round(t.timeLeft/60)+"h<small>to San Francisco</small>":"\u2014<small>needs one full day first</small>")+'</div>'+
       '<div class="n">'+(t.paceMin!==null?"at ~"+(Math.round(t.paceMin*100)/100)+" min per mile including charging":
@@ -2394,15 +2399,18 @@ var ACCENTS = {
   }
   function renderTripBar(){
     var w=document.getElementById("tripBar");if(!w)return;
-    var pos=Math.max(0,Math.min(TOTAL_MI,routePos())),pct=TOTAL_MI?pos/TOTAL_MI*100:0;
-    w.innerHTML='<div class="tr-big">'+num(pos)+' mi<small>logged</small></div>'+
-      '<div class="tr-tk"><i style="width:'+pct.toFixed(2)+'%"></i></div>'+
-      '<div class="tr-num">'+num(TOTAL_MI)+' mi<small>total</small></div><div class="tr-dv"></div>'+
-      '<div class="tr-num">'+num(TOTAL_MI-pos)+' mi<small>remaining</small></div>';
+    var pos=loggedMiles(),pct=TOTAL_MI?pos/TOTAL_MI*100:0;
+    w.innerHTML='<div class="tr-row">'+
+      '<div class="tr-cell"><b>'+num(pos)+'</b><small>mi logged</small></div>'+
+      '<div class="tr-cell"><b>'+num(TOTAL_MI)+'</b><small>mi total</small></div>'+
+      '<div class="tr-cell"><b>'+num(TOTAL_MI-pos)+'</b><small>mi left</small></div>'+
+      '<div class="tr-cell"><b>'+Math.round(pct)+'%</b><small>complete</small></div>'+
+      '<div class="tr-cell day"><b>Day '+tripDayNow()+' of '+TRIP_DAYS+'</b><small>today</small></div></div>'+
+      '<div class="tr-tk"><i style="width:'+pct.toFixed(2)+'%"></i></div>';
   }
   function renderRail(){
     var ws=[document.getElementById("tripRail"),document.getElementById("itinRail")].filter(Boolean);if(!ws.length)return;
-    var pos=Math.max(0,Math.min(TOTAL_MI,routePos())),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
+    var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
     var head='<div class="tr-eb">Up next</div><div class="tr-nx">'+esc(ns?ns.name:"San Francisco")+'</div>'+
       '<div class="tr-mi">'+(ns?"~"+num(CUM[nx]-pos)+" mi away":"arrived")+'</div><div class="tr-hr"></div><div class="tr-rt">Your route</div>';
     var steps=STOPS.map(function(s,i){
@@ -2417,7 +2425,7 @@ var ACCENTS = {
   }
   function renderTripSummary(){   /* the persistent bar under the map: where the trip stands, in one row */
     var w=document.getElementById("tripSummary");if(!w)return;
-    var pos=Math.max(0,Math.min(TOTAL_MI,routePos())),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
+    var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
     w.innerHTML='<div class="tr-c"><b>'+num(pos)+'</b><span>miles so far</span></div>'+
       '<div class="tr-c"><b>'+num(TOTAL_MI-pos)+'</b><span>miles remaining</span></div>'+
       '<div class="tr-c nx"><b>'+esc(ns?ns.short:"San Francisco")+'</b><span>next stop</span></div>'+
@@ -2435,7 +2443,7 @@ var ACCENTS = {
   }
   function syncMapSeg(){var g=document.getElementById("mapSeg");if(!g)return;var m=mapMode();   /* the control follows the stored mode on every load */
     Array.prototype.forEach.call(g.children,function(b){b.classList.toggle("on",b.getAttribute("data-m")===m);});}
-  function renderTripTop(){renderTripHead();renderTripBar();renderRail();renderTripSummary();syncMapSeg();renderOverview();}
+  function renderTripTop(){renderTripBar();renderRail();renderTripSummary();syncMapSeg();renderOverview();}
   /* charger pins: logged sessions cluster when they sit within CLUSTER_R viewBox units of each other */
   var MAX_DAY_MIN=20*60;   /* the longest span a single driving day may claim */
   var CLUSTER_R=6,BOLT="M0.5 -2.2 L-1.6 0.4 L-0.25 0.4 L-0.6 2.2 L1.6 -0.5 L0.25 -0.5 Z";
@@ -2642,27 +2650,25 @@ var ACCENTS = {
     var t=tripStats(),cur=tripDayNow(),S=stS(),real=realCharges();
     var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
     var cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg,ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
-    var td=dayStats(cur),avg=real.length?t.chMin/real.length:null;
-    var stats=statrow([[real.length?hm(t.chMin):"—","time at chargers"],[String(td?td.ch.length:0),"stops today"],[avg!==null?Math.round(avg)+" min":"—","average stop"],[(td&&td.cost>0)?money2(td.cost):"—","spent today"]]);
+    var td=dayStats(cur),avg=real.length?t.chMin/real.length:null,planned=CHARGES.filter(function(c){return c.planned;});
+    var stats=statrow([[String(td?td.ch.length:0),"stops today"],[avg!==null?Math.round(avg)+" min":"—","average stop"],[(td&&td.cost>0)?money2(td.cost):"—","spent today"],[String(planned.length),"planned ahead"]]);
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
-    var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),t2:fmtTime(chgTs(c))+" · "+(c.min||"—")+" min · "+(Math.round(c.kwh*10)/10)+" kWh",
-      v1:c.min>0?(c.kwh/c.min).toFixed(2)+" kWh/min":"—",v2:money2(c.cost||0)});}).join("");
+    var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),
+      t2:fmtTime(chgTs(c))+" · "+(Math.round(c.kwh*10)/10)+" kWh"+(c.min>0?" · "+(c.kwh/c.min).toFixed(2)+" kWh/min":""),
+      v1:c.min>0?c.min+" min":"—",v2:money2(c.cost||0)});}).join("");
     var sessions=head+'<div class="grp">'+(srows||row({t1:"No sessions logged for Day "+cd,mute:true}))+'</div>';
-    var withMin=cs.filter(function(c){return c.min>0;});
-    var fast=withMin.slice().sort(function(a,b){return b.kwh/b.min-a.kwh/a.min;})[0],longest=withMin.slice().sort(function(a,b){return b.min-a.min;})[0],pricey=cs.slice().sort(function(a,b){return chgRate(b)-chgRate(a);})[0];
-    var hl=grp("Highlights · Day "+cd,
-      row({ic:"gauge",bg:TINT.charging,t1:"Fastest session",t2:fast?esc(chgShort(fast,cs)):"",v1:fast?(fast.kwh/fast.min).toFixed(2)+" kWh/min":"—"})+
-      row({ic:"clock",bg:TINT.charging,t1:"Longest stop",t2:longest?esc(chgShort(longest,cs)):"",v1:longest?hm(longest.min):"—"})+
-      row({ic:"usd",bg:TINT.charging,t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,cs)):"",v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"}));
-    var planned=CHARGES.filter(function(c){return c.planned;});
-    var ttd=grp("Trip to date",
-      row({ic:"pin",bg:TINT.route,t1:"Stops",v1:String(real.length)})+
-      row({ic:"pin",bg:TINT.misc,t1:"Planned ahead",t2:"chargers on the route, not yet used",v1:String(planned.length)})+
-      row({ic:"bolt",bg:TINT.charging,t1:"Energy added",v1:kwh1(t.kwh)+" kWh"})+
-      row({ic:"usd",bg:TINT.charging,t1:"Average rate",v1:dash2(t.perKwh,function(v){return "$"+v.toFixed(2)+"/kWh";})})+
-      row({ic:"clock",bg:TINT.charging,t1:"Time at chargers",v1:real.length?hm(t.chMin):"—"}));
-    w.innerHTML=chgSummaryHtml()+'<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+ttd+'</div></div>';
+    /* highlights read either the picked day or the whole trip — the summary bar above already carries the trip totals,
+       so "Trip to date" is gone and its one number the bar does not show rides in the stat row */
+    var overall=S.hlScope==="all",hs=overall?real:cs,hlab=overall?"the whole trip":stopForDay(cd).short;
+    var withMin=hs.filter(function(c){return c.min>0;});
+    var fast=withMin.slice().sort(function(a,b){return b.kwh/b.min-a.kwh/a.min;})[0],longest=withMin.slice().sort(function(a,b){return b.min-a.min;})[0],pricey=hs.slice().sort(function(a,b){return chgRate(b)-chgRate(a);})[0];
+    var hhead='<div class="grp-h flex"><span>Highlights</span>'+pillSel(overall?"Overall":"Day "+cd,"hlScope",[["day","Day "+cd+" · "+stopForDay(cd).short],["all","Overall · the whole trip"]],overall?"all":"day")+'</div>';
+    var hl=hhead+'<div class="grp">'+
+      row({ic:"gauge",bg:TINT.charging,t1:"Fastest session",t2:fast?esc(chgShort(fast,hs))+" · "+esc(hlab):esc(hlab),v1:fast?(fast.kwh/fast.min).toFixed(2)+" kWh/min":"—"})+
+      row({ic:"clock",bg:TINT.charging,t1:"Longest stop",t2:longest?esc(chgShort(longest,hs))+" · "+esc(hlab):esc(hlab),v1:longest?hm(longest.min):"—"})+
+      row({ic:"usd",bg:TINT.charging,t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,hs))+" · "+esc(hlab):esc(hlab),v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"})+'</div>';
+    w.innerHTML=chgSummaryHtml()+'<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+'</div></div>';
   }
   function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();renderPlacesSec();}   /* every Trip section, from the same data */
   /* live tracking — never blocks the UI */
@@ -2753,7 +2759,7 @@ var ACCENTS = {
       if(e.cat==="charging"){chAmt+=e.amount;chKwh+=(e.kwh||0);}
       if(e.cat==="food"||e.cat==="groceries")food+=e.amount;
     });
-    var miles=tripProgress().miles,remMiles=Math.max(0,TOTAL_MI-miles);
+    var miles=loggedMiles(),remMiles=Math.max(0,TOTAL_MI-miles);   /* was tripProgress().miles: "$ per mile" divided spend by arrived-stop miles while the Trip tab showed logged miles */
     var dEl=Math.min(todayDay(),TRIP_DAYS),remDays=Math.max(0,TRIP_DAYS-dEl);
     var hasKwh=chKwh>0,perKwh=hasKwh?chAmt/chKwh:KWH_FALLBACK;
     var foodDay=(dEl>0&&food>0)?food/dEl:FOOD_FALLBACK;
