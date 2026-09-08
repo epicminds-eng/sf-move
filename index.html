@@ -543,6 +543,13 @@
   .dayh h2{font-size:17px;font-weight:700;margin:0;}
   .dayh h2 small{font-weight:500;color:var(--secondary);font-size:13px;margin-left:6px;}
   .dayh b{font-size:15px;}
+  .spday .dayh{align-items:flex-start;gap:10px;}   /* day and date stacked left, total and its planned tail stacked right */
+  .spday .dayh h2{min-width:0;}
+  .spday .dayh h2 small{display:block;margin-left:0;margin-top:2px;}
+  .spday .dayh b{flex:none;text-align:right;white-space:nowrap;}
+  .dayh b .pl{display:block;font-size:13px;font-weight:500;color:var(--secondary);}
+  .spday .grp{margin-bottom:0;}
+  .spday .addsec{margin-top:12px;}
   .sprow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #E5E5EA;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .35s cubic-bezier(.22,1,.36,1);}
   .sprow:first-of-type{border-top:0;}
   .sprow .t{flex:1;min-width:0;}
@@ -762,14 +769,14 @@
   <div class="page" id="page-spend" data-title="Spend">
     <div class="trhead">
       <div><div class="tr-eb">Trip costs</div><h1>Spend</h1></div>
-      <div class="trctl"><div class="seg" id="spendSeg" role="tablist" aria-label="Spend section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="transactions">Transactions</button><button type="button" role="tab" data-s="planned">Planned</button></div><button class="btn go spAddHead" type="button" data-add="1">Add expense</button></div>
+      <button class="btn go spAddHead" type="button" data-add="1">Add expense</button>
     </div>
-    <section class="trsec on" id="spOverview"></section>
-    <section class="trsec" id="spTransactions"></section>
-    <section class="trsec" id="spPlanned"></section>
+    <div id="spTop"></div>
+    <div id="spendDays"></div>
+    <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v81 · Sep 8</div>
+  <div class="appver">SF Move · v82 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1081,7 +1088,7 @@ var ACCENTS = {
   var HAD_STORE=(function(){try{return !!window.localStorage.getItem(KEY);}catch(e){return false;}})();   /* established device vs fresh install (decides first-run touched stamps) */
   function load(){try{var r=window.localStorage.getItem(KEY);return r?JSON.parse(r):mem;}catch(e){return mem;}}
   /* ---- change tracking: the state is flattened to dotted leaf paths; meta.touched[path] = ms of the last write (a path in touched with no leaf is a tombstone) ---- */
-  var SYNC_SKIP={"trip.tracking":1,"spend.openDay":1,"spend.nowDay":1,"ui.mapMode":1,"ui.tripSeg":1,"ui.spendSeg":1,"ui.spendDay":1};   /* per-device UI state: tracked locally, never merged */
+  var SYNC_SKIP={"trip.tracking":1,"spend.openDay":1,"spend.nowDay":1,"ui.mapMode":1,"ui.tripSeg":1};   /* per-device UI state: tracked locally, never merged */
   var ID_ARRAY=[/^spend\.entries$/,/^customTasks\.[^.]+$/,/^custom\.[^.]+$/,/^places$/];   /* arrays of {id,…}: each element is its own leaf "<array>.<id>" */
   function isIdArray(path){for(var i=0;i<ID_ARRAY.length;i++)if(ID_ARRAY[i].test(path))return true;return false;}
   function leaves(obj,prefix,out){
@@ -1171,6 +1178,7 @@ var ACCENTS = {
   state.stats=state.stats||{};   /* Stats dashboard view state (scope, filters, per-card pills) — additive */
   state.ui=state.ui||{};         /* per-device view state — additive; ui.mapMode never syncs */
   state.places=Array.isArray(state.places)?state.places:[];   /* places added from the phone, same shape as PLACES — additive, merged per id */
+  if(state.ui.spendSeg!==undefined||state.ui.spendDay!==undefined){delete state.ui.spendSeg;delete state.ui.spendDay;save(state);}   /* the Spend sub-tabs are gone; their view state goes with them */
   if(!state.trip.day2AmarilloV1){   /* Day 2 moved Weatherford → Amarillo: stamps, arrived flag and spend rows follow the stop; planned hotel/pet rows are re-estimated, actuals untouched */
     ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.weatherford!==undefined){if(o.amarillo===undefined)o.amarillo=o.weatherford;delete o.weatherford;}});
     state.spend.entries.forEach(function(e){
@@ -2765,7 +2773,8 @@ var ACCENTS = {
   var LEGEND=[["charging","Charging"],["hotel","Hotels"],["food","Food"],["groceries","Groceries"],["kane","Kane"],["gray","Tolls · parking · misc"]];
   function renderSpendTop(){
     var t=spendTotals(),P=spendProj();
-    $("spSoFar").textContent=money(P.soFar);$("spProj").textContent=money(P.proj);$("spProj2").textContent=money(P.proj);
+    $("spSoFar").textContent=money(P.soFar);$("spProj").textContent=money(P.proj);
+    var p2=$("spProj2");if(p2)p2.textContent=money(P.proj);
     var sums={};LEGEND.forEach(function(L){sums[L[0]]=0;});
     CATS.forEach(function(c){var v=t.byCat[c.id]||0;var key=(c.id==="tolls"||c.id==="parking"||c.id==="misc")?"gray":c.id;sums[key]+=v;});
     var bar=$("spBar");bar.innerHTML="";
@@ -2851,16 +2860,7 @@ var ACCENTS = {
   }
   function renderSpend(newId){seedSpend();seedCharges();seedExpenses();seedPlaces();syncNow();renderSpendAll(newId);}
 
-  /* ---------- SPEND sections: Overview · Transactions · Planned (state.ui.spendSeg / spendDay, never synced) + the Add expense sheet ---------- */
-  var SPEND_SECS=["overview","transactions","planned"];
-  function spendSeg(){var s=state.ui&&state.ui.spendSeg;return SPEND_SECS.indexOf(s)>=0?s:"overview";}
-  function spendDay(){var d=state.ui&&state.ui.spendDay;return (typeof d==="number"&&d>=0&&d<=TRIP_DAYS)?d:currentDay();}
-  function setSpendSeg(k,day){state.ui=state.ui||{};state.ui.spendSeg=k;if(typeof day==="number")state.ui.spendDay=day;save(state);renderSpendAll();}
-  function syncSpendSeg(){
-    var g=document.getElementById("spendSeg");if(!g)return;var k=spendSeg();
-    Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");});
-    SPEND_SECS.forEach(function(x){var e=document.getElementById("sp"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
-  }
+  /* ---------- SPEND: one page — summary, a card per day with the current day's add form open, projection. Plus the Add expense sheet ---------- */
   function catIcon(c){return icon(c.g,c.c);}
   function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
   function txRow(e,isNew){   /* an actual entry as an inset row; swipe-left or long-press → delete, as before */
@@ -2881,7 +2881,7 @@ var ACCENTS = {
     var c=CATMAP[e.cat]||CATMAP.misc;
     var r=el("div","row plan",catIcon(c)+'<div class="tt"><div class="t1">'+esc(e.note||c.l)+'</div><div class="t2">'+(e.billsLater?"confirm from your statement — could be after arrival":"tap to confirm the actual amount")+'</div></div>'+
       '<span class="pillst '+(e.billsLater?"later":"plan")+'">'+(e.billsLater?"Bills later":"Planned")+'</span><div class="vv"><div class="v1">~'+money2(e.amount)+'</div></div>');
-    r.setAttribute("role","button");r.setAttribute("tabindex","0");
+    r.setAttribute("data-id",e.id);r.setAttribute("role","button");r.setAttribute("tabindex","0");
     r.addEventListener("click",function(){if(!r.querySelector(".sp-edit")&&!r.querySelector(".sp-conf"))editPlanned(r,e);});
     var lp=null;
     r.addEventListener("pointerdown",function(ev){if(ev.button>0)return;lp=setTimeout(function(){lp=null;confirmDelete(r,e);},600);});
@@ -2889,49 +2889,76 @@ var ACCENTS = {
     return r;
   }
   function spendDayTitle(d){return d>0?"Day "+d+(stopForDay(d)?" · "+stopForDay(d).short:""):"Pre-trip";}
-  function renderSpendOverview(){
-    var w=document.getElementById("spOverview");if(!w)return;
-    var t=spendTotals(),P=spendProj(),cd=currentDay(),cs=stopForDay(cd);
-    var today=0,n=0,nch=0;state.spend.entries.forEach(function(e){if(e.day===cd&&!e.planned){today+=e.amount;n++;if(e.cat==="charging")nch++;}});
-    var pl=0,np=0;state.spend.entries.forEach(function(e){if(e.planned){pl+=e.amount;np++;}});
+  function renderSpendTopCard(){   /* what the trip has cost and where it is heading — the per-day cards below carry the detail */
+    var w=document.getElementById("spTop");if(!w)return;
+    var t=spendTotals(),P=spendProj();
     var cats=CATS.filter(function(c){return t.byCat[c.id]>0;}).sort(function(a,b){return t.byCat[b.id]-t.byCat[a.id];});
+    var mx=Math.max.apply(null,cats.map(function(c){return t.byCat[c.id];}).concat([1]));
     w.innerHTML='<div class="sphero"><div class="big">'+money(P.soFar)+'<small>spent so far</small></div><div class="proj">~<b>'+money(P.proj)+'</b> projected trip total</div><div class="hr"></div>'+
-      '<div class="rates"><div>'+(t.perMile===null?"—":"$"+t.perMile.toFixed(2)+" / mi")+'<span>per mile</span></div><div>'+(t.perDay===null?"—":money(t.perDay)+" / day")+'<span>per day</span></div></div>'+
-      '<p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span> <span class="sep">·</span> <a href="#" id="importLink">Import</a></p></div>'+
-      (function(){var mx=Math.max.apply(null,cats.map(function(c){return t.byCat[c.id];}).concat([1]));
-        return grp("By category",cats.length?cats.map(function(c){return barRow({ic:c.g,bg:c.c,cls:"cat",t1:c.l,pct:t.byCat[c.id]/mx*100,fill:c.c,v:money2(t.byCat[c.id])});}).join(""):row({t1:"Nothing recorded yet",mute:true}));})()+
-      '<div class="grp">'+row({ic:"cal",bg:TINT.route,t1:"Today"+(cs?" · "+esc(cs.short):""),t2:money2(today)+" recorded · "+nch+(nch===1?" charge":" charges"),chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="'+cd+'"'})+
-      row({ic:"clock",bg:TINT.misc,t1:"Planned &amp; pending",t2:np+" planned · ~"+money(pl)+" still to confirm",chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})+'</div>'+
-      '<button class="btn go spadd" type="button" data-add="1">Add expense</button>'+
-      '<div class="grp-h">How the projection is built</div><div class="grp"><p class="spest" id="spEst"></p></div>'+
-      '<span id="spProj2" hidden></span><span id="spSoFar" hidden></span><span id="spProj" hidden></span><span id="kMile" hidden></span><span id="kDay" hidden></span><span id="kMiles" hidden></span><span id="spBar" hidden></span><span id="spLegend" hidden></span>';
-    renderSpendTop();   /* budget line, projection footnote and the hidden legacy figures the tests and export read */
+      '<div class="rates"><div>'+(t.perMile===null?"\u2014":"$"+t.perMile.toFixed(2)+" / mi")+'<span>per mile</span></div><div>'+(t.perDay===null?"\u2014":money(t.perDay)+" / day")+'<span>per day</span></div></div>'+
+      '<p class="hint" id="budgetRow"><a href="#" id="budgetLink">Set budget</a> <span id="budgetOver"></span> <span class="sep">\u00b7</span> <a href="#" id="importLink">Import</a></p></div>'+
+      grp("By category",cats.length?cats.map(function(c){return barRow({ic:c.g,bg:c.c,cls:"cat",t1:c.l,pct:t.byCat[c.id]/mx*100,fill:c.c,v:money2(t.byCat[c.id])});}).join(""):row({t1:"Nothing recorded yet",mute:true}))+
+      '<button class="btn go spadd" type="button" data-add="1">Add expense</button>'+   /* the header button is 700px-and-up only */
+      '<span id="spSoFar" hidden></span><span id="spProj" hidden></span><span id="kMile" hidden></span><span id="kDay" hidden></span><span id="kMiles" hidden></span><span id="spBar" hidden></span><span id="spLegend" hidden></span>';
   }
-  function renderSpendTransactions(newId){
-    var w=document.getElementById("spTransactions");if(!w)return;
-    var d=spendDay(),opts=[];for(var i=1;i<=TRIP_DAYS;i++)opts.push([i,i===1?"Day 1 & pre-trip":"Day "+i+" · "+stopForDay(i).short]);opts.push([0,"Pre-trip"]);
-    var head='<div class="grp-h flex"><span>Transactions</span>'+pillSel(d===1?"Day 1 &amp; pre-trip":spendDayTitle(d),"spendDay",opts,d)+'</div>';
-    function group(day){
-      var list=state.spend.entries.filter(function(e){return e.day===day&&!e.planned;}).sort(function(a,b){return b.ts-a.ts;}),tot=0;list.forEach(function(e){tot+=e.amount;});
-      var g=el("div");g.innerHTML='<div class="grp-h">'+esc(spendDayTitle(day))+(day>0?' · '+esc(fmtDay(addDays(departDate(),day-1))):'')+' · '+money2(tot)+'</div>';
-      var box=el("div","grp");if(list.length)list.forEach(function(e){box.appendChild(txRow(e,e.id===newId));});else box.innerHTML=row({t1:"Nothing recorded for "+spendDayTitle(day),mute:true});
-      g.appendChild(box);return g;
+  function renderSpendProj(){   /* how the projection is built, at the foot of the page */
+    var w=document.getElementById("spProjCard");if(!w)return;
+    w.innerHTML='<div class="grp-h flex"><span>Projection</span><b>~<span id="spProj2"></span></b></div><div class="grp"><p class="spest" id="spEst"></p></div>';
+  }
+  function buildAddForm(d){   /* the inline add form on the open day — the full-screen sheet is still there for anything else */
+    var f=el("div","addform",
+      '<div class="add"><input class="amt" type="text" inputmode="decimal" placeholder="$" aria-label="Amount"><input class="note" type="text" placeholder="What was it? (optional)" aria-label="Note"></div>'+
+      '<div class="chips2"></div><div class="kwh" hidden><input type="text" inputmode="decimal" placeholder="kWh charged" aria-label="kWh"></div>'+
+      '<button class="addbtn" type="button"></button>');
+    var chips=f.querySelector(".chips2"),kwh=f.querySelector(".kwh"),btn=f.querySelector(".addbtn");
+    function paint(){
+      chips.innerHTML="";
+      CATS.forEach(function(c){var b=el("button","chip2"+(spCat===c.id?" on":""),c.l);b.type="button";b.addEventListener("click",function(){spCat=c.id;paint();});chips.appendChild(b);});
+      kwh.hidden=spCat!=="charging";
     }
-    w.innerHTML=head;w.appendChild(group(d));if(d===1)w.appendChild(group(0));
-    var pl=0,np=0;state.spend.entries.forEach(function(e){if(e.planned){pl+=e.amount;np++;}});
-    w.appendChild(el("div","grp",row({ic:"cal",bg:TINT.route,t1:"Pre-trip",t2:"Ship Sticks and other costs before wheels up",chev:true,attrs:' role="button" tabindex="0" data-goto="transactions" data-day="0"'})+
-      row({ic:"clock",bg:TINT.misc,t1:"Pending costs",t2:np+" planned · ~"+money(pl),chev:true,attrs:' role="button" tabindex="0" data-goto="planned"'})));
+    paint();
+    btn.textContent="Add to "+spendDayTitle(d);
+    btn.addEventListener("click",function(){
+      var amtEl=f.querySelector(".amt"),amt=parseFloat(String(amtEl.value).replace(/[^0-9.]/g,""));
+      if(!(amt>0)){amtEl.focus();return;}
+      var st=stopForDay(d);
+      var e={id:"e"+Date.now(),amount:amt,cat:spCat,note:f.querySelector(".note").value.trim(),day:d,stopId:st?st.id:null,ts:Date.now(),planned:false,billsLater:false};
+      if(spCat==="charging"){var k=parseFloat(String(kwh.querySelector("input").value).replace(/[^0-9.]/g,""));if(k>0)e.kwh=k;}
+      state.spend.entries.push(e);save(state);
+      renderSpend(e.id);   /* the row springs into this card; the form comes back cleared and open */
+    });
+    return f;
   }
-  function renderSpendPlanned(){
-    var w=document.getElementById("spPlanned");if(!w)return;w.innerHTML="";
-    var byDay={},any=false;state.spend.entries.forEach(function(e){if(!e.planned)return;(byDay[e.day]=byDay[e.day]||[]).push(e);any=true;});
-    if(!any){w.innerHTML=grp("Planned",row({t1:"Everything planned has been confirmed",mute:true}));return;}
-    var days=Object.keys(byDay).map(Number).sort(function(a,b){return a-b;});
-    days.forEach(function(day){var list=byDay[day].sort(function(a,b){return a.ts-b.ts;}),tot=0;list.forEach(function(e){tot+=e.amount;});
-      var g=el("div");g.innerHTML='<div class="grp-h">'+esc(spendDayTitle(day))+' · ~'+money(tot)+'</div>';
-      var box=el("div","grp");list.forEach(function(e){box.appendChild(planRow(e));});g.appendChild(box);w.appendChild(g);});
+  function renderSpendDays(newId,openAnim,closeAnim){   /* one card per day, current day first, its add form open */
+    var wrap=document.getElementById("spendDays");if(!wrap)return;wrap.innerHTML="";
+    var cd=currentDay(),byDay={};
+    state.spend.entries.forEach(function(e){(byDay[e.day]=byDay[e.day]||[]).push(e);});
+    /* trip order from today: the current day, then what is still ahead, then back through what is done, pre-trip last */
+    var order=[cd],i;for(i=cd+1;i<=TRIP_DAYS;i++)order.push(i);for(i=cd-1;i>=1;i--)order.push(i);if(cd!==0)order.push(0);
+    order.forEach(function(d){
+      var list=(byDay[d]||[]).slice(),act=0,plan=0;
+      list.forEach(function(e){if(e.planned)plan+=e.amount;else act+=e.amount;});
+      list.sort(function(a,b){return (a.planned?1:0)-(b.planned?1:0)||b.ts-a.ts;});   /* actuals newest first, then what is still planned */
+      var st=stopForDay(d),card=el("div","card spc spday");card.setAttribute("data-day",d);
+      card.appendChild(el("div","dayh",'<h2>'+(d>0?"Day "+d:"Pre-trip")+(d===cd?'<span class="now">Now</span>':'')+   /* the pill belongs beside the day, not under the date */
+        (d>0?'<small>'+esc(fmtDay(addDays(departDate(),d-1)))+(st?" \u00b7 "+esc(st.short):"")+'</small>':'')+
+        '</h2><b>'+money(act)+(plan>0?'<small class="pl">~'+money(plan)+' planned</small>':'')+'</b>'));
+      var box=el("div","grp");
+      if(list.length)list.forEach(function(e){box.appendChild(e.planned?planRow(e):txRow(e,e.id===newId));});
+      else box.innerHTML=row({t1:"Nothing recorded for "+spendDayTitle(d),mute:true});
+      card.appendChild(box);
+      var sec=el("div","addsec");
+      if(state.spend.openDay===d){var f=buildAddForm(d);if(openAnim===d)f.classList.add("new");sec.appendChild(f);}
+      else{
+        var r=el("button","addrow2",'<span class="plus">+</span>Add to '+spendDayTitle(d));r.type="button";
+        if(closeAnim===d)r.classList.add("new");
+        r.addEventListener("click",function(){var prev=state.spend.openDay;state.spend.openDay=d;save(state);renderSpendDays(undefined,d,prev);});
+        sec.appendChild(r);
+      }
+      card.appendChild(sec);wrap.appendChild(card);
+    });
   }
-  function renderSpendAll(newId){syncSpendSeg();renderSpendOverview();renderSpendTransactions(newId);renderSpendPlanned();}
+  function renderSpendAll(newId){renderSpendTopCard();renderSpendDays(newId);renderSpendProj();renderSpendTop();}
   function openAddSheet(day){   /* full-screen on a phone, centred on an iPad; saves to the picked day */
     var d=(typeof day==="number")?day:currentDay(),cat=spCat,back=el("div","sheet-back");
     var opts=[];for(var i=1;i<=TRIP_DAYS;i++)opts.push([i,"Day "+i+" · "+stopForDay(i).short]);opts.push([0,"Pre-trip"]);
@@ -2955,7 +2982,7 @@ var ACCENTS = {
         var v=parseFloat(String(amt.value).replace(/[^0-9.]/g,""));if(!(v>0)){amt.focus();return;}
         var s=stopForDay(d),en={id:"e"+Date.now(),amount:v,cat:cat,note:back.querySelector(".note").value.trim(),day:d,stopId:s?s.id:null,ts:Date.now(),planned:false,billsLater:false};
         if(cat==="charging"){var k=parseFloat(String(back.querySelector(".kwh").value).replace(/[^0-9.]/g,""));if(k>0)en.kwh=k;}
-        state.spend.entries.push(en);state.ui=state.ui||{};state.ui.spendSeg="transactions";state.ui.spendDay=d;save(state);
+        state.spend.entries.push(en);state.spend.openDay=d;save(state);   /* the page opens that day's card */
         back.remove();renderSpend(en.id);toast("Added to "+spendDayTitle(d));
       }
     });
@@ -3033,15 +3060,12 @@ var ACCENTS = {
   }
   function wireSpendUI(){
     var pg=document.getElementById("page-spend");
-    document.getElementById("spendSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setSpendSeg(b.getAttribute("data-s"));});
     pg.addEventListener("click",function(e){
-      if(e.target.closest("[data-add]")){openAddSheet(spendSeg()==="transactions"?spendDay():currentDay());return;}
-      var g=e.target.closest("[data-goto]");if(g){setSpendSeg(g.getAttribute("data-goto"),g.hasAttribute("data-day")?+g.getAttribute("data-day"):undefined);return;}
+      if(e.target.closest("[data-add]")){openAddSheet(currentDay());return;}
       if(e.target.closest("#budgetLink")){e.preventDefault();editBudget();return;}
       if(e.target.closest("#importLink")){e.preventDefault();openImportSheet();return;}
     });
     pg.addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
-    pg.addEventListener("change",function(e){var sl=e.target.closest("select[data-sel=spendDay]");if(sl){state.ui=state.ui||{};state.ui.spendDay=+sl.value;save(state);renderSpendAll();}});
   }
   function editBudget(){
     var row=$("budgetRow");if(!row||row.querySelector("input"))return;
