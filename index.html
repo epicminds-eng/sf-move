@@ -216,11 +216,11 @@
   .trbar .tr-pct{flex:none;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;}
   .trbar .tr-tk{flex:1 1 auto;min-width:0;height:8px;border-radius:999px;background:#E9EBEF;overflow:hidden;}
   .trbar .tr-tk i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#6C9BFF);}
-  @media (max-width:767px){   /* 3 then 2, each row filling the width: a six-track grid with the last two cells spanning three */
-    .trbar .tr-row{grid-template-columns:repeat(6,minmax(0,1fr));}
-    .trbar .tr-cell{grid-column:span 2;}
-    .trbar .tr-cell:nth-child(4),.trbar .tr-cell:nth-child(5){grid-column:span 3;}
-  }
+  .trbar .tr-row.three{grid-template-columns:repeat(3,minmax(0,1fr));}   /* phone: the three mileages, then the bar row carries the rest */
+  .trbar .tr-tl{flex:none;display:flex;align-items:baseline;gap:5px;min-width:0;}
+  .trbar .tr-tl b{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;}
+  .trbar .tr-tl small{font-size:13px;color:var(--secondary);white-space:nowrap;}
+  .trbar .tr-dayline{margin-top:12px;font-size:13px;color:var(--secondary);}
   @media (max-width:429px){.trbar{padding:16px 14px 18px;}}
   @media (max-width:359px){.trbar .tr-cell b{font-size:19px;}.trbar .tr-cell small{font-size:12px;}}   /* only a 320-wide screen cannot hold "Day 3 of 6" at the full scale */
   .trmap{padding:0;overflow:hidden;}
@@ -769,7 +769,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v80 · Sep 8</div>
+  <div class="appver">SF Move · v81 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2374,16 +2374,24 @@ var ACCENTS = {
       row({ic:"pin",bg:TINT.route,t1:"Into San Francisco",t2:t.paceMin!==null?"at ~"+(Math.round(t.paceMin*100)/100)+" min per mile including charging":"needs a completed day first",v1:t.eta?esc(fmtShort(t.eta))+" \u00b7 "+fmtTime(t.eta):"\u2014"}));
     w.innerHTML=dig;   /* the route list lives in Itinerary (and in the rail from 768px) */
   }
+  var WIDE=window.matchMedia?window.matchMedia("(min-width:768px)"):null;   /* the progress card is laid out differently either side of it */
+  if(WIDE){var onWide=function(){renderTripBar();};   /* rotation crosses the breakpoint: rebuild the card for the width it lands on */
+    if(WIDE.addEventListener)WIDE.addEventListener("change",onWide);else if(WIDE.addListener)WIDE.addListener(onWide);}
   function renderTripBar(){
     var w=document.getElementById("tripBar");if(!w)return;
-    var pos=loggedMiles(),pct=TOTAL_MI?pos/TOTAL_MI*100:0,t=tripStats();
-    w.innerHTML='<div class="tr-row">'+
-      '<div class="tr-cell"><b>'+num(pos)+'</b><small>mi logged</small></div>'+
-      '<div class="tr-cell"><b>'+num(TOTAL_MI)+'</b><small>mi total</small></div>'+
-      '<div class="tr-cell"><b>'+num(TOTAL_MI-pos)+'</b><small>mi left</small></div>'+
-      '<div class="tr-cell day"><b>Day '+tripDayNow()+' of '+TRIP_DAYS+'</b><small>today</small></div>'+
-      '<div class="tr-cell"><b>'+(t.timeLeft!==null?"~"+Math.round(t.timeLeft/60)+"h":"\u2014")+'</b><small>in the car</small></div></div>'+
-      '<div class="tr-brow"><span class="tr-pct">'+Math.round(pct)+'%</span><div class="tr-tk"><i style="width:'+pct.toFixed(2)+'%"></i></div></div>';
+    var pos=loggedMiles(),pct=TOTAL_MI?pos/TOTAL_MI*100:0,t=tripStats(),wide=!WIDE||WIDE.matches;
+    var hrs=(t.timeLeft!==null?"~"+Math.round(t.timeLeft/60)+"h":"\u2014"),day="Day "+tripDayNow()+" of "+TRIP_DAYS;
+    var cell=function(v,l,c){return '<div class="tr-cell'+(c?" "+c:"")+'"><b>'+v+'</b><small>'+l+'</small></div>';};
+    var miles=cell(num(pos),"mi logged")+cell(num(TOTAL_MI),"mi total")+cell(num(TOTAL_MI-pos),"mi left");
+    var track='<div class="tr-tk"><i style="width:'+pct.toFixed(2)+'%"></i></div>';
+    w.innerHTML=wide
+      ? '<div class="tr-row">'+miles+cell(day,"today","day")+cell(hrs,"in the car")+'</div>'+
+        '<div class="tr-brow"><span class="tr-pct">'+Math.round(pct)+'%</span>'+track+'</div>'
+      /* phone: three mileages, then percent · bar · time left on one row, then the day line, all on one inset */
+      : '<div class="tr-row three">'+miles+'</div>'+
+        '<div class="tr-brow"><span class="tr-pct">'+Math.round(pct)+'%</span>'+track+
+        '<span class="tr-tl"><b>'+hrs+'</b><small>in the car</small></span></div>'+
+        '<div class="tr-dayline">'+day+'</div>';
   }
   function renderRail(){
     var ws=[document.getElementById("tripRail")].filter(Boolean);if(!ws.length)return;   /* the map rail is the only route list; the Itinerary cards are the record */
