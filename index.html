@@ -208,16 +208,17 @@
   .trhead .tr-dp{background:#E8F0FF;color:#2F6BFF;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;white-space:nowrap;flex:none;}
   .trcard{background:#fff;border-radius:24px;box-shadow:0 1px 2px rgba(0,0,0,.05);margin-bottom:16px;color:#111214;}
   .trbar{padding:18px 20px 20px;}   /* one card: a row of evenly spaced figures, the track beneath it */
-  .trbar .tr-row{display:flex;align-items:baseline;gap:12px;}
-  .trbar .tr-cell{flex:1 1 0;min-width:0;text-align:center;}
-  .trbar .tr-cell:first-child{text-align:left;}   /* five equal columns; only the headline's type is larger, its width is not */
+  .trbar .tr-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 6px;align-items:baseline;}
+  .trbar .tr-cell{min-width:0;text-align:center;}
+  .trbar .tr-cell:first-child{text-align:left;}   /* equal columns; only the headline's type is larger, its width is not */
   .trbar .tr-cell b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .trbar .tr-cell:first-child b{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;}
   .trbar .tr-cell small{display:block;font-size:12px;font-weight:500;color:#6B7280;margin-top:4px;letter-spacing:0;}
   .trbar .tr-cell.day b{color:#2F6BFF;}
   .trbar .tr-tk{margin-top:16px;height:8px;border-radius:999px;background:#E9EBEF;overflow:hidden;}
   .trbar .tr-tk i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#6C9BFF);}
-  @media (max-width:429px){.trbar{padding:16px 14px 18px;}.trbar .tr-row{gap:4px;}.trbar .tr-cell b{font-size:13.5px;}.trbar .tr-cell:first-child b{font-size:20px;}.trbar .tr-cell small{font-size:10.5px;}}
+  @media (max-width:679px){.trbar .tr-row{grid-template-columns:repeat(3,minmax(0,1fr));}}   /* three across, twice — still even, still no tail gap */
+  @media (max-width:429px){.trbar{padding:16px 14px 18px;}.trbar .tr-cell b{font-size:15px;}.trbar .tr-cell:first-child b{font-size:24px;}.trbar .tr-cell small{font-size:11px;}}
   .trmap{padding:0;overflow:hidden;}
   .trmapw{position:relative;}
   .trmap svg#tripSvg{width:100%;height:auto;display:block;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
@@ -259,25 +260,18 @@
   .trstep .tr-sb{display:block;font-size:12px;color:#9CA3AF;margin-top:2px;}
   .trstep.cur .tr-sb{color:#2F6BFF;font-weight:600;}
   .trstep:active .tr-mk{transform:scale(.9);}
-  .trsum{display:flex;align-items:center;flex-wrap:wrap;gap:8px 0;padding:14px 4px;cursor:pointer;}
-  .trsum .tr-c{flex:1 1 auto;padding:0 14px;text-align:center;border-left:1px solid #E9EBEF;min-width:0;}
-  .trsum .tr-c:first-child{border-left:0;text-align:left;display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px;white-space:nowrap;}
-  .trsum .tr-bolt{flex:none;}
-  .trsum .tr-c b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
-  .trsum .tr-c span{font-size:11px;color:#6B7280;}
-  .trsum.on{box-shadow:0 1px 2px rgba(0,0,0,.05),0 0 0 2px #2F6BFF inset;}
-  .trsum.trtot{cursor:default;flex-wrap:nowrap;}   /* the trip summary is a readout, not a control: no pointer, never .on, no ring, one row */
-  .trsum.trtot .tr-c{flex:1 1 0;padding:0 8px;text-align:center;min-width:0;}
-  .trsum.trtot .tr-c:first-child{display:block;text-align:center;font-weight:400;font-size:inherit;border-left:0;white-space:normal;}
-  .trsum.trtot .tr-c b{font-size:16px;overflow:hidden;text-overflow:ellipsis;}
-  .trsum.trtot .tr-c span{display:block;font-size:10.5px;line-height:1.25;}
-  @media (min-width:480px){.trsum.trtot .tr-c{padding:0 14px;}.trsum.trtot .tr-c b{font-size:17px;}.trsum.trtot .tr-c span{font-size:11px;}}
-  @media (max-width:479px){.trsum:not(.trtot) .tr-c:first-child{flex:1 0 100%;padding-bottom:8px;}}
+  .trmap{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;}   /* map card and strip are one continuous card */
+  .trstrip{border-top-left-radius:0;border-top-right-radius:0;border-top:1px solid #E9EBEF;
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:13px 4px;}
+  .trstrip .tr-c{padding:0 8px;text-align:center;min-width:0;border-left:1px solid #E9EBEF;}
+  .trstrip .tr-c:first-child{border-left:0;}
+  .trstrip .tr-c b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .trstrip .tr-c span{display:block;font-size:10.5px;line-height:1.25;color:#6B7280;}
+  @media (min-width:480px){.trstrip{padding:14px 4px;}.trstrip .tr-c{padding:0 14px;}.trstrip .tr-c b{font-size:17px;}.trstrip .tr-c span{font-size:11px;}}
   @media (min-width:768px){   /* iPad portrait (820) keeps the rail and the two-column map card; phones stay on the compact Up next line */
     .trmap{display:grid;grid-template-columns:70% 30%;}   /* the card grows to the taller of map and rail: the rail is never cut, and the map centres in its column */
     .trmapw{align-self:center;width:100%;}
     .trrailw{display:block;}
-    #trOverview .routelist{display:none;}   /* the rail covers the route at this width */
     .trmap .trrail{border-top:0;border-left:1px solid #E9EBEF;height:100%;}
   }
   /* map paint */
@@ -409,11 +403,10 @@
   .row.today{background:#EEF4FF;}
   .row.sel .t1{font-weight:600;}
   .row.pinon{background:#FFF4E5;}.row.pinon .t1{font-weight:600;}   /* this place's pin is open on the map */
-  .trlead{background:#fff;border-radius:12px;padding:16px 16px 15px;margin-bottom:22px;}   /* Overview lead stat: the one number that answers "how much longer" */
-  .trlead .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8E8E93;}
-  .trlead .v{font-size:34px;font-weight:700;letter-spacing:-.024em;margin-top:4px;line-height:1.05;}
-  .trlead .v small{font-size:15px;font-weight:500;color:var(--secondary);letter-spacing:0;margin-left:6px;}
-  .trlead .n{font-size:13px;color:var(--secondary);margin-top:5px;}
+  .upnext{display:flex;align-items:center;gap:8px;padding:13px 16px;border-top:1px solid #E9EBEF;font-size:15px;white-space:nowrap;overflow:hidden;}
+  .upnext .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8E8E93;flex:none;}
+  .upnext .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;}
+  .upnext .d{color:#2F6BFF;font-weight:600;flex:none;margin-left:auto;}
   .ddsub{font-size:13px;color:var(--secondary);padding:0 16px 10px;}
   .pillst{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;flex:none;}
   .pillst.done{background:#E7F8EE;color:#15803D;}.pillst.today{background:var(--blue);color:#fff;}.pillst.plan{background:var(--fill);color:var(--secondary);}
@@ -434,7 +427,8 @@
   .itin{display:block;}
   .itinrail{display:none;}
   .triptoggle{border-radius:12px;}
-  @media (min-width:700px){.statrow{grid-template-columns:repeat(4,1fr);}}
+  .statrow.five .st:last-child{grid-column:1/-1;}   /* an odd fifth stat reads as a footer line, not an orphan in a 2-up grid */
+  @media (min-width:700px){.statrow{grid-template-columns:repeat(4,1fr);}.statrow.five{grid-template-columns:repeat(5,1fr);}.statrow.five .st:last-child{grid-column:auto;}}
   @media (min-width:768px){   /* one tablet breakpoint app-wide: iPad portrait gets the two-column layout everywhere */
     .two{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;}   /* minmax(0,…) so a long row can never blow the column out */
     .itin{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start;}
@@ -754,10 +748,11 @@
         </g>
       </svg>
       <div class="pinpop" id="pinPop" hidden></div>
+      <div class="upnext" id="upNext"></div>
       </div>
       <div class="trrailw"><div class="trrail" id="tripRail"></div></div>
     </div>
-    <div class="trcard trsum trtot" id="tripSummary"></div>
+    <div class="trcard trstrip" id="tripStrip"></div>
     <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="places">Places</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
     <section class="trsec on" id="trOverview"></section>
     <section class="trsec" id="trDaily"></section>
@@ -780,7 +775,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v77 · Sep 8</div>
+  <div class="appver">SF Move · v78 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2012,9 +2007,6 @@ var ACCENTS = {
     var seg=document.getElementById("mapSeg"),rail=document.getElementById("tripRail"),pop=document.getElementById("pinPop");
     if(!seg)return;
     seg.addEventListener("click",function(e){var b=e.target.closest("[data-m]");if(b)setMapMode(b.getAttribute("data-m"));});
-    var chgSec=document.getElementById("trCharging");   /* the bar is re-created on each render: delegate from the section */
-    chgSec.addEventListener("click",function(e){if(e.target.closest("[data-chgsum]"))setMapMode(mapMode()==="chg"?"route":"chg");});
-    chgSec.addEventListener("keydown",function(e){var b=e.target.closest("[data-chgsum]");if(b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();setMapMode(mapMode()==="chg"?"route":"chg");}});
     function railTap(e){
       var b=e.target.closest("[data-stop]");if(!b)return;
       if(tripSeg()!=="itinerary")setTripSeg("itinerary");   /* the stop cards live in Itinerary */
@@ -2196,7 +2188,7 @@ var ACCENTS = {
       var card=el("div","card tripstop "+status,
         '<div class="sh"><span class="day">'+(arr&&i>0?'<span class="ok">'+ICON.check+'</span>':'')+esc(s.day)+' · '+esc(fmtDay(dt))+'</span>'+pill+'</div>'+
         '<div class="nm">'+esc(s.name)+(note?' <span class="note">· '+esc(note)+'</span>':'')+'</div>'+
-        (i?'<div class="leg">'+num(s.mi)+' mi leg from '+esc(STOPS[i-1].short)+(status==="cur"?' · ~'+num(Math.max(0,CUM[i]-pos))+' mi to go':'')+'</div>':'<div class="leg">wheels up '+esc(fmtShort(dt))+'</div>')+
+        (i?'<div class="leg">'+num(s.mi)+' mi leg from '+esc(STOPS[i-1].short)+'</div>':'<div class="leg">wheels up '+esc(fmtShort(dt))+'</div>')+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
         (noHotel?'<div class="hot tbd">Hotel TBD'+(bk?' · backup '+esc(bk.name):'')+'</div>':(s.hotel?'<div class="hot">'+esc(s.hotel)+'</div>':''))+
         (s.detail?'<div class="sc">'+esc(s.detail)+'</div>':''));
@@ -2236,7 +2228,7 @@ var ACCENTS = {
   function allPlaces(){   /* the code list plus anything added on the phone; every place path reads this, never PLACES */
     return PLACES.concat((state.places||[]).filter(function(x){return x&&x.id&&isFinite(x.lat)&&isFinite(x.lng);}));
   }
-  var PIN_PLACES=[];   /* the places whose pin is open: their rows stay lit */
+  var PIN_PLACES=[],pinPopT=null;   /* the places whose pin is open (their rows stay lit), and the pending open a close must be able to cancel */
   function pinLit(ids){ids=ids||[];if(ids.join(",")===PIN_PLACES.join(","))return;PIN_PLACES=ids;renderPlacesSec();}
   function renderPlacesSec(){   /* Trip › Places: grouped by day/town; a tap centres the pin on the map above */
     var w=document.getElementById("trPlaces");if(!w)return;
@@ -2376,74 +2368,57 @@ var ACCENTS = {
   function tripDayNow(){var t=tripStats();return Math.max(1,Math.min(TRIP_DAYS,Math.max(t.runDone+1,todayDay()||1)));}   /* the day after the last unbroken run of finished days, or the calendar day — a stray stamp further out moves neither */
   function renderOverview(){   /* the hero above carries miles and charging; Overview adds the pace digest and, on phones, the route the rail shows on iPad */
     var w=document.getElementById("trOverview");if(!w)return;
-    var t=tripStats(),pos=loggedMiles(),nx=nextStopIdx(pos);
-    var lead='<div class="trlead"><div class="k">Time left in the car</div><div class="v">'+
-      (t.timeLeft!==null?"~"+Math.round(t.timeLeft/60)+"h<small>to San Francisco</small>":"\u2014<small>needs one full day first</small>")+'</div>'+
-      '<div class="n">'+(t.paceMin!==null?"at ~"+(Math.round(t.paceMin*100)/100)+" min per mile including charging":
-        "a day needs a Departed and an Arrived time before the pace can be read")+'</div></div>';
-    var inp=t.inProgress,openTxt=inp?("Day "+inp.d+" under way"+(inp.badSpan?" \u00b7 check its Departed / Arrived times":"")):null;
-    var dig=grp("Trip so far",
-      row({ic:"cal",bg:TINT.route,t1:"Days complete",t2:openTxt||"",v1:t.nDone+" of "+TRIP_DAYS})+
-      row({ic:"road",bg:TINT.route,t1:"Miles a day",t2:"average over the completed days",v1:t.milesPerDay!==null?num(t.milesPerDay)+" mi":"\u2014"})+
-      row({ic:"gauge",bg:TINT.route,t1:"Behind the wheel",t2:"moving time on the completed days",v1:t.driveMin?hm(t.driveMin):"\u2014"})+
-      row({ic:"clock",bg:TINT.route,t1:"Door to door",t2:t.movingMph?"averaging "+Math.round(t.movingMph)+" mph moving":"",v1:t.nDone?hm(t.d2dMin):"\u2014"})+
-      row({ic:"pin",bg:TINT.route,t1:"Into San Francisco",t2:"at the completed-day pace",v1:t.eta?esc(fmtShort(t.eta))+" \u00b7 "+fmtTime(t.eta):"\u2014"}));
-    var steps=STOPS.map(function(s,i){
-      var passed=(i===0?pos>0||!!state.trip.rolled[STOPS[1]&&STOPS[1].id]:(!!state.trip.arrived[s.id]||CUM[i]<=pos+0.5)),now=(i===nx);
-      return row({ic:(passed&&!now)?"check":"pin",bg:now?TINT.route:(passed?TINT.kane:TINT.misc),
-        t1:esc(i===0?"Chicago":s.name),t2:i===0?"where it started":"Day "+(s.off+1)+" \u00b7 "+num(s.mi)+" mi leg",
-        pill:now?"Next":(passed?"Arrived":"Upcoming"),pillCls:now?"today":(passed?"done":"plan"),
-        v1:now?"~"+num(CUM[i]-pos)+" mi":"",chev:true,cls:"link",attrs:' role="button" tabindex="0" data-stop="'+s.id+'"'});
-    }).join("");
-    w.innerHTML=lead+dig+'<div class="routelist">'+grp("Your route",steps)+'</div>';
+    var t=tripStats();
+    var bad=t.badDays.length?("day "+t.badDays.join(", ")+" has an impossible Departed \u2192 Arrived span \u2014 check it"):"";
+    var base=t.nDone?("over "+t.nDone+(t.nDone===1?" completed day":" completed days")):"needs one completed day";
+    var dig=grp("Pace",
+      row({ic:"road",bg:TINT.route,t1:"Miles a day",t2:base,v1:t.milesPerDay!==null?num(t.milesPerDay)+" mi":"\u2014"})+
+      row({ic:"gauge",bg:TINT.route,t1:"Behind the wheel",t2:bad||base,v1:t.driveMin?hm(t.driveMin):"\u2014"})+
+      row({ic:"clock",bg:TINT.route,t1:"Moving average",t2:"while actually driving",v1:t.movingMph?Math.round(t.movingMph)+" mph":"\u2014"})+
+      row({ic:"pin",bg:TINT.route,t1:"Into San Francisco",t2:t.paceMin!==null?"at ~"+(Math.round(t.paceMin*100)/100)+" min per mile including charging":"needs a completed day first",v1:t.eta?esc(fmtShort(t.eta))+" \u00b7 "+fmtTime(t.eta):"\u2014"}));
+    w.innerHTML=dig;   /* the route list lives in Itinerary (and in the rail from 768px) */
   }
   function renderTripBar(){
     var w=document.getElementById("tripBar");if(!w)return;
-    var pos=loggedMiles(),pct=TOTAL_MI?pos/TOTAL_MI*100:0;
+    var pos=loggedMiles(),pct=TOTAL_MI?pos/TOTAL_MI*100:0,t=tripStats();
     w.innerHTML='<div class="tr-row">'+
       '<div class="tr-cell"><b>'+num(pos)+'</b><small>mi logged</small></div>'+
       '<div class="tr-cell"><b>'+num(TOTAL_MI)+'</b><small>mi total</small></div>'+
       '<div class="tr-cell"><b>'+num(TOTAL_MI-pos)+'</b><small>mi left</small></div>'+
       '<div class="tr-cell"><b>'+Math.round(pct)+'%</b><small>complete</small></div>'+
-      '<div class="tr-cell day"><b>Day '+tripDayNow()+' of '+TRIP_DAYS+'</b><small>today</small></div></div>'+
+      '<div class="tr-cell day"><b>Day '+tripDayNow()+' of '+TRIP_DAYS+'</b><small>today</small></div>'+
+      '<div class="tr-cell"><b>'+(t.timeLeft!==null?"~"+Math.round(t.timeLeft/60)+"h":"\u2014")+'</b><small>in the car</small></div></div>'+
       '<div class="tr-tk"><i style="width:'+pct.toFixed(2)+'%"></i></div>';
   }
   function renderRail(){
     var ws=[document.getElementById("tripRail"),document.getElementById("itinRail")].filter(Boolean);if(!ws.length)return;
     var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
-    var head='<div class="tr-eb">Up next</div><div class="tr-nx">'+esc(ns?ns.name:"San Francisco")+'</div>'+
-      '<div class="tr-mi">'+(ns?"~"+num(CUM[nx]-pos)+" mi away":"arrived")+'</div><div class="tr-hr"></div><div class="tr-rt">Your route</div>';
+    var head='<div class="tr-rt">Your route</div>';   /* next stop is stated once, on the map's UP NEXT line */
     var steps=STOPS.map(function(s,i){
       var passed=(i===0?pos>0||!!state.trip.rolled[STOPS[1]&&STOPS[1].id]:(!!state.trip.arrived[s.id]||CUM[i]<=pos+0.5)),now=(i===nx);
       var r0=STOPS[1]&&state.trip.rolled[STOPS[1].id]?parseLocalISO(state.trip.rolled[STOPS[1].id]):null;
-      var sub=now?"~"+num(CUM[i]-pos)+" mi away":(i===0?(r0?"rolled "+fmtTime(r0):"wheels up "+fmtShort(departDate())):(passed?"Day "+(s.off+1)+" · arrived":"Day "+(s.off+1)+" · "+num(s.mi)+" mi leg"));
+      var sub=now?"Day "+(s.off+1)+" · under way":(i===0?(r0?"rolled "+fmtTime(r0):"wheels up "+fmtShort(departDate())):(passed?"Day "+(s.off+1)+" · arrived":"Day "+(s.off+1)+" · "+num(s.mi)+" mi leg"));
       return '<button class="trstep'+(now?" cur":(passed?" done":""))+'" type="button" data-stop="'+s.id+'">'+
         '<span class="tr-gut"><span class="tr-mk">'+(passed&&!now?'<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>':'')+'</span></span>'+
         '<span class="tr-tx"><span class="tr-nm">'+esc(i===0?"Chicago":s.short)+'</span><span class="tr-sb">'+sub+'</span></span></button>';
     }).join("");
     ws.forEach(function(w){w.innerHTML=head+steps;});
+    var up=document.getElementById("upNext");   /* the map's bottom edge: the one home for next-stop */
+    if(up)up.innerHTML='<span class="k">Up next</span><span class="n">'+esc(ns?ns.name:"San Francisco")+'</span><span class="d">'+(ns?"~"+num(CUM[nx]-pos)+" mi away":"arrived")+'</span>';
   }
-  function renderTripSummary(){   /* the persistent bar under the map: where the trip stands, in one row */
-    var w=document.getElementById("tripSummary");if(!w)return;
-    var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
-    w.innerHTML='<div class="tr-c"><b>'+num(pos)+'</b><span>miles so far</span></div>'+
-      '<div class="tr-c"><b>'+num(TOTAL_MI-pos)+'</b><span>miles remaining</span></div>'+
-      '<div class="tr-c nx"><b>'+esc(ns?ns.short:"San Francisco")+'</b><span>next stop</span></div>'+
-      '<div class="tr-c"><b>'+(ns?"~"+num(CUM[nx]-pos)+" mi":"\u2014")+'</b><span>'+(ns?"to go":"arrived")+'</span></div>';
-  }
-  function chgSummaryHtml(){   /* the charging bar: Charging section only. Tapping it turns the map's Charging layer on */
-    var n=0,kwh=0,cost=0,min=0;
-    CHARGES.forEach(function(c){if(c.planned)return;n++;kwh+=c.kwh||0;cost+=c.cost||0;min+=c.min||0;});
-    return '<div class="trcard trsum'+(mapMode()==="chg"?" on":"")+'" id="chgSummary" role="button" tabindex="0" data-chgsum="1">'+
-      '<div class="tr-c"><span class="tr-bolt">'+icon("bolt",TINT.charging)+'</span>Charging summary</div>'+
-      '<div class="tr-c"><b>'+n+'</b><span>'+(n===1?"stop":"stops")+'</span></div>'+
-      '<div class="tr-c"><b>'+kwh1(kwh)+'</b><span>kWh</span></div>'+
-      '<div class="tr-c"><b>'+money2(cost)+'</b><span>spent</span></div>'+
-      '<div class="tr-c"><b>'+(n?hm(min):"\u2014")+'</b><span>time at chargers</span></div></div>';
+  function renderTripStrip(){   /* the bottom of the map card: TODAY only — the trip-wide figures live in the progress card */
+    var w=document.getElementById("tripStrip");if(!w)return;
+    var t=tripStats(),cur=tripDayNow(),dp=dayProg(cur),ds=dayStats(cur);
+    var togo=Math.max(0,dp.mi-dp.so),hrs=(t.paceMin!==null)?togo*t.paceMin:null;
+    var spent=0,any=false;state.spend.entries.forEach(function(e){if(e.day===cur&&!e.planned){spent+=e.amount;any=true;}});
+    w.innerHTML='<div class="tr-c"><b>'+(dp.done?"\u2014":num(togo))+'</b><span>'+(dp.done?"arrived":"mi to go today")+'</span></div>'+
+      '<div class="tr-c"><b>'+((hrs!==null&&!dp.done)?"~"+hm(hrs):"\u2014")+'</b><span>time to go today</span></div>'+
+      '<div class="tr-c"><b>'+((ds&&ds.ch.length)?hm(ds.chMin):"\u2014")+'</b><span>at chargers today</span></div>'+
+      '<div class="tr-c"><b>'+(any?money2(spent):"\u2014")+'</b><span>spent today</span></div>';
   }
   function syncMapSeg(){var g=document.getElementById("mapSeg");if(!g)return;var m=mapMode();   /* the control follows the stored mode on every load */
     Array.prototype.forEach.call(g.children,function(b){b.classList.toggle("on",b.getAttribute("data-m")===m);});}
-  function renderTripTop(){renderTripBar();renderRail();renderTripSummary();syncMapSeg();renderOverview();}
+  function renderTripTop(){renderTripBar();renderRail();renderTripStrip();syncMapSeg();renderOverview();}
   /* charger pins: logged sessions cluster when they sit within CLUSTER_R viewBox units of each other */
   var MAX_DAY_MIN=20*60;   /* the longest span a single driving day may claim */
   var CLUSTER_R=6,BOLT="M0.5 -2.2 L-1.6 0.4 L-0.25 0.4 L-0.6 2.2 L1.6 -0.5 L0.25 -0.5 Z";
@@ -2470,7 +2445,13 @@ var ACCENTS = {
     var g=pinClusters()[i];
     document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
     centerOn(g.x,g.y,2.6,0.9);   /* low in the frame so the popover has room above it */
-    setTimeout(function(){pinPopOpen(i);},reducedMotion?0:520);
+    if(pinPopT)clearTimeout(pinPopT);
+    pinPopT=setTimeout(function(){   /* the map is still settling; by the time it stops the user may have moved on */
+      pinPopT=null;
+      if(curPage!=="trip"||tripSeg()!=="places"||mapMode()!=="places")return;   /* left the page, the section or the layer: the card would describe nothing on screen */
+      var mp=document.querySelector(".trmap");if(!mp||!mp.offsetParent)return;   /* page hidden: positioning would throw (test the map, not #pinPop — that one is display:none until it opens) */
+      var j=placeIdx(id);if(j>=0)pinPopOpen(j);   /* re-resolve: a sync merge can renumber the clusters inside the delay */
+    },reducedMotion?0:520);
   }
   function buildPins(){
     var pg=document.getElementById("pinG");if(!pg)return;
@@ -2489,8 +2470,9 @@ var ACCENTS = {
     });
     collectMarkers();applyZoom();
   }
-  function pinPopClose(){var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}pinLit([]);}
+  function pinPopClose(){if(pinPopT){clearTimeout(pinPopT);pinPopT=null;}var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}pinLit([]);}
   function pinPopOpen(i){
+    if(pinPopT){clearTimeout(pinPopT);pinPopT=null;}   /* whatever opens now wins over anything queued */
     var p=document.getElementById("pinPop"),g=pinClusters()[i];if(!p||!g)return;
     pinLit(g.place?g.list.map(function(x){return x.id;}):[]);
     function maps(c){return "https://maps.apple.com/?q="+encodeURIComponent(c.addr||c.name)+(c.lat?"&ll="+c.lat+","+c.lng:"");}
@@ -2528,7 +2510,7 @@ var ACCENTS = {
   function setMapMode(m){
     pinPopClose();   /* the open card described a pin in the layer we are leaving */
     state.ui=state.ui||{};state.ui.mapMode=m;save(state);
-    syncMapSeg();buildPins();renderChargingSec();updateLOD(Z.s);
+    syncMapSeg();buildPins();updateLOD(Z.s);
   }
   /* ---------- TRIP sections: one scrolling page — Overview · Daily · Charging · Itinerary ---------- */
   function scrollToEl(el){if(el)el.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});}
@@ -2582,7 +2564,7 @@ var ACCENTS = {
       '<div class="bt'+(o.plan?' plan':'')+'">'+(o.plan?'':'<i style="width:'+Math.max(2,Math.min(100,o.pct)).toFixed(1)+'%;background:'+o.fill+'"></i>')+'</div>'+
       '<div class="bv'+(o.plan?' g':'')+'">'+(o.pill?'<span class="pillst '+o.pillCls+'">'+o.pill+'</span>':'')+'<b>'+o.v+'</b></div></div>';
   }
-  function statrow(items){return '<div class="statrow">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
+  function statrow(items){return '<div class="statrow'+(items.length===5?" five":"")+'">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
   function dayStatus(d,cur){var dp=dayProg(d),r=dayStats(d);return (dp.done||(r&&r.complete))?"done":(d===cur?"today":"plan");}   /* a day before today with no arrival and no stamps was never driven — do not call it done */
   function renderDaily(){
     var w=document.getElementById("trDaily");if(!w)return;
@@ -2650,8 +2632,8 @@ var ACCENTS = {
     var t=tripStats(),cur=tripDayNow(),S=stS(),real=realCharges();
     var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
     var cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg,ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
-    var td=dayStats(cur),avg=real.length?t.chMin/real.length:null,planned=CHARGES.filter(function(c){return c.planned;});
-    var stats=statrow([[String(td?td.ch.length:0),"stops today"],[avg!==null?Math.round(avg)+" min":"—","average stop"],[(td&&td.cost>0)?money2(td.cost):"—","spent today"],[String(planned.length),"planned ahead"]]);
+    var planned=CHARGES.filter(function(c){return c.planned;});   /* every charging number, once, trip-to-date */
+    var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money2(t.cost),"spent"],[real.length?hm(t.chMin):"—","time at chargers"],[String(planned.length),"planned ahead"]]);
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
     var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),
@@ -2668,7 +2650,7 @@ var ACCENTS = {
       row({ic:"gauge",bg:TINT.charging,t1:"Fastest session",t2:fast?esc(chgShort(fast,hs))+" · "+esc(hlab):esc(hlab),v1:fast?(fast.kwh/fast.min).toFixed(2)+" kWh/min":"—"})+
       row({ic:"clock",bg:TINT.charging,t1:"Longest stop",t2:longest?esc(chgShort(longest,hs))+" · "+esc(hlab):esc(hlab),v1:longest?hm(longest.min):"—"})+
       row({ic:"usd",bg:TINT.charging,t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,hs))+" · "+esc(hlab):esc(hlab),v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"})+'</div>';
-    w.innerHTML=chgSummaryHtml()+'<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+'</div></div>';
+    w.innerHTML='<div class="two"><div>'+stats+sessions+'</div><div class="side">'+hl+'</div></div>';
   }
   function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();renderPlacesSec();}   /* every Trip section, from the same data */
   /* live tracking — never blocks the UI */
