@@ -208,17 +208,15 @@
   .trhead .tr-dp{background:#E8F0FF;color:#2F6BFF;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;white-space:nowrap;flex:none;}
   .trcard{background:#fff;border-radius:24px;box-shadow:0 1px 2px rgba(0,0,0,.05);margin-bottom:16px;color:#111214;}
   .trbar{padding:18px 20px 20px;}   /* one card: a row of evenly spaced figures, the track beneath it */
-  .trbar .tr-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 6px;align-items:baseline;}
-  .trbar .tr-cell{min-width:0;text-align:center;}
-  .trbar .tr-cell:first-child{text-align:left;}   /* equal columns; only the headline's type is larger, its width is not */
-  .trbar .tr-cell b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .trbar .tr-cell:first-child b{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;}
-  .trbar .tr-cell small{display:block;font-size:12px;font-weight:500;color:#6B7280;margin-top:4px;letter-spacing:0;}
-  .trbar .tr-cell.day b{color:#2F6BFF;}
+  .trbar .tr-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px 8px;align-items:start;}
+  .trbar .tr-cell{min-width:0;text-align:left;}   /* six peers: one type scale, one alignment, no hero outlier */
+  .trbar .tr-cell b{display:block;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .trbar .tr-cell small{display:block;font-size:13px;font-weight:400;color:var(--secondary);margin-top:2px;letter-spacing:0;line-height:1.25;}
   .trbar .tr-tk{margin-top:16px;height:8px;border-radius:999px;background:#E9EBEF;overflow:hidden;}
   .trbar .tr-tk i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#6C9BFF);}
-  @media (max-width:679px){.trbar .tr-row{grid-template-columns:repeat(3,minmax(0,1fr));}}   /* three across, twice — still even, still no tail gap */
-  @media (max-width:429px){.trbar{padding:16px 14px 18px;}.trbar .tr-cell b{font-size:15px;}.trbar .tr-cell:first-child b{font-size:24px;}.trbar .tr-cell small{font-size:11px;}}
+  @media (max-width:767px){.trbar .tr-row{grid-template-columns:repeat(3,minmax(0,1fr));}}   /* three across, twice — same cells, same rhythm */
+  @media (max-width:429px){.trbar{padding:16px 14px 18px;}}
+  @media (max-width:359px){.trbar .tr-cell b{font-size:19px;}.trbar .tr-cell small{font-size:12px;}}   /* only a 320-wide screen cannot hold "Day 3 of 6" at the full scale */
   .trmap{padding:0;overflow:hidden;}
   .trmapw{position:relative;}
   .trmap svg#tripSvg{width:100%;height:auto;display:block;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
@@ -427,8 +425,7 @@
   .itin{display:block;}
   .itinrail{display:none;}
   .triptoggle{border-radius:12px;}
-  .statrow.five .st:last-child{grid-column:1/-1;}   /* an odd fifth stat reads as a footer line, not an orphan in a 2-up grid */
-  @media (min-width:700px){.statrow{grid-template-columns:repeat(4,1fr);}.statrow.five{grid-template-columns:repeat(5,1fr);}.statrow.five .st:last-child{grid-column:auto;}}
+  @media (min-width:700px){.statrow{grid-template-columns:repeat(4,1fr);}}
   @media (min-width:768px){   /* one tablet breakpoint app-wide: iPad portrait gets the two-column layout everywhere */
     .two{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;}   /* minmax(0,…) so a long row can never blow the column out */
     .itin{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start;}
@@ -775,7 +772,7 @@
     <section class="trsec" id="spPlanned"></section>
   </div>
 
-  <div class="appver">SF Move · v78 · Sep 8</div>
+  <div class="appver">SF Move · v79 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1755,7 +1752,9 @@ var ACCENTS = {
     {id:"chg-009", name:"Calumet, OK \u2013 Cherokee Trading Post", addr:"245 S Walbaum Rd, Calumet, OK 73014", lat:35.6003, lng:-98.1236, date:"2026-09-07", time:"15:00", kwh:23.53, rate:0.56, cost:13.17, min:14},
     {id:"chg-010", name:"Elk City, OK", addr:"2001 E 7th St, Elk City, OK 73644", lat:35.4088, lng:-99.3854, date:"2026-09-07", time:"16:15", kwh:27.21, rate:0.48, cost:13.06, min:16},
     {id:"chg-011", name:"Shamrock, TX", addr:"107 E 12th St, Shamrock, TX 79079", lat:35.2145, lng:-100.2490, date:"2026-09-07", time:"17:17", kwh:43.88, rate:0.38, cost:16.67, min:31},
-    {id:"chg-012", name:"Amarillo, TX \u2013 I-40 (Buc-ee\u0027s)", addr:"9900 I-40, Amarillo, TX 79118", lat:35.1725, lng:-101.7150, date:"2026-09-07", time:"18:58", kwh:37.12, rate:0.38, cost:14.10, min:18}
+    {id:"chg-012", name:"Amarillo, TX \u2013 I-40 (Buc-ee\u0027s)", addr:"9900 I-40, Amarillo, TX 79118", lat:35.1725, lng:-101.7150, date:"2026-09-07", time:"18:58", kwh:37.12, rate:0.38, cost:14.10, min:18},
+    {id:"chg-013", name:"Amarillo, TX \u2013 West Amarillo Blvd", addr:"8231 W Amarillo Blvd, Amarillo, TX 79124", lat:35.1975, lng:-101.9350, date:"2026-09-08", time:"07:10", kwh:21.42, rate:0.38, cost:8.14, min:19},
+    {id:"chg-014", name:"Tucumcari, NM", addr:"2624 S Adams St, Tucumcari, NM 88401", lat:35.1520, lng:-103.7090, date:"2026-09-08", time:"08:58", kwh:47.81, rate:0.40, cost:19.12, min:32}
   ];
   /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
@@ -2564,7 +2563,7 @@ var ACCENTS = {
       '<div class="bt'+(o.plan?' plan':'')+'">'+(o.plan?'':'<i style="width:'+Math.max(2,Math.min(100,o.pct)).toFixed(1)+'%;background:'+o.fill+'"></i>')+'</div>'+
       '<div class="bv'+(o.plan?' g':'')+'">'+(o.pill?'<span class="pillst '+o.pillCls+'">'+o.pill+'</span>':'')+'<b>'+o.v+'</b></div></div>';
   }
-  function statrow(items){return '<div class="statrow'+(items.length===5?" five":"")+'">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
+  function statrow(items){return '<div class="statrow">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
   function dayStatus(d,cur){var dp=dayProg(d),r=dayStats(d);return (dp.done||(r&&r.complete))?"done":(d===cur?"today":"plan");}   /* a day before today with no arrival and no stamps was never driven — do not call it done */
   function renderDaily(){
     var w=document.getElementById("trDaily");if(!w)return;
@@ -2632,8 +2631,7 @@ var ACCENTS = {
     var t=tripStats(),cur=tripDayNow(),S=stS(),real=realCharges();
     var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
     var cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg,ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
-    var planned=CHARGES.filter(function(c){return c.planned;});   /* every charging number, once, trip-to-date */
-    var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money2(t.cost),"spent"],[real.length?hm(t.chMin):"—","time at chargers"],[String(planned.length),"planned ahead"]]);
+    var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money2(t.cost),"spent"],[real.length?hm(t.chMin):"—","time at chargers"]]);   /* every charging number, once, trip-to-date */
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
     var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),
