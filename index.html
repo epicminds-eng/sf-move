@@ -776,7 +776,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v85 · Sep 8</div>
+  <div class="appver">SF Move · v86 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1772,7 +1772,8 @@ var ACCENTS = {
     {id:"chg-015", name:"Santa Rosa, NM", addr:"2516 Historic Route 66, Santa Rosa, NM 88435", lat:34.9381, lng:-104.6825, date:"2026-09-08", time:"10:18", kwh:29.42, rate:0.41, cost:12.06, min:24},
     {id:"chg-016", name:"Albuquerque, NM \u2013 12th St NW", addr:"2510 12th St NW, Albuquerque, NM 87104", lat:35.1085, lng:-106.6640, date:"2026-09-08", time:"12:21", kwh:44.39, rate:0.42, cost:18.64, min:27},
     {id:"chg-017", name:"Milan, NM", addr:"1500 Willow Dr, Milan, NM 87021", lat:35.1690, lng:-107.8940, date:"2026-09-08", time:"13:55", kwh:35.55, rate:0.40, cost:14.22, min:24},
-    {id:"chg-018", name:"Gallup, NM", addr:"111 Twin Buttes Rd, Gallup, NM 87301", lat:35.5110, lng:-108.7530, date:"2026-09-08", time:"15:15", kwh:18.28, rate:0.42, cost:7.67, min:20}
+    {id:"chg-018", name:"Gallup, NM", addr:"111 Twin Buttes Rd, Gallup, NM 87301", lat:35.5110, lng:-108.7530, date:"2026-09-08", time:"15:15", kwh:18.28, rate:0.42, cost:7.67, min:20},
+    {id:"chg-019", name:"Holbrook, AZ \u2013 Navajo Blvd", addr:"2096 Navajo Blvd, Holbrook, AZ 86025", lat:34.9080, lng:-110.1490, date:"2026-09-08", time:"18:09", kwh:23.83, rate:0.41, cost:9.77, min:22}
   ];
   /* Non-charging receipts — code-seeded like CHARGES (once per id, a deleted one stays deleted via spend.dismissedExpenses),
      but they never touch the map. Shape: {id:"exp-001", cat:"groceries", amount:10.65, note:"County Market · Springfield IL", date:"2026-09-06", time:"11:48"} */
@@ -2307,16 +2308,31 @@ var ACCENTS = {
     var ch=CHARGES.filter(function(c){return !c.planned&&c.date&&dayForDate(parseYMD(c.date))===d;}).sort(function(a,b){return chgTs(a)-chgTs(b);});
     if(!rolled&&!arrived&&!ch.length&&!state.trip.arrived[st.id])return null;
     var kwh=0,cost=0,min=0;ch.forEach(function(c){kwh+=c.kwh||0;cost+=c.cost||0;min+=c.min||0;});
+    /* minutes at chargers INSIDE the driving window. An evening top-up at the hotel (or a splash
+       before you roll) is real time at chargers — it belongs in chMin — but it is NOT time taken
+       out of the drive, so subtracting it from door-to-door would understate moving time and
+       inflate average speed. Each session contributes only its OVERLAP with rolled → arrived:
+       counting a whole session because it merely started in the window let a stamp-contradicting
+       day (49 min door to door, 110 min charging) report 23 min of driving at 1317 mph. */
+    var chDrive=0;
+    if(rolled&&arrived)ch.forEach(function(c){
+      var s0=chgTs(c),e0=s0+((c.min||0)*60000),ov=Math.min(e0,arrived)-Math.max(s0,rolled);
+      if(ov>0)chDrive+=ov/60000;});
+    chDrive=Math.round(chDrive);
     var miles=st.mi,span=(rolled&&arrived)?(arrived-rolled)/60000:null;
     /* a driving day longer than MAX_DAY_MIN is a stale stamp, not a 20-hour day (a Rolling tap left on the
        night before, or on the wrong day): the span is rejected rather than poured into the trip averages */
     var d2d=(span!==null&&span>0&&span<=MAX_DAY_MIN)?span:null,badSpan=(span!==null&&d2d===null);
-    var drive=d2d!==null?Math.max(0,d2d-min):null,mph=(drive!==null&&drive>0)?miles/(drive/60):null;
+    var drive=d2d!==null?Math.max(0,d2d-chDrive):null;
+    /* the day logs more charging than it is long: the stamps and the sessions contradict each other
+       (a roll time set to the evening, say), so report no moving time rather than a fantasy speed */
+    if(drive!==null&&min>=d2d)drive=0;
+    var mph=(drive!==null&&drive>0)?miles/(drive/60):null;
     var complete=d2d!==null;   /* a day counts as done only with BOTH stamps and a believable span between them */
     var prev=CUM[k-1],stints=[];
     ch.forEach(function(c){var m=locate({lat:c.lat,lng:c.lng}).miles;stints.push(m-prev);prev=m;});
     var longest=stints.length?Math.max.apply(null,stints):null,whmi=(kwh>0&&miles>0)?kwh/miles*1000:null;
-    return{d:d,stop:st,rolled:rolled,arrived:arrived,miles:miles,ch:ch,kwh:kwh,cost:cost,chMin:min,d2d:d2d,drive:drive,mph:mph,longest:longest,whmi:whmi,complete:complete,badSpan:badSpan,span:span};
+    return{d:d,stop:st,rolled:rolled,arrived:arrived,miles:miles,ch:ch,kwh:kwh,cost:cost,chMin:min,chDrive:chDrive,d2d:d2d,drive:drive,mph:mph,longest:longest,whmi:whmi,complete:complete,badSpan:badSpan,span:span};
   }
   function tripStats(){
     var days=[];for(var d=1;d<=TRIP_DAYS;d++){var r=dayStats(d);if(r)days.push(r);}
@@ -2625,7 +2641,7 @@ var ACCENTS = {
     var driving=grp("On the road",
       row({ic:"clock",bg:TINT.route,t1:"Departed → arrived",t2:badNote,v1:stampTxt})+
       row({ic:"road",bg:TINT.route,t1:"Door to door",v1:(ds&&ds.d2d!==null)?hm(ds.d2d):"—"})+
-      row({ic:"gauge",bg:TINT.route,t1:"Moving time",t2:(ds&&ds.chMin>0&&ds.d2d!==null)?"door to door less "+hm(ds.chMin)+" charging":"",v1:(ds&&ds.drive!==null)?hm(ds.drive):"—"})+
+      row({ic:"gauge",bg:TINT.route,t1:"Moving time",t2:(ds&&ds.chDrive>0&&ds.d2d!==null)?"door to door less "+hm(ds.chDrive)+" charging":"",v1:(ds&&ds.drive!==null)?hm(ds.drive):"—"})+
       row({ic:"gauge",bg:TINT.route,t1:"Average speed",t2:"while moving",v1:(ds&&ds.mph)?Math.round(ds.mph)+" mph":"—"}));
     var charging=grp("Charging",
       row({ic:"bolt",bg:TINT.charging,t1:"Sessions",t2:ch.length?ch.map(function(c){return esc(chgShort(c,ch));}).join(" · "):"",v1:String(ch.length)})+
