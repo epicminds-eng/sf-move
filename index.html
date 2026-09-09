@@ -776,7 +776,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v84 · Sep 8</div>
+  <div class="appver">SF Move · v85 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1204,6 +1204,10 @@ var ACCENTS = {
     });
     state.trip.day3HolbrookV1=true;save(state);
   }
+  if(!state.trip.day3ArrivedV1){   /* one-time backfill: Day 3 (Holbrook) arrival 4:30 PM Sept 8; a time already entered by hand is kept. MUST run after the abq → winslow → holbrook rename above: renaming only fills holbrook when it is undefined, so backfilling first would make the rename drop the real stamp */
+    if(!state.trip.arrivedAt.holbrook){state.trip.arrivedAt.holbrook="2026-09-08T16:30";state.trip.arrived.holbrook=true;}
+    state.trip.day3ArrivedV1=true;save(state);
+  }
   if(!state.spend.day1PetV1){   /* Day 1 pet fee paid (actual exp-004): retire the planned row; if it was already confirmed by hand, keep that and skip exp-004 instead */
     if(state.spend.entries.some(function(e){return e.id==="seed-p1"&&!e.planned;})){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses["exp-004"]=true;}
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-p1"&&e.planned);});
@@ -1213,6 +1217,10 @@ var ACCENTS = {
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h1"&&e.planned);});
     state.spend.entries.forEach(function(e){if(e.id==="seed-p1"&&e.planned){e.amount=25;e.note="Pet fee · Candlewood";}});
     state.spend.day1HotelV1=true;save(state);
+  }
+  if(!state.spend.day3HotelV1){   /* Day 3 hotel booked: Best Western Arizonian Inn (actual exp-007). Retire the planned hotel row so it cannot double-count; a hotel already confirmed by hand is left alone, and the planned pet fee stands until the Arizonian's is known */
+    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h3"&&e.planned);});
+    state.spend.day3HotelV1=true;save(state);
   }
   if(!state.spend.day2HotelV1){   /* Day 2 hotel booked: Home2 Suites Amarillo East (actual exp-005). Retire the planned hotel row and reprice the planned pet fee to Home2's $75; a pet fee already confirmed by hand is left alone */
     state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h2"&&e.planned);});
@@ -1713,9 +1721,10 @@ var ACCENTS = {
       hotel:"Home2 Suites by Hilton Amarillo East \u00b7 7775 I-40 East", detail:"Pets $75/stay \u00b7 check-in 3 PM",
       maps:"https://maps.apple.com/?address=7775%20I-40%20East%2C%20Amarillo%2C%20TX%2079118",
       q:"Tesla%20Supercharger%20Amarillo%20TX"},   /* booked on Orbitz (exp-005), so no booking link */
-    {id:"holbrook",day:"Day 3",    name:"Holbrook, AZ",         short:"Holbrook",   lat:34.9022,  lng:-110.1582, mi:518, off:2, backup:"winslow",
-      q:"Tesla%20Supercharger%20Holbrook%20AZ",
-      orbitz:"https://www.orbitz.com/Hotel-Search?destination=Holbrook%2C%20Arizona"},   /* no hotel yet: the card reads "Hotel TBD" and books through the Orbitz search, dates derived from departDate */
+    {id:"holbrook",day:"Day 3",    name:"Holbrook, AZ",         short:"Holbrook",   lat:34.9022,  lng:-110.1582, mi:518, off:2,
+      hotel:"Best Western Arizonian Inn \u00b7 2508 Navajo Blvd", detail:"Suite, 1 King \u00b7 check-in 3 PM",
+      maps:"https://maps.apple.com/?address=2508%20Navajo%20Blvd%2C%20Holbrook%2C%20AZ%2086025",
+      q:"Tesla%20Supercharger%20Holbrook%20AZ"},   /* booked on Orbitz (exp-007), so no booking link and no backup town */
     {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:223,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
     {id:"la",      day:"LA",       name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380, off:4,
       addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
@@ -1773,6 +1782,8 @@ var ACCENTS = {
     {id:"exp-003", cat:"groceries", amount:24.83, note:"Walmart · Springfield MO", date:"2026-09-06", time:"18:40"},
     {id:"exp-004", cat:"kane", amount:25.00, note:"Pet fee · Candlewood Springfield", date:"2026-09-06", time:"17:49"},
     {id:"exp-005", cat:"hotel", amount:314.98, note:"Home2 Suites Amarillo East · booked Orbitz", date:"2026-09-07", time:"17:30"},
+    {id:"exp-007", cat:"hotel", amount:231.21, note:"Best Western Arizonian Inn \u00b7 booked Orbitz", date:"2026-09-08", time:"17:00"},
+    {id:"exp-008", cat:"groceries", amount:34.20, note:"Safeway \u00b7 Holbrook AZ", date:"2026-09-08", time:"16:59"},
     {id:"exp-006", cat:"groceries", amount:41.10, note:"Walmart · Amarillo TX", date:"2026-09-07", time:"19:37"}
   ];
   /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
@@ -2747,7 +2758,6 @@ var ACCENTS = {
     var t=Date.now();
     function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:true,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
     state.spend.entries=state.spend.entries.concat([
-      P("seed-h3",150,"hotel","Hotel · Holbrook, AZ (TBD)",3,"holbrook"),
       P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"amarillo"),
       P("seed-p3",50,"kane","Pet fee · Holbrook",3,"holbrook"),
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
