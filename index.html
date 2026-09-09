@@ -410,9 +410,20 @@
   .seg button{font-family:inherit;font-size:var(--t-row);font-weight:500;line-height:1;padding:var(--s2) var(--s3);border:0;border-radius:var(--r-icon);background:none;color:var(--label);cursor:pointer;white-space:nowrap;transition:transform .15s ease-out;}
   .seg button.on{background:var(--c-card);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);}
   .seg button:active{transform:scale(.97);}
-  .seg.segfull{display:flex;width:100%;max-width:560px;margin:2px 0 var(--s4);}   /* the control under the hero: full width, one row, four equal tabs */
-  .seg.segfull button{flex:1;text-align:center;padding:var(--s2) clamp(3px,1vw,var(--s2));min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-label);letter-spacing:-.01em;}
+  /* SIX tabs do not fit one phone row. This scrolls horizontally rather than wrapping to two rows:
+     it stays one row at every width (no second layout, no ragged half-empty row on iPad), keeps the map
+     where it is instead of pushing it down ~50px on a phone, and still has room for a seventh section.
+     Labels are never clipped — each button sizes to its text and the row scrolls instead. */
+  .seg.segfull{display:flex;width:100%;margin:2px 0 var(--s4);overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:none;scroll-behavior:smooth;}
+  .seg.segfull::-webkit-scrollbar{display:none;}
+  .seg.segfull button{flex:1 0 auto;text-align:center;min-height:44px;padding:var(--s2) var(--s3);white-space:nowrap;font-size:var(--t-label);letter-spacing:-.01em;}
   .trctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;}
+  .hotelrow{cursor:pointer;}
+  .hoteldet{padding:0 var(--s4) var(--s3);border-bottom:.5px solid var(--c-hairline-soft);}
+  .hoteldet .l{display:flex;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0;font-size:var(--t-label);color:var(--secondary);}
+  .hoteldet .l span+span{color:var(--c-ink);font-weight:var(--w-value);font-variant-numeric:tabular-nums;text-align:right;}
+  .hoteldet .btnrow{display:flex;gap:var(--s2);flex-wrap:wrap;padding-top:var(--s2);}
   .trsec{display:none;}.trsec.on{display:block;}   /* one section at a time, chosen by the segmented control */
   .grp-h{font-size:var(--t-label);font-weight:400;color:var(--secondary);text-transform:uppercase;letter-spacing:.02em;padding:0 var(--s4) var(--s2);margin-top:var(--s1);}
   .grp-h.flex{display:flex;justify-content:space-between;align-items:center;text-transform:none;font-size:var(--t-value-lg);font-weight:700;letter-spacing:-.01em;color:var(--label);padding:0 0 var(--s3);}
@@ -787,11 +798,12 @@
       <div class="trrailw"><div class="trrail" id="tripRail"></div></div>
     </div>
     <div class="trcard trstrip" id="tripStrip"></div>
-    <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="places">Places</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
+    <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="places">Places</button><button type="button" role="tab" data-s="hotels">Hotels</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
     <section class="trsec on" id="trOverview"></section>
     <section class="trsec" id="trDaily"></section>
     <section class="trsec" id="trCharging"></section>
     <section class="trsec" id="trPlaces"></section>
+    <section class="trsec" id="trHotels"></section>
     <section class="trsec" id="trItinerary"><div class="trackcard">
       <div><div class="tl">Trip tracking</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Trip tracking"><span class="knob"></span></button>
@@ -808,7 +820,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v93 · Sep 9</div>
+  <div class="appver">SF Move · v94 · Sep 9</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2289,8 +2301,9 @@ var ACCENTS = {
         '<div class="nm">'+esc(s.name)+(note?' <span class="note">· '+esc(note)+'</span>':'')+'</div>'+
         (i?'<div class="leg">'+num(s.mi)+' mi leg from '+esc(STOPS[i-1].short)+'</div>':'<div class="leg">wheels up '+esc(fmtShort(dt))+'</div>')+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
-        (noHotel?'<div class="hot tbd">'+(s.hotel?esc(s.hotel):'Hotel TBD')+(bk?' · backup '+esc(bk.name):'')+'</div>':(s.hotel?'<div class="hot">'+esc(s.hotel)+'</div>':''))+
-        (s.detail?'<div class="sc">'+esc(s.detail)+'</div>':''));
+        /* the hotel name, address, pet fee and check-in line live in Hotels now — the card keeps only
+           the backup town (a routing fact) and its Apple Maps button */
+        (noHotel&&bk?'<div class="hot tbd">backup '+esc(bk.name)+'</div>':''));
       card.setAttribute("data-stop",s.id);
       if(s.id==="start"){
         var dr=el("div","daterow",'<label for="departDate">Wheels up</label><input type="date" id="departDate">');
@@ -2713,11 +2726,17 @@ var ACCENTS = {
   }
   /* ---------- TRIP sections: one scrolling page — Overview · Daily · Charging · Itinerary ---------- */
   function scrollToEl(el){if(el)el.scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});}
-  var TRIP_SECS=["overview","daily","charging","places","itinerary"];
+  var TRIP_SECS=["overview","daily","charging","places","hotels","itinerary"];
   function tripSeg(){var s=state.ui&&state.ui.tripSeg;return TRIP_SECS.indexOf(s)>=0?s:"overview";}
   function syncTripSeg(){
-    var g=document.getElementById("tripSeg");if(!g)return;var k=tripSeg();
-    Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");});
+    var g=document.getElementById("tripSeg");if(!g)return;var k=tripSeg(),sel=null;
+    Array.prototype.forEach.call(g.children,function(b){var on=b.getAttribute("data-s")===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false");if(on)sel=b;});
+    /* keep the chosen tab on screen. scrollLeft rather than scrollIntoView: that would also scroll the page */
+    if(sel&&g.scrollWidth>g.clientWidth){
+      var r=sel.getBoundingClientRect(),gr=g.getBoundingClientRect();
+      if(r.left<gr.left)g.scrollLeft-=(gr.left-r.left)+8;
+      else if(r.right>gr.right)g.scrollLeft+=(r.right-gr.right)+8;
+    }
     TRIP_SECS.forEach(function(x){var e=document.getElementById("tr"+x.charAt(0).toUpperCase()+x.slice(1));if(e)e.classList.toggle("on",x===k);});
   }
   function setTripSeg(k){
@@ -2866,7 +2885,80 @@ var ACCENTS = {
       row({ic:"usd",bg:TINT.charging,t1:"Priciest rate",t2:pricey?esc(chgShort(pricey,hs))+" · "+esc(hlab):esc(hlab),v1:pricey?"$"+chgRate(pricey).toFixed(2)+"/kWh":"—"})+'</div>';
     w.innerHTML=stats+sessions+hl;   /* one column: the totals, the day's sessions, then the highlights */
   }
-  function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();renderPlacesSec();}   /* every Trip section, from the same data */
+  /* ---------- HOTELS: the one home for every hotel fact. Driven entirely by STOPS + the spend rows
+     already in state — no new source of truth. ---------- */
+  var HOTEL_OPEN=null;   /* which night is expanded — view-only, like the Daily row selection */
+  function nightsList(){
+    return STOPS.slice(1).map(function(s){
+      var dt=addDays(departDate(),s.off),day=s.off+1;
+      var booked=!!s.hotel&&!/TBD/i.test(s.hotel)&&!s.orbitz;
+      var needsRoom=!!s.orbitz||booked;   /* Mom's and SF are beds we already have */
+      var room=0,pet=0,roomPlan=0,petPlan=0;
+      state.spend.entries.forEach(function(e){
+        if(e.day!==day)return;
+        if(e.cat==="hotel"){if(e.planned)roomPlan+=e.amount;else room+=e.amount;}
+        else if(e.cat==="kane"){if(e.planned)petPlan+=e.amount;else pet+=e.amount;}
+      });
+      var ci=null,pf=null;
+      if(s.detail){var m=/check-in\s+([^\u00b7]+)/i.exec(s.detail);if(m)ci=m[1].trim();
+        var q=/pets?\s+([^\u00b7]+)/i.exec(s.detail);if(q)pf=q[1].trim();}
+      return {s:s,dt:dt,day:day,booked:booked,needsRoom:needsRoom,
+        room:room,pet:pet,petPlan:petPlan,plan:roomPlan+petPlan,total:room+pet,ci:ci,pfTxt:pf,
+        conf:(state.trip.conf&&state.trip.conf[s.id])||null};
+    });
+  }
+  function hotelStats(){
+    var ns=nightsList(),need=0,bk=0,spend=0;
+    ns.forEach(function(n){if(n.needsRoom){need++;if(n.booked){bk++;spend+=n.room;}}});
+    return {nights:ns,need:need,booked:bk,spend:spend,avg:bk?spend/bk:null,left:need-bk};
+  }
+  function renderHotelsSec(){
+    var w=document.getElementById("trHotels");if(!w)return;
+    var H=hotelStats();
+    var stats=statrow([[H.booked+" of "+H.need,"nights booked"],[money2(H.spend),"hotel spend"],
+      [H.avg!==null?money2(H.avg):"\u2014","average a night"],[String(H.left),H.left===1?"night to book":"nights to book"]]);
+    var rows=H.nights.map(function(n,i){
+      var open=HOTEL_OPEN===n.s.id;
+      var pill=!n.needsRoom?"No hotel needed":(n.booked?"Booked":"Not booked");
+      var pillCls=n.booked?"done":"up";
+      var t2=!n.needsRoom?(n.s.home?"staying with family \u2014 no room to book":"home \u2014 no room to book")
+        :(n.booked?esc(n.s.hotel):(n.s.hotel?esc(n.s.hotel)+" \u00b7 not booked yet":"Not booked yet \u00b7 "+esc(n.s.name)));
+      var v=!n.needsRoom?"\u2014":(n.booked?money2(n.total):(n.plan>0?"~"+money2(n.plan):"\u2014"));
+      var head=row({ic:"bed",bg:TINT.hotel,
+        t1:"Night "+n.day+" \u00b7 "+esc(fmtDay(n.dt))+" \u00b7 "+esc(n.s.name),
+        t2:t2,pill:pill,pillCls:pillCls,v1:v,cls:"hotelrow"+(open?" open":""),
+        attrs:' data-night="'+esc(n.s.id)+'" role="button" tabindex="0" aria-expanded="'+(open?"true":"false")+'"'});
+      if(!open)return head;
+      var det=[];
+      if(n.ci)det.push('<div class="l"><span>Check-in</span><span>'+esc(n.ci)+'</span></div>');
+      if(n.needsRoom)det.push('<div class="l"><span>Pet fee</span><span>'+
+        (n.pet>0?money2(n.pet):(n.petPlan>0?"~"+money2(n.petPlan):(n.pfTxt?esc(n.pfTxt):"\u2014")))+'</span></div>');
+      if(n.booked&&n.room>0)det.push('<div class="l"><span>Room</span><span>'+money2(n.room)+'</span></div>');
+      if(n.conf)det.push('<div class="l"><span>Confirmation</span><span>'+esc(n.conf)+'</span></div>');
+      var btns=[];
+      /* a booked stop stores an exact address; an unbooked one still names the hotel, so search for it */
+      var hmap=n.s.maps||n.s.url||(n.s.hotel?"https://maps.apple.com/?q="+encodeURIComponent(n.s.hotel.replace(/\s*\u00b7\s*/g," "))+", "+encodeURIComponent(n.s.name):null);
+      if(hmap)btns.push('<a class="btn go" href="'+esc(hmap)+'">Hotel in Apple Maps</a>');
+      if(n.needsRoom&&!n.booked&&n.s.orbitz)btns.push('<a class="btn" href="'+esc(hotelUrl(n.s.orbitz,n.dt))+'">Hotels on Orbitz</a>');
+      return head+'<div class="hoteldet">'+(det.join("")||'<div class="l"><span>Nothing more stored for this night</span><span></span></div>')+
+        (btns.length?'<div class="btnrow">'+btns.join("")+'</div>':'')+'</div>';
+    }).join("");
+    w.innerHTML=stats+grp("Every night",rows);
+    wireHotels();
+  }
+  function wireHotels(){
+    var w=document.getElementById("trHotels");if(!w||w.__wired)return;w.__wired=true;
+    w.addEventListener("click",function(e){
+      if(e.target.closest("a"))return;   /* a link inside the open detail is not a toggle */
+      var r=e.target.closest("[data-night]");if(!r)return;
+      var id=r.getAttribute("data-night");
+      HOTEL_OPEN=(HOTEL_OPEN===id)?null:id;renderHotelsSec();
+    });
+    w.addEventListener("keydown",function(e){
+      var r=e.target.closest("[data-night]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}
+    });
+  }
+  function renderStats(){renderTripTop();syncTripSeg();renderDaily();renderChargingSec();renderPlacesSec();renderHotelsSec();}   /* every Trip section, from the same data */
   /* live tracking — never blocks the UI */
   function setTrackStatus(t){document.getElementById("trackStatus").textContent=t;}
   function onFix(p){
