@@ -23,8 +23,13 @@
     margin:0;}
   /* app shell: body never scrolls; one scroll container; tab bar is a body child with no transformed ancestors */
   html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
-  #scroll{position:absolute;top:0;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
-  .wrap{max-width:640px;margin:0 auto;padding:8px 16px 24px;}
+  /* overflow-y:auto with no overflow-x computes the other axis to AUTO, so the shell was a horizontal
+     scroll port by accident — enough for iOS to rubber-band the whole page sideways even with nothing
+     to scroll to. hidden closes the port, overscroll-behavior-x:none kills the bounce, and touch-action
+     limits the browser to vertical gestures. The map keeps its own touch-action (pan-y at 1x, none when
+     zoomed) and drives pinch/pan from Pointer Events, so its gestures are unaffected. */
+  #scroll{position:absolute;top:0;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-x:none;touch-action:pan-y;}
+  .wrap{max-width:640px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px 24px;}   /* the top bar no longer reserves space, so the inset lives here */
   :focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
 
   /* hero */
@@ -356,10 +361,15 @@
   .stampEd input{font-family:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--sep);border-radius:10px;background:var(--cell);color:var(--label);}
   .stampEd .btn{font-size:13px;padding:7px 10px;}
   /* ---------- Apple-style shell: translucent top bar per page, iOS segmented control, inset grouped lists ---------- */
-  .topbar{position:sticky;top:0;z-index:15;height:calc(44px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);margin:0 calc(50% - 50vw) 4px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:var(--label);background:rgba(249,249,249,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);}
+  /* iOS collapsed title bar. It was position:sticky IN FLOW, so at rest it reserved 44px + the safe-area
+     inset for a title that is invisible until you scroll — the blank strip above the eyebrow. Fixed takes
+     it out of flow (the large title now starts at the safe-area top and scrolls UNDER it), transparent
+     until .scrolled so it paints nothing at rest, and pointer-events:none so it never eats a tap. */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:15;height:calc(44px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);margin:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:var(--label);background:transparent;pointer-events:none;transition:background .2s ease-out;}
+  #scroll.scrolled ~ .topbar{background:rgba(249,249,249,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);}
   .topbar span,.topbar::after{opacity:0;transition:opacity .2s ease-out;}   /* the small title and the hairline fade in once the large title scrolls under */
   .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:.5px;background:rgba(0,0,0,.22);}
-  #scroll.scrolled .topbar span,#scroll.scrolled .topbar::after{opacity:1;}
+  #scroll.scrolled ~ .topbar span,#scroll.scrolled ~ .topbar::after{opacity:1;}
   .seg{display:inline-flex;background:rgba(120,120,128,.12);border-radius:9px;padding:2px;flex:none;}
   .seg button{font-family:inherit;font-size:14px;font-weight:500;line-height:1;padding:7px 12px;border:0;border-radius:7px;background:none;color:var(--label);cursor:pointer;white-space:nowrap;transition:transform .15s ease-out;}
   .seg button.on{background:#fff;font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);}
@@ -576,7 +586,7 @@
   .sp-edit .btn{padding:8px 12px;font-size:14px;}
   /* ---------- responsive: iPad and wider (≥700px). Everything above this block is the phone layout and is unchanged ---------- */
   @media (min-width:700px){
-    .wrap{max-width:1040px;padding:8px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));}   /* 16px sides: an 820px iPad then fits two 386px columns */
+    .wrap{max-width:1040px;padding:calc(8px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));}   /* 16px sides: an 820px iPad then fits two 386px columns */
     /* every card on every tab spans the full 1040px column — no grids, no masonry */
     /* text lines never run past ~70ch, whatever the column width */
     .sec-note,.check>span,.check .cd,.item .name,.item .note,.refblock,.fact,.tripstop .hot,.tripstop .sc,.tripstop .nm,.sprow .t,.unote,.hint,.imp-note,.est,.spc p{max-width:70ch;}
@@ -776,7 +786,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v86 · Sep 8</div>
+  <div class="appver">SF Move · v87 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2053,11 +2063,16 @@ var ACCENTS = {
       var sl=e.target.closest("select[data-sel=chgDay]");if(sl){stSet("chgDay",+sl.value);return;}
       var hs=e.target.closest("select[data-sel=hlScope]");if(hs)stSet("hlScope",hs.value);   /* "all" or a day number */
     });
-    /* translucent top bar per page: the small title fades in once the large title scrolls under it */
-    Array.prototype.forEach.call(document.querySelectorAll(".page"),function(pg){
-      var h=pg.querySelector(".sign h1,.trhead h1"),tb=el("div","topbar",'<span>'+esc(pg.getAttribute("data-title")||(h?h.textContent:""))+'</span>');
-      pg.insertBefore(tb,pg.firstChild);
-    });
+    /* ONE translucent top bar for the whole shell, mounted beside #scroll like <nav>. It used to be a
+       per-page element inside .page — in flow, so at rest it reserved 44px + the safe-area inset for a
+       title that is invisible until you scroll (the blank strip above the eyebrow), and .page carries a
+       transform during the springIn tab animation, which would make a position:fixed child resolve
+       against the page instead of the viewport. The title follows the active tab. */
+    if(!document.getElementById("topbar")){
+      var tb=el("div","topbar",'<span></span>');tb.id="topbar";
+      document.body.appendChild(tb);
+    }
+    setTopTitle(document.querySelector(".page.active"));
     var sc=document.getElementById("scroll");
     sc.addEventListener("scroll",function(){sc.classList.toggle("scrolled",sc.scrollTop>28);},{passive:true});
     zoomSvg.addEventListener("click",function(e){
@@ -2382,6 +2397,11 @@ var ACCENTS = {
   function dash2(v,f){return (v===null||v===undefined||isNaN(v))?"—":f(v);}
   function dayTitle(d){var dt=addDays(departDate(),d-1);return WDL[dt.getDay()]+" · Day "+d;}
   var ST_DEF={scope:"trip",showPlanned:true,sessionsScope:"scoped",costUnit:"kwh",milesMetric:"miles",arcMetric:"miles",chgDay:null,hlScope:"day",speedUnit:"kwh",sort:"time"};
+  function setTopTitle(pg){   /* the shared top bar shows the active tab's title */
+    var tb=document.getElementById("topbar");if(!tb||!pg)return;
+    var h=pg.querySelector(".sign h1,.trhead h1");
+    tb.querySelector("span").textContent=pg.getAttribute("data-title")||(h?h.textContent:"");
+  }
   function stS(){var s=state.stats||{},o={};for(var k in ST_DEF)o[k]=(s[k]===undefined||s[k]===null)?ST_DEF[k]:s[k];return o;}   /* defaults never written until the user touches a control */
   function stSet(k,v){state.stats=state.stats||{};state.stats[k]=v;save(state);renderStats();}
   var STV={day:null};   /* Daily row selection — view-only, not persisted */
@@ -3344,7 +3364,9 @@ var ACCENTS = {
       if(curPage==="trip"&&p!=="trip"){pinPopClose();resetMapZoom(false);}   /* neither the zoom nor an open pin card is persisted */
       if(p==="trip"){ensureTripMap();renderStats();}
       if(p==="spend")renderSpend();   /* day/stop autofill follows the Trip tab */
+      setTopTitle(document.getElementById("page-"+p));
       curPage=p;scrollEl.scrollTop=scrollPos[p]||0;
+      scrollEl.classList.toggle("scrolled",scrollEl.scrollTop>28);   /* the bar follows the restored scroll position */
     });
   });
 
