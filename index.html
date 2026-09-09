@@ -326,6 +326,10 @@
   .pin-c{fill:var(--c-charging);stroke:#fff;stroke-width:1.2;}
   .pin-c.plan{fill:#fff;stroke:var(--c-charging);}
   .pin-c.pl{fill:var(--c-food);}   /* a place I liked, not a charger */
+  .pin-c.ht{fill:var(--c-hotel);stroke:#fff;}                      /* a booked night */
+  .pin-c.ht.plan{fill:#fff;stroke:var(--c-hotel);}                 /* not booked yet — hollow, like a planned charger */
+  .pin-c.ht.plan+.pin-b{fill:var(--c-hotel);}
+  .pin-badge.ht{stroke:var(--c-hotel);}
   .pin-b{fill:#fff;stroke:none;pointer-events:none;}
   .pin-c.plan+.pin-b{fill:var(--c-charging);}
   .pin-badge{fill:#fff;stroke:var(--c-charging);stroke-width:.8;}
@@ -722,6 +726,7 @@
         <button type="button" data-m="route" class="on" aria-label="Route" title="Route"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
         <button type="button" data-m="chg" aria-label="Charging stops" title="Charging stops"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></button>
         <button type="button" data-m="places" aria-label="Places" title="Places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg></button>
+        <button type="button" data-m="hotel" aria-label="Hotels" title="Hotels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5v14M3 9h15a3 3 0 0 1 3 3v7M3 16h18M7.5 9v6"/></svg></button>
         <button type="button" data-m="life" aria-label="Lifetime charging" title="Lifetime charging"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></button>
       </div>
       <button class="mapreset" id="mapReset" type="button" aria-hidden="true" tabindex="-1">Reset</button>
@@ -820,7 +825,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v94 · Sep 9</div>
+  <div class="appver">SF Move · v95 · Sep 9</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2342,6 +2347,8 @@ var ACCENTS = {
   }
   var PIN_PLACES=[],pinPopT=null;   /* the places whose pin is open (their rows stay lit), and the pending open a close must be able to cancel */
   function pinLit(ids){ids=ids||[];if(ids.join(",")===PIN_PLACES.join(","))return;PIN_PLACES=ids;renderPlacesSec();}
+  var PIN_HOTELS=[];
+  function pinLitHotel(ids){ids=ids||[];if(ids.join(",")===PIN_HOTELS.join(","))return;PIN_HOTELS=ids;renderHotelsSec();}
   function renderPlacesSec(){   /* Trip › Places: grouped by day/town; a tap centres the pin on the map above */
     var w=document.getElementById("trPlaces");if(!w)return;
     var all=allPlaces(),byDay={},out="";
@@ -2489,7 +2496,7 @@ var ACCENTS = {
   function pillSel(label,name,opts,val){return '<label class="dpk">'+label+' <i>⌄</i><select data-sel="'+name+'" aria-label="'+esc(label)+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+esc(o[1])+'</option>';}).join("")+'</select></label>';}
   function chgRate(c){return c.rate>0?c.rate:(c.cost>0&&c.kwh>0?c.cost/c.kwh:0);}
   /* ---------- TRIP top section: header pill · progress bar · route rail · charging summary · charger pins ---------- */
-  function mapMode(){var m=state.ui&&state.ui.mapMode;return (m==="chg"||m==="places"||m==="life")?m:"route";}
+  function mapMode(){var m=state.ui&&state.ui.mapMode;return (m==="chg"||m==="places"||m==="life"||m==="hotel")?m:"route";}
   function loggedMiles(){return Math.max(0,Math.min(TOTAL_MI,routePos()));}   /* THE miles figure: what every screen shows, and the only denominator any rate may use */
   function routePos(){   /* live fix if tracking, else the furthest of: Arrived stops, logged (non-planned) charger positions */
     var pr=tripProgress();if(pr.live)return pr.miles;var m=pr.miles;
@@ -2564,6 +2571,7 @@ var ACCENTS = {
   var GLYPH={food:"M-1.7 -2.2h0.8v1.9a0.5 0.5 0 0 1-0.4 0.5v2h-0.8v-2a0.5 0.5 0 0 1-0.4-0.5v-1.9h0.8zM0.6 -2.2h0.9c0.4 0 0.6 0.3 0.6 0.7v1.6a0.6 0.6 0 0 1-0.6 0.6v1.5h-0.9z",
     coffee:"M-1.9 -1.4h3.1v2.1a1.3 1.3 0 0 1-1.3 1.3h-0.5a1.3 1.3 0 0 1-1.3-1.3zM1.2 -0.8h0.5a0.7 0.7 0 0 1 0 1.4h-0.5z",
     sight:"M0 -2.3L0.7 -0.8 2.3 -0.6 1.1 0.5 1.4 2.2 0 1.4-1.4 2.2-1.1 0.5-2.3 -0.6-0.7 -0.8Z"};
+  var BED="M-2.1 -1.6h0.75v3.2h-0.75zM-1.1 -0.75h1.45v0.95h-1.45zM-2.1 0.35h4.2v0.95h-4.2z";   /* headboard · pillow · mattress */
   var PLACE_G={food:"fork",coffee:"cup",sight:"star"};   /* the same glyphs the lists use */
   var LIFE_CL=null,LIFE_SUM=null;
   function lifeClusters(){   /* one pin per physical site: same coordinates merge, whatever name variants the log used */
@@ -2604,19 +2612,42 @@ var ACCENTS = {
     el.textContent=num(L.n)+" sessions \u00b7 "+num(L.sites)+" sites \u00b7 "+L.states+" states \u00b7 "+
       num(L.kwh)+" kWh \u00b7 $"+num(L.cost)+" since "+L.since;
   }
-  function pinClusters(){   /* the current layer's pins: logged sessions (planned never merge) or places, each merged within CLUSTER_R */
-    var out=[],src=mapMode()==="places"?allPlaces():CHARGES;
+  function hotelPins(){   /* exactly the nights the Hotels section lists a room for — Mom's and SF get none */
+    return nightsList().filter(function(n){return n.needsRoom;}).map(function(n){
+      return {id:n.s.id,lat:n.s.lat,lng:n.s.lng,planned:!n.booked,night:n};
+    });
+  }
+  function hotelMapUrl(s){   /* a booked stop stores an exact address; an unbooked one still names the hotel */
+    return s.maps||s.url||(s.hotel?"https://maps.apple.com/?q="+encodeURIComponent(s.hotel.replace(/\s*\u00b7\s*/g," "))+", "+encodeURIComponent(s.name):null);
+  }
+  function pinClusters(){   /* the current layer's pins: logged sessions (planned never merge), places or hotel nights, each merged within CLUSTER_R */
+    var m=mapMode(),out=[],src=m==="places"?allPlaces():(m==="hotel"?hotelPins():CHARGES);
     src.forEach(function(c){
       var p=proj(c.lat,c.lng);
       if(!c.planned){
         for(var i=0;i<out.length;i++){var g=out[i];
           if(!g.planned&&Math.hypot(g.x-p.x,g.y-p.y)<=CLUSTER_R){g.list.push(c);g.x=(g.x*(g.list.length-1)+p.x)/g.list.length;g.y=(g.y*(g.list.length-1)+p.y)/g.list.length;return;}}
       }
-      out.push({x:p.x,y:p.y,list:[c],planned:!!c.planned,place:!!c.kind});
+      out.push({x:p.x,y:p.y,list:[c],planned:!!c.planned,place:!!c.kind,hotel:!!c.night});
     });
     return out;
   }
   function placeIdx(id){var cl=pinClusters();for(var i=0;i<cl.length;i++)if(cl[i].list.some(function(x){return x.id===id;}))return i;return -1;}
+  function hotelIdx(id){var cl=pinClusters();for(var i=0;i<cl.length;i++)if(cl[i].list.some(function(x){return x.id===id;}))return i;return -1;}
+  function openHotelPin(id){   /* Hotels row → the map switches layer, centres on the night's pin and opens it */
+    if(mapMode()!=="hotel")setMapMode("hotel");
+    if(hotelIdx(id)<0)return;   /* a night with no room to book has no pin */
+    var g=pinClusters()[hotelIdx(id)];
+    document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
+    centerOn(g.x,g.y,2.6,0.9);
+    if(pinPopT)clearTimeout(pinPopT);
+    pinPopT=setTimeout(function(){
+      pinPopT=null;
+      if(curPage!=="trip"||tripSeg()!=="hotels"||mapMode()!=="hotel")return;   /* left the page, the section or the layer */
+      var mp=document.querySelector(".trmap");if(!mp||!mp.offsetParent)return;
+      var j=hotelIdx(id);if(j>=0)pinPopOpen(j);
+    },reducedMotion?0:520);
+  }
   function openPlace(id){   /* Places row → the map above switches layer, centres on the pin and opens it */
     if(mapMode()!=="places")setMapMode("places");
     var i=placeIdx(id);if(i<0)return;
@@ -2651,11 +2682,12 @@ var ACCENTS = {
       collectMarkers();applyZoom();return;
     }
     pinClusters().forEach(function(g,i){
-      var el=svgEl("g",{"class":"pin-g","data-pin":i}),n=g.list.length,glyph=g.place?(GLYPH[g.list[0].kind]||GLYPH.sight):BOLT;
-      el.appendChild(svgEl("circle",{"class":"pin-c"+(g.planned?" plan":"")+(g.place?" pl":""),cx:g.x.toFixed(2),cy:g.y.toFixed(2),r:3.6}));
+      var el=svgEl("g",{"class":"pin-g","data-pin":i}),n=g.list.length,
+        glyph=g.hotel?BED:(g.place?(GLYPH[g.list[0].kind]||GLYPH.sight):BOLT);
+      el.appendChild(svgEl("circle",{"class":"pin-c"+(g.planned?" plan":"")+(g.place?" pl":"")+(g.hotel?" ht":""),cx:g.x.toFixed(2),cy:g.y.toFixed(2),r:3.6}));
       el.appendChild(svgEl("path",{"class":"pin-b",d:glyph,transform:"translate("+g.x.toFixed(2)+" "+g.y.toFixed(2)+")"}));
       if(n>1){
-        el.appendChild(svgEl("circle",{"class":"pin-badge",cx:(g.x+3).toFixed(2),cy:(g.y-3).toFixed(2),r:2.3}));
+        el.appendChild(svgEl("circle",{"class":"pin-badge"+(g.hotel?" ht":""),cx:(g.x+3).toFixed(2),cy:(g.y-3).toFixed(2),r:2.3}));
         var t=svgEl("text",{"class":"pin-n",x:(g.x+3).toFixed(2),y:(g.y-1.55).toFixed(2),"text-anchor":"middle"});t.textContent=n;el.appendChild(t);
       }
       el.setAttribute("data-cx",g.x.toFixed(2));el.setAttribute("data-cy",g.y.toFixed(2));
@@ -2663,7 +2695,7 @@ var ACCENTS = {
     });
     collectMarkers();applyZoom();
   }
-  function pinPopClose(){if(pinPopT){clearTimeout(pinPopT);pinPopT=null;}var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}pinLit([]);}
+  function pinPopClose(){if(pinPopT){clearTimeout(pinPopT);pinPopT=null;}var p=document.getElementById("pinPop");if(p){p.hidden=true;p.innerHTML="";}pinLit([]);pinLitHotel([]);}
   function pinPopOpen(i){
     if(pinPopT){clearTimeout(pinPopT);pinPopT=null;}   /* whatever opens now wins over anything queued */
     var life=mapMode()==="life";
@@ -2677,9 +2709,18 @@ var ACCENTS = {
       p.hidden=false;pinLit([]);placePinPop(p,g);return;
     }
     pinLit(g.place?g.list.map(function(x){return x.id;}):[]);
+    pinLitHotel(g.hotel?g.list.map(function(x){return x.id;}):[]);
     function maps(c){return "https://maps.apple.com/?q="+encodeURIComponent(c.addr||c.name)+(c.lat?"&ll="+c.lat+","+c.lng:"");}
     var html;
-    if(g.place){
+    if(g.hotel){
+      var n=g.list[0].night,hm=hotelMapUrl(n.s);
+      html='<b>Night '+n.day+' \u00b7 '+esc(fmtDay(n.dt))+'</b>'+
+        '<div class="l"><span>'+esc(n.s.hotel||"Not booked yet")+'</span><span></span></div>'+
+        '<div class="l"><span>Town</span><span>'+esc(n.s.name)+'</span></div>'+
+        '<div class="l"><span>'+(n.booked?"Cost":"Planned")+'</span><span>'+
+          (n.booked?money2(n.total):(n.plan>0?"~"+money2(n.plan):"\u2014"))+'</span></div>'+
+        (hm?'<a href="'+esc(hm)+'">Open in Apple Maps \u203a</a>':'');
+    }else if(g.place){
       html=g.list.map(function(pl){return '<b>'+esc(pl.name)+'</b>'+(pl.note?'<div class="l"><span>'+esc(pl.note)+'</span><span></span></div>':'')+
         '<div class="l"><span>Cost</span><span>'+(pl.cost>0?money2(pl.cost):"—")+'</span></div><div class="l"><span>Time</span><span>'+fmtTime(chgTs(pl))+'</span></div>'+
         '<a href="https://maps.apple.com/?q='+esc(encodeURIComponent(pl.addr||pl.name))+'">Open in Apple Maps ›</a>';}).join('<div class="l"></div>');
@@ -2926,7 +2967,8 @@ var ACCENTS = {
       var v=!n.needsRoom?"\u2014":(n.booked?money2(n.total):(n.plan>0?"~"+money2(n.plan):"\u2014"));
       var head=row({ic:"bed",bg:TINT.hotel,
         t1:"Night "+n.day+" \u00b7 "+esc(fmtDay(n.dt))+" \u00b7 "+esc(n.s.name),
-        t2:t2,pill:pill,pillCls:pillCls,v1:v,cls:"hotelrow"+(open?" open":""),
+        t2:t2,pill:pill,pillCls:pillCls,v1:v,chev:n.needsRoom,
+        cls:"hotelrow"+(open?" open":"")+(PIN_HOTELS.indexOf(n.s.id)>=0?" pinon":""),
         attrs:' data-night="'+esc(n.s.id)+'" role="button" tabindex="0" aria-expanded="'+(open?"true":"false")+'"'});
       if(!open)return head;
       var det=[];
@@ -2951,8 +2993,9 @@ var ACCENTS = {
     w.addEventListener("click",function(e){
       if(e.target.closest("a"))return;   /* a link inside the open detail is not a toggle */
       var r=e.target.closest("[data-night]");if(!r)return;
-      var id=r.getAttribute("data-night");
-      HOTEL_OPEN=(HOTEL_OPEN===id)?null:id;renderHotelsSec();
+      var id=r.getAttribute("data-night"),opening=HOTEL_OPEN!==id;
+      HOTEL_OPEN=opening?id:null;renderHotelsSec();
+      if(opening)openHotelPin(id);   /* the map follows the night you opened, as the Places rows do */
     });
     w.addEventListener("keydown",function(e){
       var r=e.target.closest("[data-night]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}
