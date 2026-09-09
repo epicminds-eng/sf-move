@@ -792,7 +792,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v88 · Sep 8</div>
+  <div class="appver">SF Move · v89 · Sep 8</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -814,7 +814,7 @@
       items:[
         {id:"decide-place", t:"Decide on the SF spot (or line up 2\u20133 backups)", d:"Sign the lease \u2014 confirm small dogs allowed, in writing; confirm what furniture it comes with"},
         {id:"car-service", t:"Tesla pre-trip check: tire rotation + tread/pressure", d:"~2,555 mi \u2014 also worth a quick check of wipers and cabin filter"},
-        {id:"route-plan", t:"Route + hotels \u2014 see Trip tab", d:"Springfield MO \u00b7 Amarillo \u00b7 Holbrook AZ \u00b7 Mom\u0027s (1 night) \u00b7 Seychelle\u0027s \u00b7 SF"},
+        {id:"route-plan", t:"Route + hotels \u2014 see Trip tab", d:"Springfield MO \u00b7 Amarillo \u00b7 Holbrook AZ \u00b7 Mom\u0027s \u00b7 Coalinga CA \u00b7 SF"},
         {id:"gear-decisions", t:"Make the gear calls", d:"Launch monitor car-vs-ship \u00b7 gamer clubs car-vs-Ship Sticks \u00b7 bench ship-vs-rebuy \u00b7 AB coaster sell? \u00b7 iMac/monitor/printer/mirror/Hue fates \u00b7 which cooler rides \u2014 numbers coming from Claude"}
       ]
     },
@@ -1219,6 +1219,25 @@ var ACCENTS = {
       if(e.id==="seed-p3"&&e.planned){e.amount=50;e.note="Pet fee · Holbrook";}
     });
     state.trip.day3HolbrookV1=true;save(state);
+  }
+  if(!state.trip.day5CoalingaV1){   /* Day 5 moved LA (Seychelle's) → Coalinga: stamps, arrived flag and spend stopIds follow the stop; the Day 5 plan is retargeted and repriced while still planned, a confirmed actual is left alone */
+    ["arrived","arrivedAt","rolled"].forEach(function(k){var o=state.trip[k];if(o&&o.la!==undefined){if(o.coalinga===undefined)o.coalinga=o.la;delete o.la;}});
+    state.spend.entries.forEach(function(e){
+      if(e.stopId==="la")e.stopId="coalinga";
+      if(e.id==="seed-h5"&&e.planned){e.amount=200;e.note="Hotel · Harris Ranch, Coalinga CA";}
+      if(e.id==="seed-p5"&&e.planned){e.amount=50;e.note="Pet fee · Harris Ranch";}
+    });
+    /* Day 5 had no plan before this stop had a room to book. Back-fill an ALREADY-SEEDED store only —
+       a fresh install gets the same two rows from seedSpend, and adding them here too would double them. */
+    var dis5=state.spend.dismissedCharges||{},have5={};
+    if(state.spend.seededV1)
+    {
+      state.spend.entries.forEach(function(e){have5[e.id]=true;});
+      [["seed-h5",200,"hotel","Hotel · Harris Ranch, Coalinga CA"],["seed-p5",50,"kane","Pet fee · Harris Ranch"]]
+        .forEach(function(r){if(!have5[r[0]]&&!dis5[r[0]])state.spend.entries.push(
+          {id:r[0],amount:r[1],cat:r[2],note:r[3],day:5,stopId:"coalinga",ts:0,planned:true,billsLater:false});});
+    }
+    state.trip.day5CoalingaV1=true;save(state);
   }
   if(!state.trip.day3ArrivedV1){   /* one-time backfill: Day 3 (Holbrook) arrival 4:30 PM Sept 8; a time already entered by hand is kept. MUST run after the abq → winslow → holbrook rename above: renaming only fills holbrook when it is undefined, so backfilling first would make the rename drop the real stamp */
     if(!state.trip.arrivedAt.holbrook){state.trip.arrivedAt.holbrook="2026-09-08T16:30";state.trip.arrived.holbrook=true;}
@@ -1742,11 +1761,11 @@ var ACCENTS = {
       maps:"https://maps.apple.com/?address=2508%20Navajo%20Blvd%2C%20Holbrook%2C%20AZ%2086025",
       q:"Tesla%20Supercharger%20Holbrook%20AZ"},   /* booked on Orbitz (exp-007), so no booking link and no backup town */
     {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:223,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
-    {id:"la",      day:"LA",       name:"LA \u2014 Seychelle\u0027s", short:"LA",   lat:34.0525,  lng:-118.3720, mi:380, off:4,
-      addr:"1127 S Hayworth Ave, Los Angeles, CA 90035",
-      url:"https://maps.apple.com/?address=1127%20S%20Hayworth%20Ave%2C%20Los%20Angeles%2C%20CA%2090035", linkLabel:"Seychelle\u0027s in Apple Maps",
-      sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20Los%20Angeles%20CA"},
-    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:385, off:5,
+    {id:"coalinga",day:"Day 5",    name:"Coalinga, CA",         short:"Coalinga",   lat:36.2544,  lng:-120.2372, mi:580, off:4,
+      hotel:"Harris Ranch Inn \u00b7 24505 W Dorris Ave", detail:"Pet-friendly \u00b7 ~100 Supercharger stalls on site \u00b7 check-in 4 PM",
+      q:"Tesla%20Supercharger%20Harris%20Ranch%20Coalinga%20CA",
+      orbitz:"https://www.orbitz.com/Hotel-Search?destination=Coalinga%2C%20California"},   /* chosen but not booked: the card names it and still books through Orbitz */
+    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:185, off:5,
       addr:"1442A Grove St, SF 94117",
       url:"https://maps.apple.com/?address=1442A%20Grove%20St%2C%20San%20Francisco%2C%20CA%2094117", linkLabel:"Home in Apple Maps",
       sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20San%20Francisco%20CA"}
@@ -1768,9 +1787,9 @@ var ACCENTS = {
      planned:true = a charger we intend to use: hollow node, "Planned · <name>" in the list, NO Spend entry, excluded from
      kWh/$ totals. Replace it in place with a real session (drop planned, add date/time/kwh/rate/cost/min) and it fills in
      and seeds Spend like any other:
-     {id:"chg-oasis", planned:true, name:"Tesla Oasis – Lost Hills, CA", addr:"…", lat:35.617, lng:-119.694, leg:"LA → SF"} */
+     {id:"chg-oasis", planned:true, name:"Tesla Oasis – Lost Hills, CA", addr:"…", lat:35.617, lng:-119.694, leg:"Mom's → Coalinga"} */
   var CHARGES=[
-    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"LA \u2192 SF"},
+    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"Mom\u0027s \u2192 Coalinga"},
     {id:"chg-001", name:"Normal, IL – West Raab Rd", addr:"610 West Raab Rd, Normal, IL 61761", lat:40.5327, lng:-88.9918, date:"2026-09-06", time:"10:27", kwh:29.83, rate:0.35, cost:10.43, min:14},
     {id:"chg-002", name:"Springfield, IL – South Dirksen", addr:"1501 S Dirksen Pkwy, Springfield, IL 62703", lat:39.7755, lng:-89.6089, date:"2026-09-06", time:"11:41", kwh:43.79, rate:0.36, cost:15.76, min:28},
     {id:"chg-003", name:"Fenton, MO \u2013 Wally\u0027s", addr:"950 Assembly Pkwy, Fenton, MO 63026", lat:38.5093, lng:-90.4527, date:"2026-09-06", time:"13:45", kwh:36.59, rate:0.44, cost:16.10, min:21},
@@ -1828,9 +1847,10 @@ var ACCENTS = {
     {n:"Payson",          lat:34.2309, lng:-111.3251},   /* AZ-87 through Payson: waypoint only, no stop */
     {n:"Mom\u0027s",       lat:33.22721,lng:-111.88610,stop:"moms"},
     {n:"Blythe",          lat:33.6103, lng:-114.5964},
-    {n:"Los Angeles",     lat:34.0525, lng:-118.3720, stop:"la"},   /* Seychelle\u0027s, 1127 S Hayworth Ave */
+    {n:"Los Angeles",     lat:34.0525, lng:-118.3720},   /* I-10 west ends here and I-5 turns north: polyline only, no node, no label, no card */
     {n:"Bakersfield",     lat:35.3733, lng:-119.0187},
     {n:"Lost Hills",      lat:35.6175, lng:-119.6945},   /* I-5 × CA-46: Tesla Oasis */
+    {n:"Coalinga",        lat:36.2544, lng:-120.2372, stop:"coalinga"},   /* Harris Ranch Inn, 24505 W Dorris Ave */
     {n:"San Francisco",   lat:37.7757, lng:-122.4400, stop:"sf"}   /* 1442A Grove St */
   ];
   var STOPW=STOPS.map(function(s){for(var i=0;i<WAYPTS.length;i++)if(WAYPTS[i].stop===s.id)return i;return -1;});   /* stop k → waypoint index */
@@ -2224,14 +2244,14 @@ var ACCENTS = {
       var s=STOPS[i],arr=!!state.trip.arrived[s.id],status=i===0?"start":(i===cur?"cur":(arr?"done":"up"));
       var bk=s.backup?BACKUPS.filter(function(b){return b.id===s.backup;})[0]:null,dt=addDays(departDate(),s.off||0),note=s.note,last=i===STOPS.length-1;
       if(s.home&&STOPS[i+1]){var nn=STOPS[i+1].off-s.off;note=nn+(nn===1?" night":" nights");}
-      var noHotel=!!s.orbitz&&(!s.hotel||/TBD/i.test(s.hotel));   /* a hotel stop still to be booked; houses (Mom's, LA, SF) never need one */
+      var noHotel=!!s.orbitz;   /* a room still to book keeps its Orbitz link; booking removes it. The stop may already name the hotel it has chosen. Houses (Mom's, SF) never have one. */
       var pill=arr&&i>0?'<span class="pillst done">Arrived</span>':status==="cur"?'<span class="pillst cur">In progress</span>':status==="up"?'<span class="pillst up">Upcoming</span>':'';
       var card=el("div","card tripstop "+status,
         '<div class="sh"><span class="day">'+(arr&&i>0?'<span class="ok">'+ICON.check+'</span>':'')+esc(s.day)+' · '+esc(fmtDay(dt))+'</span>'+pill+'</div>'+
         '<div class="nm">'+esc(s.name)+(note?' <span class="note">· '+esc(note)+'</span>':'')+'</div>'+
         (i?'<div class="leg">'+num(s.mi)+' mi leg from '+esc(STOPS[i-1].short)+'</div>':'<div class="leg">wheels up '+esc(fmtShort(dt))+'</div>')+
         (s.addr?'<div class="sc">'+esc(s.addr)+'</div>':'')+
-        (noHotel?'<div class="hot tbd">Hotel TBD'+(bk?' · backup '+esc(bk.name):'')+'</div>':(s.hotel?'<div class="hot">'+esc(s.hotel)+'</div>':''))+
+        (noHotel?'<div class="hot tbd">'+(s.hotel?esc(s.hotel):'Hotel TBD')+(bk?' · backup '+esc(bk.name):'')+'</div>':(s.hotel?'<div class="hot">'+esc(s.hotel)+'</div>':''))+
         (s.detail?'<div class="sc">'+esc(s.detail)+'</div>':''));
       card.setAttribute("data-stop",s.id);
       if(s.id==="start"){
@@ -2696,9 +2716,9 @@ var ACCENTS = {
     /* the bed: the booked hotel if there is one, else the still-TBD plan, priced from the day's hotel row */
     var hotelAct=0,nHot=0;ents.forEach(function(e){if(e.cat==="hotel"){hotelAct+=e.amount;nHot++;}});   /* every hotel charge for the night, summed — a room plus its fees is still one bed */
     var hotelPlan=0;state.spend.entries.forEach(function(e){if(e.day===sel&&e.planned&&e.cat==="hotel")hotelPlan+=e.amount;});
-    var booked=!!sst.hotel&&!/TBD/i.test(sst.hotel),needsRoom=!!sst.orbitz||booked;   /* Mom's, LA and SF are beds we already have */
+    var booked=!!sst.hotel&&!/TBD/i.test(sst.hotel)&&!sst.orbitz,needsRoom=!!sst.orbitz||booked;   /* a named hotel that still has an Orbitz link is chosen, not booked */   /* Mom's, LA and SF are beds we already have */
     var bed=!needsRoom?row({ic:"bed",bg:TINT.hotel,t1:esc(sst.name),t2:sst.home?"staying with family — no room to book":"staying with people — no room to book",v1:"—"})
-      :row({ic:"bed",bg:TINT.hotel,t1:booked?esc(sst.hotel):"Hotel TBD",
+      :row({ic:"bed",bg:TINT.hotel,t1:sst.hotel?esc(sst.hotel):"Hotel TBD",   /* a chosen hotel is named even before it is booked; the subline says whether it is booked */
          t2:booked?(nHot?"booked"+(nHot>1?" · "+nHot+" charges":""):""):"not booked yet",
          v1:nHot?money2(hotelAct):(hotelPlan>0?"~"+money2(hotelPlan):"—")});
     return driving+charging+spend+places+grp("Where I slept",bed);
@@ -2804,6 +2824,8 @@ var ACCENTS = {
     state.spend.entries=state.spend.entries.concat([
       P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"amarillo"),
       P("seed-p3",50,"kane","Pet fee · Holbrook",3,"holbrook"),
+      P("seed-h5",200,"hotel","Hotel · Harris Ranch, Coalinga CA",5,"coalinga"),
+      P("seed-p5",50,"kane","Pet fee · Harris Ranch",5,"coalinga"),
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
       P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo",{billsLater:true}),
       P("seed-m0",240,"misc","Ship Sticks · 3 pieces",0,null)
