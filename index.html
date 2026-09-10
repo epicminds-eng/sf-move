@@ -842,7 +842,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v103 · Sep 10</div>
+  <div class="appver">SF Move · v104 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1292,6 +1292,10 @@ var ACCENTS = {
   if(!state.trip.day3ArrivedV1){   /* one-time backfill: Day 3 (Holbrook) arrival 4:30 PM Sept 8; a time already entered by hand is kept. MUST run after the abq → winslow → holbrook rename above: renaming only fills holbrook when it is undefined, so backfilling first would make the rename drop the real stamp */
     if(!state.trip.arrivedAt.holbrook){state.trip.arrivedAt.holbrook="2026-09-08T16:30";state.trip.arrived.holbrook=true;}
     state.trip.day3ArrivedV1=true;save(state);
+  }
+  if(!state.spend.hotel5BookedV1){   /* Coalinga booked on Expedia (actual exp-009): retire the planned room row, exactly as Days 1, 2 and 3 did. The pet fee stays planned — it is still to come. */
+    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h5"&&e.planned);});
+    state.spend.hotel5BookedV1=true;save(state);
   }
   if(!state.spend.day1PetV1){   /* Day 1 pet fee paid (actual exp-004): retire the planned row; if it was already confirmed by hand, keep that and skip exp-004 instead */
     if(state.spend.entries.some(function(e){return e.id==="seed-p1"&&!e.planned;})){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses["exp-004"]=true;}
@@ -1812,9 +1816,10 @@ var ACCENTS = {
       q:"Tesla%20Supercharger%20Holbrook%20AZ"},   /* booked on Orbitz (exp-007), so no booking link and no backup town */
     {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:223, tz:"America/Phoenix",  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
     {id:"coalinga",day:"Day 5",    name:"Coalinga, CA",         short:"Coalinga",   lat:36.2544,  lng:-120.2372, mi:580, off:4, tz:"America/Los_Angeles",
-      hotel:"Harris Ranch Inn \u00b7 24505 W Dorris Ave", detail:"Pet-friendly \u00b7 100 Supercharger stalls on site \u00b7 check-in 4 PM",
-      q:"Tesla%20Supercharger%20Harris%20Ranch%20Coalinga%20CA",
-      orbitz:"https://www.orbitz.com/Hotel-Search?destination=Coalinga%2C%20California"},   /* chosen but not booked: the card names it and still books through Orbitz */
+      hotel:"Harris Ranch Inn \u00b7 24505 W Dorris Ave", detail:"Pet-friendly \u00b7 100 Supercharger stalls on site \u00b7 check-in 4 PM\u2013midnight",
+      note:"Check-in 4 PM\u2013midnight \u00b7 non-refundable \u00b7 Expedia #73541759098262",
+      maps:"https://maps.apple.com/?address=24505%20W%20Dorris%20Ave%2C%20Coalinga%2C%20CA%2093210",
+      q:"Tesla%20Supercharger%20Harris%20Ranch%20Coalinga%20CA"},   /* BOOKED on Expedia: no orbitz link, so nightsList reads it as booked and the card leads with Apple Maps */
     {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:185, off:5, tz:"America/Los_Angeles",
       addr:"1442A Grove St, SF 94117",
       url:"https://maps.apple.com/?address=1442A%20Grove%20St%2C%20San%20Francisco%2C%20CA%2094117", linkLabel:"Home in Apple Maps",
@@ -1863,7 +1868,9 @@ var ACCENTS = {
     {id:"chg-021", name:"Payson, AZ \u2013 AZ-260", addr:"142 AZ-260, Payson, AZ 85541", lat:34.2420, lng:-111.3230, date:"2026-09-09", time:"12:58", kwh:30.59, rate:0.47, cost:14.37, min:24},
     {id:"chg-022", name:"Chandler, AZ \u2013 West Ray Rd", addr:"3075 W Ray Rd, Chandler, AZ 85226", lat:33.3200, lng:-111.9670, date:"2026-09-09", time:"13:51", kwh:26.76, rate:0.49, cost:13.11, min:22},
     {id:"chg-023", name:"Buckeye, AZ", addr:"416 S Watson Rd, Buckeye AZ 85326", lat:33.444, lng:-112.556, date:"2026-09-10", time:"07:16", kwh:14.57, rate:0.37, cost:5.39, min:11},
-    {id:"chg-024", name:"Quartzsite, AZ", addr:"1451 W Main St, Quartzsite AZ 85346", lat:33.664, lng:-114.231, date:"2026-09-10", time:"08:53", kwh:43.65, rate:0.41, cost:17.89, min:29}
+    {id:"chg-024", name:"Quartzsite, AZ", addr:"1451 W Main St, Quartzsite AZ 85346", lat:33.664, lng:-114.231, date:"2026-09-10", time:"08:53", kwh:43.65, rate:0.41, cost:17.89, min:29},
+    {id:"chg-025", name:"Indio, CA", addr:"42100 Jackson St, Indio CA 92203", lat:33.737, lng:-116.217, date:"2026-09-10", time:"11:00", kwh:36.89, rate:0.44, cost:16.23, min:24},
+    {id:"chg-026", name:"Ontario, CA", addr:"3760 Inland Empire Blvd, Ontario CA 91764", lat:34.068, lng:-117.588, date:"2026-09-10", time:"12:42", kwh:31.68, rate:0.51, cost:16.15, min:19}
   ];
   /* ---------- LIFETIME charging history: every Supercharger session since Jan 2024, inlined from
      data/lifetime-charges.json so the app stays one self-contained file with no runtime fetch.
@@ -1880,7 +1887,8 @@ var ACCENTS = {
     {id:"exp-005", cat:"hotel", amount:314.98, note:"Home2 Suites Amarillo East · booked Orbitz", date:"2026-09-07", time:"17:30"},
     {id:"exp-007", cat:"hotel", amount:231.21, note:"Best Western Arizonian Inn \u00b7 booked Orbitz", date:"2026-09-08", time:"17:00"},
     {id:"exp-008", cat:"groceries", amount:34.20, note:"Safeway \u00b7 Holbrook AZ", date:"2026-09-08", time:"16:59"},
-    {id:"exp-006", cat:"groceries", amount:41.10, note:"Walmart · Amarillo TX", date:"2026-09-07", time:"19:37"}
+    {id:"exp-006", cat:"groceries", amount:41.10, note:"Walmart · Amarillo TX", date:"2026-09-07", time:"19:37"},
+    {id:"exp-009", cat:"hotel", amount:252.74, note:"Harris Ranch Inn \u00b7 booked Expedia \u00b7 incl. $13.74 stay protection", date:"2026-09-10", time:"14:30"}
   ];
   /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
      entry under the same id (food/coffee → "food", sight → "misc"), so it counts exactly once. Never touch route miles, progress or charging stats. */
@@ -3229,8 +3237,7 @@ var ACCENTS = {
     state.spend.entries=state.spend.entries.concat([
       P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"amarillo"),
       P("seed-p3",50,"kane","Pet fee · Holbrook",3,"holbrook"),
-      P("seed-h5",200,"hotel","Hotel · Harris Ranch, Coalinga CA",5,"coalinga"),
-      P("seed-p5",50,"kane","Pet fee · Harris Ranch",5,"coalinga"),
+      P("seed-p5",50,"kane","Pet fee · Harris Ranch",5,"coalinga"),   /* the room itself is booked (exp-009); only the pet fee is still a plan */
       P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
       P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo",{billsLater:true}),
       P("seed-m0",240,"misc","Ship Sticks · 3 pieces",0,null)
