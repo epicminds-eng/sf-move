@@ -828,7 +828,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v97 · Sep 10</div>
+  <div class="appver">SF Move · v98 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1783,25 +1783,25 @@ var ACCENTS = {
 
   /* ---------- TRIP ---------- */
   var STOPS=[
-    {id:"start",   day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0, off:0},
-    {id:"strobert",day:"Day 1",    name:"Springfield, MO",      short:"Springfield",lat:37.2440,  lng:-93.2718,  mi:505, off:0, backup:"rolla",   /* id kept from the St. Robert plan so stored arrived flags + stopIds still match */
+    {id:"start",   day:"Start",    name:"South Barrington, IL", short:"Start",      lat:42.0914,  lng:-88.1562,  mi:0, off:0, tz:"America/Chicago"},
+    {id:"strobert",day:"Day 1",    name:"Springfield, MO",      short:"Springfield",lat:37.2440,  lng:-93.2718,  mi:505, off:0, tz:"America/Chicago", backup:"rolla",   /* id kept from the St. Robert plan so stored arrived flags + stopIds still match */
       hotel:"Candlewood Suites Springfield \u00b7 1920 E Kerr St", detail:"Pets $25/night \u00b7 kitchen suite \u00b7 crated dogs OK alone",
       maps:"https://maps.apple.com/?address=1920%20E%20Kerr%20St%2C%20Springfield%2C%20MO%2065803",
       q:"Tesla%20Supercharger%20Springfield%20MO"},   /* already booked on Orbitz (exp-002), so no booking link */
-    {id:"amarillo",day:"Day 2",     name:"Amarillo, TX",         short:"Amarillo",   lat:35.2220,  lng:-101.8313, mi:545, off:1, backup:"shamrock",
+    {id:"amarillo",day:"Day 2",     name:"Amarillo, TX",         short:"Amarillo",   lat:35.2220,  lng:-101.8313, mi:545, off:1, tz:"America/Chicago", backup:"shamrock",
       hotel:"Home2 Suites by Hilton Amarillo East \u00b7 7775 I-40 East", detail:"Pets $75/stay \u00b7 check-in 3 PM",
       maps:"https://maps.apple.com/?address=7775%20I-40%20East%2C%20Amarillo%2C%20TX%2079118",
       q:"Tesla%20Supercharger%20Amarillo%20TX"},   /* booked on Orbitz (exp-005), so no booking link */
-    {id:"holbrook",day:"Day 3",    name:"Holbrook, AZ",         short:"Holbrook",   lat:34.9022,  lng:-110.1582, mi:518, off:2,
+    {id:"holbrook",day:"Day 3",    name:"Holbrook, AZ",         short:"Holbrook",   lat:34.9022,  lng:-110.1582, mi:518, off:2, tz:"America/Phoenix",
       hotel:"Best Western Arizonian Inn \u00b7 2508 Navajo Blvd", detail:"Suite, 1 King \u00b7 check-in 3 PM",
       maps:"https://maps.apple.com/?address=2508%20Navajo%20Blvd%2C%20Holbrook%2C%20AZ%2086025",
       q:"Tesla%20Supercharger%20Holbrook%20AZ"},   /* booked on Orbitz (exp-007), so no booking link and no backup town */
-    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:223,  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
-    {id:"coalinga",day:"Day 5",    name:"Coalinga, CA",         short:"Coalinga",   lat:36.2544,  lng:-120.2372, mi:580, off:4,
+    {id:"moms",    day:"Mom\u0027s",name:"Sun Lakes, AZ",       short:"Mom\u0027s", lat:33.22721, lng:-111.88610,mi:223, tz:"America/Phoenix",  url:"https://maps.apple.com/?ll=33.22721,-111.88610&q=Mom%27s", linkLabel:"Mom\u0027s house in Apple Maps", home:true, off:3},
+    {id:"coalinga",day:"Day 5",    name:"Coalinga, CA",         short:"Coalinga",   lat:36.2544,  lng:-120.2372, mi:580, off:4, tz:"America/Los_Angeles",
       hotel:"Harris Ranch Inn \u00b7 24505 W Dorris Ave", detail:"Pet-friendly \u00b7 ~100 Supercharger stalls on site \u00b7 check-in 4 PM",
       q:"Tesla%20Supercharger%20Harris%20Ranch%20Coalinga%20CA",
       orbitz:"https://www.orbitz.com/Hotel-Search?destination=Coalinga%2C%20California"},   /* chosen but not booked: the card names it and still books through Orbitz */
-    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:185, off:5,
+    {id:"sf",      day:"Arrive",   name:"San Francisco, CA",    short:"SF",         lat:37.7757,  lng:-122.4400, mi:185, off:5, tz:"America/Los_Angeles",
       addr:"1442A Grove St, SF 94117",
       url:"https://maps.apple.com/?address=1442A%20Grove%20St%2C%20San%20Francisco%2C%20CA%2094117", linkLabel:"Home in Apple Maps",
       sc2:"https://maps.apple.com/?q=Tesla%20Supercharger%20San%20Francisco%20CA"}
@@ -2101,7 +2101,41 @@ var ACCENTS = {
   }
   function kwh1(v){return Math.round(Math.round(v*100)/100*10)/10;}   /* a total of 2-decimal readings: 276.04999… shows as 276.1, not 276 */
   function chgPlace(c){return String(c.name).split(/\s[\u2013\u2014-]\s/)[0];}   /* "Portage, IN – George Ade" → "Portage, IN" */
-  function chgTs(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}
+  /* ---------- TIME ZONES. The drive crosses four of them, so a zone-less stamp is a wall clock, not an
+     instant: Amarillo 08:00 CDT to Holbrook 16:30 MST is 10h30m, and reading both as one zone loses two
+     hours out of door-to-door, average speed, hours a day and the ETA. Stamps and charge times stay
+     STORED and DISPLAYED as the wall clock that was written down — only the maths converts. ---------- */
+  var TZ_STATE={IL:"America/Chicago",MO:"America/Chicago",OK:"America/Chicago",TX:"America/Chicago",KS:"America/Chicago",
+    NM:"America/Denver",CO:"America/Denver",AZ:"America/Phoenix",CA:"America/Los_Angeles",NV:"America/Los_Angeles"};
+  var TZ_OK=(function(){try{return typeof Intl!=="undefined"&&!!new Intl.DateTimeFormat("en-US",{timeZone:"America/Phoenix"}).formatToParts;}catch(e){return false;}})();
+  var TZ_FMT={},TZ_MEMO={};
+  function tzFmt(tz){return TZ_FMT[tz]||(TZ_FMT[tz]=new Intl.DateTimeFormat("en-US",{timeZone:tz,hour12:false,
+    year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}));}
+  function tzOffset(ts,tz){   /* what the zone is offset from UTC AT THIS INSTANT, in ms — so DST is handled by asking, not by a table */
+    var p={};tzFmt(tz).formatToParts(new Date(ts)).forEach(function(x){if(x.type!=="literal")p[x.type]=x.value;});
+    return Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute,+p.second)-Math.floor(ts/1000)*1000;   /* hour "24" is midnight in some engines */
+  }
+  /* solve for the instant whose local time in tz is this wall clock. One guess, then one correction:
+     the guess can land on the wrong side of a DST change, and the second pass settles it. */
+  function zonedToEpoch(v,tz){
+    var m=/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(String(v||""));if(!m)return NaN;
+    var y=+m[1],mo=+m[2]-1,da=+m[3],h=+m[4],mi=+m[5];
+    if(!tz||!TZ_OK)return new Date(y,mo,da,h,mi).getTime();   /* no zone, or an engine with no IANA support: the device's own zone, exactly as before */
+    var key=tz+"|"+m[0];if(TZ_MEMO[key]!==undefined)return TZ_MEMO[key];
+    var wall=Date.UTC(y,mo,da,h,mi),t=wall-tzOffset(wall,tz);
+    t=wall-tzOffset(t,tz);
+    return (TZ_MEMO[key]=t);
+  }
+  function tzForAddr(a){var m=/,?\s*([A-Z]{2})\s+\d{5}/.exec(String(a||""));return (m&&TZ_STATE[m[1]])||null;}
+  function stopTz(st){return (st&&st.tz)||null;}
+  function rolledTz(st){var k=STOPS.indexOf(st);return stopTz(k>0?STOPS[k-1]:st);}   /* you roll FROM the stop before: the morning happened in that zone */
+  function chgTz(c){   /* a Tesla screenshot records station-local time, so the state in the address is the zone */
+    if(!c)return null;
+    var t=tzForAddr(c.addr);if(t)return t;
+    return c.date?stopTz(stopForDay(dayForDate(parseYMD(c.date)))):null;   /* a place with no address falls back to the day it belongs to */
+  }
+  function chgTs(c){return zonedToEpoch(String(c.date||"")+"T"+String(c.time||"00:00"),chgTz(c));}   /* the INSTANT — ordering and the charger-overlap maths */
+  function chgWall(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}   /* the wall clock as written — display only, and the ts a seeded Spend row has always stored */
   function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();renderTripTop();}
   function wireTripUI(){   /* map layer control, pin taps, rail taps, summary tap — called from init, after the zoom module exists */
     var seg=document.getElementById("mapSeg"),rail=document.getElementById("tripRail"),pop=document.getElementById("pinPop");
@@ -2363,7 +2397,7 @@ var ACCENTS = {
       var st=stopForDay(d),list=byDay[d].sort(function(a,b){return chgTs(a)-chgTs(b);});
       out+=grp((d>0?"Day "+d+(st?" · "+esc(st.short):""):"Pre-trip"),list.map(function(pl){
         return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),
-          t2:[pl.note,placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),
+          t2:[pl.note,placeTown(pl),fmtTime(chgWall(pl))].filter(Boolean).map(esc).join(" · "),
           v1:pl.cost>0?money2(pl.cost):"",chev:true,cls:(PIN_PLACES.indexOf(pl.id)>=0?"pinon":""),
           attrs:' role="button" tabindex="0" data-place="'+esc(pl.id)+'"'});}).join(""));
     });
@@ -2409,7 +2443,10 @@ var ACCENTS = {
   function dash(v,f){return (v===null||v===undefined||isNaN(v))?"\u2014":f(v);}
   function dayStats(d){
     var st=stopForDay(d);if(!st)return null;var k=STOPS.indexOf(st);
-    var rolled=state.trip.rolled[st.id]?parseLocalISO(state.trip.rolled[st.id]):null,arrived=state.trip.arrivedAt[st.id]?parseLocalISO(state.trip.arrivedAt[st.id]):null;
+    var rolledS=state.trip.rolled[st.id]||null,arrivedS=state.trip.arrivedAt[st.id]||null;
+    var rolled=rolledS?parseLocalISO(rolledS):null,arrived=arrivedS?parseLocalISO(arrivedS):null;   /* the wall clock, for the chips and the day card */
+    /* the same two stamps as INSTANTS: you rolled in the previous stop's zone and arrived in this one's */
+    var rolledT=rolledS?zonedToEpoch(rolledS,rolledTz(st)):null,arrivedT=arrivedS?zonedToEpoch(arrivedS,stopTz(st)||rolledTz(st)):null;
     var ch=CHARGES.filter(function(c){return !c.planned&&c.date&&dayForDate(parseYMD(c.date))===d;}).sort(function(a,b){return chgTs(a)-chgTs(b);});
     if(!rolled&&!arrived&&!ch.length&&!state.trip.arrived[st.id])return null;
     var kwh=0,cost=0,min=0;ch.forEach(function(c){kwh+=c.kwh||0;cost+=c.cost||0;min+=c.min||0;});
@@ -2420,11 +2457,11 @@ var ACCENTS = {
        counting a whole session because it merely started in the window let a stamp-contradicting
        day (49 min door to door, 110 min charging) report 23 min of driving at 1317 mph. */
     var chDrive=0;
-    if(rolled&&arrived)ch.forEach(function(c){
-      var s0=chgTs(c),e0=s0+((c.min||0)*60000),ov=Math.min(e0,arrived)-Math.max(s0,rolled);
+    if(rolledT!==null&&arrivedT!==null)ch.forEach(function(c){
+      var s0=chgTs(c),e0=s0+((c.min||0)*60000),ov=Math.min(e0,arrivedT)-Math.max(s0,rolledT);
       if(ov>0)chDrive+=ov/60000;});
     chDrive=Math.round(chDrive);
-    var miles=st.mi,span=(rolled&&arrived)?(arrived-rolled)/60000:null;
+    var miles=st.mi,span=(rolledT!==null&&arrivedT!==null)?(arrivedT-rolledT)/60000:null;
     /* a driving day longer than MAX_DAY_MIN is a stale stamp, not a 20-hour day (a Rolling tap left on the
        night before, or on the wrong day): the span is rejected rather than poured into the trip averages */
     var d2d=(span!==null&&span>0&&span<=MAX_DAY_MIN)?span:null,badSpan=(span!==null&&d2d===null);
@@ -2437,7 +2474,7 @@ var ACCENTS = {
     var prev=CUM[k-1],stints=[];
     ch.forEach(function(c){var m=locate({lat:c.lat,lng:c.lng}).miles;stints.push(m-prev);prev=m;});
     var longest=stints.length?Math.max.apply(null,stints):null,whmi=(kwh>0&&miles>0)?kwh/miles*1000:null;
-    return{d:d,stop:st,rolled:rolled,arrived:arrived,miles:miles,ch:ch,kwh:kwh,cost:cost,chMin:min,chDrive:chDrive,d2d:d2d,drive:drive,mph:mph,longest:longest,whmi:whmi,complete:complete,badSpan:badSpan,span:span};
+    return{d:d,stop:st,rolled:rolled,arrived:arrived,rolledT:rolledT,arrivedT:arrivedT,tz:stopTz(st),rolledTz:rolledTz(st),miles:miles,ch:ch,kwh:kwh,cost:cost,chMin:min,chDrive:chDrive,d2d:d2d,drive:drive,mph:mph,longest:longest,whmi:whmi,complete:complete,badSpan:badSpan,span:span};
   }
   function tripStats(){
     var days=[];for(var d=1;d<=TRIP_DAYS;d++){var r=dayStats(d);if(r)days.push(r);}
@@ -2729,7 +2766,7 @@ var ACCENTS = {
         (hm?'<a href="'+esc(hm)+'">Open in Apple Maps \u203a</a>':'');
     }else if(g.place){
       html=g.list.map(function(pl){return '<b>'+esc(pl.name)+'</b>'+(pl.note?'<div class="l"><span>'+esc(pl.note)+'</span><span></span></div>':'')+
-        '<div class="l"><span>Cost</span><span>'+(pl.cost>0?money2(pl.cost):"—")+'</span></div><div class="l"><span>Time</span><span>'+fmtTime(chgTs(pl))+'</span></div>'+
+        '<div class="l"><span>Cost</span><span>'+(pl.cost>0?money2(pl.cost):"—")+'</span></div><div class="l"><span>Time</span><span>'+fmtTime(chgWall(pl))+'</span></div>'+
         '<a href="https://maps.apple.com/?q='+esc(encodeURIComponent(pl.addr||pl.name))+'">Open in Apple Maps ›</a>';}).join('<div class="l"></div>');
     }else if(g.list.length===1){var c=g.list[0];
       html='<b>'+esc(chgPlace(c))+'</b>'+(c.planned?'<div class="l"><span>Planned stop</span><span>—</span></div>':
@@ -2894,7 +2931,7 @@ var ACCENTS = {
       (later>0?row({ic:"clock",bg:TINT.misc,t1:"Bills later",t2:"tolls and the like, counted when they land",v1:money2(later),mute:true}):""));
     var pls=allPlaces().filter(function(pl){return !isNaN(chgTs(pl))&&dayForDate(parseYMD(pl.date))===sel;}).sort(function(a,b){return chgTs(a)-chgTs(b);});
     var places=grp("Places",pls.length?pls.map(function(pl){
-      return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),t2:[placeTown(pl),fmtTime(chgTs(pl))].filter(Boolean).map(esc).join(" · "),
+      return row({ic:PLACE_G[pl.kind]||"star",bg:TINT.place,t1:esc(pl.name),t2:[placeTown(pl),fmtTime(chgWall(pl))].filter(Boolean).map(esc).join(" · "),
         v1:pl.cost>0?money2(pl.cost):"",chev:true,cls:"link",attrs:' role="button" tabindex="0" data-place="'+esc(pl.id)+'"'});}).join("")
       : row({t1:"Nothing marked for Day "+sel,mute:true}));
     /* the bed: the booked hotel if there is one, else the still-TBD plan, priced from the day's hotel row */
@@ -2916,7 +2953,7 @@ var ACCENTS = {
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);   /* every trip day, driven or not: an empty day reads "—" rather than vanishing */
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
     var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),
-      t2:fmtTime(chgTs(c))+" · "+(Math.round(c.kwh*10)/10)+" kWh"+(c.min>0?" · "+(c.kwh/c.min).toFixed(2)+" kWh/min":""),
+      t2:fmtTime(chgWall(c))+" · "+(Math.round(c.kwh*10)/10)+" kWh"+(c.min>0?" · "+(c.kwh/c.min).toFixed(2)+" kWh/min":""),
       v1:c.min>0?c.min+" min":"—",v2:money2(c.cost||0)});}).join("");
     var sessions=head+'<div class="grp">'+(srows||row({t1:"No sessions logged for Day "+cd,mute:true}))+'</div>';
     /* highlights read either the picked day or the whole trip — the summary bar above already carries the trip totals,
@@ -3168,7 +3205,7 @@ var ACCENTS = {
     CHARGES.forEach(function(c){
       if(c.planned||have[c.id]||dis[c.id])return;   /* planned chargers are map-only until logged as a real session */
       var s=nearestStop(c.lat,c.lng);
-      var e={id:c.id,amount:+c.cost||0,cat:"charging",note:c.name,day:dayForDate(parseYMD(c.date)),stopId:s?s.id:null,ts:chgTs(c),planned:false,billsLater:false};
+      var e={id:c.id,amount:+c.cost||0,cat:"charging",note:c.name,day:dayForDate(parseYMD(c.date)),stopId:s?s.id:null,ts:chgWall(c),planned:false,billsLater:false};
       if(c.kwh>0)e.kwh=c.kwh;
       state.spend.entries.push(e);added=true;
     });
@@ -3181,7 +3218,7 @@ var ACCENTS = {
     EXPENSES.forEach(function(x){
       if(have[x.id]||dis[x.id])return;
       var d=dayForDate(parseYMD(x.date)),st=stopForDay(d);
-      state.spend.entries.push({id:x.id,amount:+x.amount||0,cat:CATMAP[x.cat]?x.cat:"misc",note:x.note||"",day:d,stopId:st?st.id:null,ts:chgTs(x),planned:false,billsLater:false});added=true;
+      state.spend.entries.push({id:x.id,amount:+x.amount||0,cat:CATMAP[x.cat]?x.cat:"misc",note:x.note||"",day:d,stopId:st?st.id:null,ts:chgWall(x),planned:false,billsLater:false});added=true;
     });
     if(added)saveSeed(state);
   }
@@ -3193,7 +3230,7 @@ var ACCENTS = {
     allPlaces().forEach(function(pl){
       if(!(pl.cost>0)||have[pl.id]||dis[pl.id])return;
       var d=dayForDate(parseYMD(pl.date)),st=stopForDay(d);
-      state.spend.entries.push({id:pl.id,amount:+pl.cost,cat:pl.kind==="sight"?"misc":"food",note:pl.name+(pl.note?" · "+pl.note:""),day:d,stopId:st?st.id:null,ts:chgTs(pl),planned:false,billsLater:false});added=true;
+      state.spend.entries.push({id:pl.id,amount:+pl.cost,cat:pl.kind==="sight"?"misc":"food",note:pl.name+(pl.note?" · "+pl.note:""),day:d,stopId:st?st.id:null,ts:chgWall(pl),planned:false,billsLater:false});added=true;
     });
     if(added)saveSeed(state);
   }
