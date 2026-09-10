@@ -165,6 +165,91 @@ for(const [w,h] of [[393,852],[1194,834]]){
     return {t:el.textContent.trim(),lines:Math.round(el.getBoundingClientRect().height/lh)};}));
   ok(rows.length>0&&rows.every(r=>r.lines===1), `${w} every place row title is one line${rows.filter(r=>r.lines!==1).map(r=>' — "'+r.t+'"').join('')}`);
 
+  /* ---------- the side column IS the sub-tab from 768 up; below the map, only Up next + the strip ---------- */
+  {
+    const wide=w>=768;
+    for(const sec of SECS){
+      await seg(sec);
+      const L=await p.evaluate(k=>{
+        const box=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,r:r.right,b:r.bottom};};
+        const col=document.getElementById('tripCol'),map=document.querySelector('.trmap'),strip=document.getElementById('tripStrip');
+        const active=document.querySelector('.trsec.on');
+        const card=document.querySelector('.trmapcard');
+        return {col:box(col),map:box(map),strip:box(strip),card:box(card),
+          activeId:active?active.id:null,
+          colHasSeg:col.contains(document.getElementById('tripSeg')),
+          colHasActive:col.contains(active),
+          activeVisible:!!active.offsetParent&&active.getBoundingClientRect().height>0,
+          /* what sits below the map card, other than Up next and the strip */
+          belowCard:[...document.querySelectorAll('#page-trip > *')].filter(e=>e!==card&&e.getBoundingClientRect().top>=card.b-1&&e.getBoundingClientRect().height>0).map(e=>e.id||e.className),
+          inCard:[...document.querySelectorAll('.trmapcard > *')].map(e=>e.className.replace(/\s+/g,'.')),
+          seg:box(document.getElementById('tripSeg'))};},k=sec);
+      ok(L.colHasSeg&&L.colHasActive&&L.activeVisible, `${w}/${sec} the picker and the live section are in #tripCol (${L.activeId})`);
+      if(wide){
+        ok(L.col.x>=L.map.r-1, `${w}/${sec} the column sits BESIDE the map (col ${Math.round(L.col.x)} vs map right ${Math.round(L.map.r)})`);
+        ok(Math.abs(L.seg.y-L.map.y)<40, `${w}/${sec} the picker is at the TOP of the column, level with the map`);
+        ok(L.belowCard.length===0, `${w}/${sec} nothing below the map card but the column beside it${L.belowCard.length?' — '+L.belowCard.join(', '):''}`);
+        ok(L.inCard.join('|')==='trcard.trmap|trcard.trstrip', `${w}/${sec} the card below the map is the map, Up next and the strip only (${L.inCard.join(' + ')})`);
+      }else{
+        ok(L.col.y>=L.strip.b-1, `${w}/${sec} the column is BELOW the strip, as on a phone today (${Math.round(L.col.y)} vs ${Math.round(L.strip.b)})`);
+        ok(Math.abs(L.col.w-L.map.w)<2, `${w}/${sec} and full width (${Math.round(L.col.w)} of ${Math.round(L.map.w)})`);
+      }
+    }
+    /* Overview's column content is Your route, exactly what the column showed before */
+    await seg('overview');
+    const rail=await p.evaluate(()=>{const r=document.querySelector('#trOverview .trrail');
+      return {there:!!r,visible:!!(r&&r.offsetParent),
+        stops:r?[...r.querySelectorAll('.trstep')].length:0,want:STOPS.length,
+        head:r?(r.querySelector('.tr-rt')||{}).textContent:null,
+        pace:/Pace/i.test(document.getElementById('trOverview').innerText)};});
+    ok(rail.there&&rail.stops===rail.want, `${w} Overview carries the Your route list, one step per stop (${rail.stops})`);
+    ok(rail.visible===(w>=768), `${w} and it shows only on the wide layout (visible: ${rail.visible})`);
+    ok(rail.pace, `${w} with Pace still below it`);
+  }
+
+  /* ---------- no retired-stop marker is drawn, on any layer ---------- */
+  {
+    const marks=await p.evaluate(()=>{
+      const out={};
+      const at=(el)=>({x:+(el.getAttribute('cx')||el.getAttribute('data-cx')||NaN),y:+(el.getAttribute('cy')||el.getAttribute('data-cy')||NaN)});
+      out.backupPts=BACKUPS.map(b=>({id:b.id,...proj(b.lat,b.lng)}));
+      out.byLayer={};
+      ['route','chg','places','hotel','life'].forEach(m=>{
+        setMapMode(m);
+        const node=[...document.querySelectorAll('#nodeG circle')].map(at);
+        const lod=[...document.querySelectorAll('#lodG circle')].map(at);
+        const near=[...node,...lod].filter(q=>out.backupPts.some(b=>Math.hypot(b.x-q.x,b.y-q.y)<1.2));
+        out.byLayer[m]={bk:document.querySelectorAll('#tripSvg .bk').length,bl:document.querySelectorAll('#tripSvg .bl').length,
+          td:document.querySelectorAll('#tripSvg .td').length,onBackup:near.length,
+          nodeCircles:node.length,lodCircles:lod.length};
+      });
+      setMapMode('route');
+      /* every circle left in #nodeG must BE a real stop */
+      const stops=STOPS.map(s=>proj(s.lat,s.lng));
+      const orphans=[...document.querySelectorAll('#nodeG circle')].map(at)
+        .filter(q=>!stops.some(sp=>Math.hypot(sp.x-q.x,sp.y-q.y)<1.2)).length;
+      out.orphans=orphans;out.nStops=STOPS.length;
+      out.nodeCircles=document.querySelectorAll('#nodeG circle').length;
+      out.townNames=document.querySelectorAll('#lodG .tn').length;
+      return out;});
+    const layers=Object.keys(marks.byLayer);
+    ok(layers.every(m=>marks.byLayer[m].bk===0&&marks.byLayer[m].bl===0), `${w} no backup dot or label on any layer (${layers.join(', ')})`);
+    ok(layers.every(m=>marks.byLayer[m].td===0), `${w} no town dot on any layer`);   /* scoped to #tripSvg: .bl is also the bar-row label class elsewhere in the app */
+    ok(layers.every(m=>marks.byLayer[m].onBackup===0), `${w} nothing is drawn at any of the ${marks.backupPts.length} retired stops (${marks.backupPts.map(b=>b.id).join(', ')})`);
+    ok(marks.orphans===0&&marks.nodeCircles===marks.nStops, `${w} every route marker left IS a real stop (${marks.nodeCircles} for ${marks.nStops} stops)`);
+    ok(marks.townNames>0, `${w} town NAMES stay for orientation (${marks.townNames})`);
+    /* the data and the stop cards are untouched */
+    const chips=await p.evaluate(()=>{
+      setTripSeg('itinerary');
+      const withBackup=STOPS.filter(s=>s.backup).map(s=>s.backup);
+      const txt=document.getElementById('tripStops').textContent;   /* the chip lives in the collapsed More fold, invisible to innerText */
+      return {want:withBackup,shown:withBackup.filter(id=>{
+        const b=BACKUPS.filter(x=>x.id===id)[0];return b&&txt.indexOf(b.name.split(',')[0])>=0;})};});
+    ok(chips.want.length>0&&chips.shown.length===chips.want.length,
+       `${w} the backup chips on the stop cards are unchanged (${chips.shown.join(', ')})`);
+    await seg('overview');
+  }
+
   ok(errs.length===0, `${w} no page or console errors${errs.length?' — '+errs[0]:''}`);
   await c.close();
 }
