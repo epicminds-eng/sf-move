@@ -297,6 +297,11 @@
   /* the context block: the same rows and group heading used everywhere else, inset to the rail's own
      padding and held to one line each, because this column is narrow */
   .trctx{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--c-hairline);}
+  .trrail>.trctx:first-child{margin-top:0;padding-top:0;border-top:0;}   /* Overview aside, the column opens with its own block */
+  .trctx .statrow{background:none;border-radius:0;padding:0;margin:0;}
+  .trctx .statrow .st b{font-size:var(--t-value);}
+  .trctx .row .pillst{margin-left:auto;}
+  .trctx .row.day .t1{font-size:var(--t-label);}   /* five things on one narrow line: the destination must survive the ellipsis */
   .trctx .grp-h{padding:0 0 var(--s2);}
   .trctx .grp{margin-bottom:0;background:none;border-radius:0;}
   .trctx .row{padding:var(--s2) 0;min-height:44px;}
@@ -842,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v106 · Sep 10</div>
+  <div class="appver">SF Move · v107 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2168,7 +2173,7 @@ var ACCENTS = {
     function railTap(e){
       var c=e.target.closest("[data-ctxnight],[data-ctxplace],[data-ctxchg]");   /* the context block under Your route */
       if(c){
-        var hn=c.getAttribute("data-ctxnight");if(hn){toggleHotel(hn);return;}
+        var hn=c.getAttribute("data-ctxnight");if(hn){if(c.getAttribute("data-frame"))openHotelPin(hn);else toggleHotel(hn);return;}
         var pn=c.getAttribute("data-ctxplace");if(pn){openPlace(pn);return;}
         var cn=c.getAttribute("data-ctxchg");if(cn){openCharge(cn);return;}
       }
@@ -2637,7 +2642,7 @@ var ACCENTS = {
         '<span class="tr-gut"><span class="tr-mk">'+(passed&&!now?'<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>':'')+'</span></span>'+
         '<span class="tr-tx"><span class="tr-nm">'+esc(i===0?"Chicago":s.short)+'</span><span class="tr-sb">'+sub+'</span></span></button>';
     }).join("");
-    ws.forEach(function(w){w.innerHTML=head+steps+railCtx();});
+    ws.forEach(function(w){w.innerHTML=(tripSeg()==="overview"?head+steps:railCol());});   /* Your route appears on Overview and nowhere else */
     var up=document.getElementById("upNext");   /* the map's bottom edge: the one home for next-stop */
     if(up)up.innerHTML='<span class="k">Up next</span><span class="n">'+esc(ns?ns.name:"San Francisco")+'</span><span class="d">'+(ns?num(CUM[nx]-pos)+" mi away":"arrived")+'</span>';
   }
@@ -2645,31 +2650,90 @@ var ACCENTS = {
      that have a list worth glancing at. Existing row/grp styling, one line per row, ellipsis at the end
      — the column is narrow. It lives inside .trrail, which is display:none below 768, so the phone
      never sees it. Overview, Daily and Itinerary get nothing: the column is Your route alone. */
-  function railCtx(){
-    var k=tripSeg(),rows=[],title="";
-    if(k==="hotels"){
-      title="Nights";
-      hotelStats().nights.forEach(function(n){
-        if(!n.needsRoom)return;
-        var v=n.booked?money(n.total):(n.plan>0?money(n.plan):"\u2014");
-        rows.push(row({t1:"Night "+n.day+" \u00b7 "+esc(n.s.short),
-          v1:'<span class="'+(n.booked?"ok":"todo")+'">'+v+'</span>',cls:"one ctx",
-          attrs:' role="button" tabindex="0" data-ctxnight="'+esc(n.s.id)+'"'}));});
-    }else if(k==="places"){
-      title="Places";
-      allPlaces().filter(function(pl){return pl.lat&&pl.lng;}).forEach(function(pl){
-        rows.push(row({t1:esc(pl.name)+" \u00b7 Day "+dayForDate(parseYMD(pl.date)),
-          v1:pl.cost>0?money(pl.cost):"",cls:"one ctx",
-          attrs:' role="button" tabindex="0" data-ctxplace="'+esc(pl.id)+'"'}));});
-    }else if(k==="charging"){
-      title="Today\u2019s charges";
-      var ds=dayStats(chgDaySel());
-      (ds?ds.ch.filter(function(c){return c.kwh>0;}):[]).forEach(function(c){
-        rows.push(row({t1:esc(chgPlace(c))+" \u00b7 "+fmtTime(chgWall(c)),
-          v1:Math.round(c.kwh)+" kWh \u00b7 "+money(c.cost||0),cls:"one ctx",
-          attrs:' role="button" tabindex="0" data-ctxchg="'+esc(c.id)+'"'}));});
+  /* ---------- THE WIDE COLUMN follows the sub-tab. Overview is Your route and nothing else; every
+     other sub-tab is a three-number strip and a one-line list. Every strip figure comes from the same
+     function the section below the map already renders from — never a second computation. The whole
+     thing lives inside .trrail, which is display:none below 768, so a phone never sees a column. */
+  function colSec(title,body){return '<div class="trctx"><div class="grp-h">'+title+'</div>'+body+'</div>';}
+  function colRow(o){o.cls="one ctx"+(o.cls?" "+o.cls:"");return row(o);}
+  function colDaily(){
+    var F=todayFigures(),st=stopForDay(F.cur),dp=F.dp,rows=[];
+    var head="Today \u00b7 Day "+F.cur+" \u00b7 "+esc(st?st.short:"");
+    var strip=statrow([[num(dp.so),"of "+num(dp.mi)+" mi"],
+      [(F.hrs!==null&&!dp.done)?hm(F.hrs):"\u2014","time to go"],
+      [F.any?money(F.spent):"\u2014","spent"]]);
+    var ro=st?state.trip.rolled[st.id]:null;
+    if(ro)rows.push({ts:parseLocalISO(ro).getTime(),h:colRow({t1:"Rolled",v1:fmtTime(parseLocalISO(ro))})});
+    (F.ds?F.ds.ch:[]).forEach(function(c){
+      rows.push({ts:chgWall(c),h:colRow({t1:esc(chgPlace(c))+" \u00b7 "+fmtTime(chgWall(c)),v1:money(c.cost||0),
+        attrs:' role="button" tabindex="0" data-ctxchg="'+esc(c.id)+'"'})});});
+    allPlaces().filter(function(pl){return pl.date&&dayForDate(parseYMD(pl.date))===F.cur;}).forEach(function(pl){
+      rows.push({ts:chgWall(pl),h:colRow({t1:esc(pl.name)+" \u00b7 "+fmtTime(chgWall(pl)),v1:pl.cost>0?money(pl.cost):"",
+        attrs:' role="button" tabindex="0" data-ctxplace="'+esc(pl.id)+'"'})});});
+    rows.sort(function(a,b){return a.ts-b.ts;});
+    var out=rows.map(function(r){return r.h;});
+    var n=nightsList().filter(function(x){return x.day===F.cur&&x.needsRoom;})[0];
+    if(n)out.push(colRow({t1:esc(hotelName(n.s)||n.s.name),pill:n.booked?"Booked":"To book",pillCls:n.booked?"done":"up",
+      v1:n.booked?money(n.total):(n.plan>0?money(n.plan):"\u2014"),
+      attrs:' role="button" tabindex="0" data-ctxnight="'+esc(n.s.id)+'" data-frame="1"'}));
+    var eta=dp.done?(st&&state.trip.arrivedAt[st.id]?fmtTime(parseLocalISO(state.trip.arrivedAt[st.id])):"\u2014")
+      :((F.hrs!==null)?fmtTime(new Date(Date.now()+F.hrs*60000)):"\u2014");
+    out.push(colRow({t1:dp.done?"Arrived":"ETA",v1:eta}));
+    return colSec(head,strip)+colSec("Today",'<div class="grp">'+out.join("")+'</div>');
+  }
+  function colCharging(){
+    var t=tripStats(),real=realCharges(),ds=dayStats(chgDaySel());   /* the same three the Charging stat row renders */
+    var strip=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money(t.cost),"spend"]]);
+    var out=(ds?ds.ch.filter(function(c){return c.kwh>0;}):[]).map(function(c){
+      return colRow({t1:esc(chgPlace(c))+" \u00b7 "+fmtTime(chgWall(c)),
+        v1:Math.round(c.kwh)+" kWh \u00b7 "+money(c.cost||0),
+        attrs:' role="button" tabindex="0" data-ctxchg="'+esc(c.id)+'"'});});
+    return colSec("Trip",strip)+(out.length?colSec("Today\u2019s charges",'<div class="grp">'+out.join("")+'</div>'):"");
+  }
+  function colPlaces(){
+    var pls=allPlaces().filter(function(pl){return pl.date;}),days={},spend=0;
+    pls.forEach(function(pl){days[dayForDate(parseYMD(pl.date))]=1;spend+=pl.cost||0;});
+    var strip=statrow([[String(pls.length),pls.length===1?"place":"places"],
+      [String(Object.keys(days).length),"days"],[money(spend),"spend"]]);
+    var out=pls.map(function(pl){
+      return colRow({t1:esc(pl.name)+" \u00b7 Day "+dayForDate(parseYMD(pl.date)),v1:pl.cost>0?money(pl.cost):"",
+        attrs:' role="button" tabindex="0" data-ctxplace="'+esc(pl.id)+'"'});});
+    return colSec("Trip",strip)+(out.length?colSec("Places",'<div class="grp">'+out.join("")+'</div>'):"");
+  }
+  function colHotels(){
+    var H=hotelStats();   /* the same figures the Hotels stat row renders */
+    var strip=statrow([[H.booked+" of "+H.need,"booked"],[money(H.spend),"spend"],
+      [H.avg!==null?money(H.avg):"\u2014","avg / night"]]);
+    var out=H.nights.filter(function(n){return n.needsRoom;}).map(function(n){
+      return colRow({t1:"Night "+n.day+" \u00b7 "+esc(n.s.short),pill:n.booked?"Booked":"To book",pillCls:n.booked?"done":"up",
+        v1:n.booked?money(n.total):(n.plan>0?money(n.plan):"\u2014"),
+        attrs:' role="button" tabindex="0" data-ctxnight="'+esc(n.s.id)+'"'});});
+    return colSec("Nights",strip)+(out.length?colSec("Every night",'<div class="grp">'+out.join("")+'</div>'):"");
+  }
+  function colItinerary(){
+    var cur=tripDayNow(),out=[];
+    for(var d=1;d<=TRIP_DAYS;d++){
+      var st=stopForDay(d),dt=addDays(departDate(),d-1),dp=dayProg(d),status=dayStatus(d,cur);
+      /* destination FIRST: five things do not fit one line in a 30% column, and the ellipsis takes from
+         the end — leading with the day left every row reading "Day 1 · Sun 9/6 · …", which is the one
+         part a day-by-day list already implies. The date is what gives way instead. */
+      out.push(colRow({t1:esc(st?st.short:"")+" \u00b7 Day "+d+" \u00b7 "+WD3[dt.getDay()]+" "+(dt.getMonth()+1)+"/"+dt.getDate(),
+        pill:{done:"Done",today:"Today",plan:"Planned"}[status],pillCls:status,
+        v1:num(dp.mi)+" mi",cls:"day"+(d===cur?" today":""),
+        attrs:' role="button" tabindex="0" data-stop="'+esc(st?st.id:"")+'"'}));
     }
-    return rows.length?'<div class="trctx">'+grp(title,rows.join(""))+'</div>':"";
+    var last=addDays(departDate(),TRIP_DAYS-1);
+    var strip=statrow([[num(TOTAL_MI),"mi total"],[String(TRIP_DAYS),"days"],[esc(fmtShort(last)),"arrive"]]);
+    return colSec("Day by day",'<div class="grp">'+out.join("")+'</div>')+colSec("Trip",strip);
+  }
+  function railCol(){
+    var k=tripSeg();
+    if(k==="daily")return colDaily();
+    if(k==="charging")return colCharging();
+    if(k==="places")return colPlaces();
+    if(k==="hotels")return colHotels();
+    if(k==="itinerary")return colItinerary();
+    return "";   /* Overview: Your route alone */
   }
   function toggleHotel(id){   /* the one home for what tapping a night does: expand the card and drive the map */
     var opening=HOTEL_OPEN!==id;
@@ -2690,11 +2754,15 @@ var ACCENTS = {
       var j=placeIdx(id);if(j>=0)pinPopOpen(j);
     },reducedMotion?0:520);
   }
-  function renderTripStrip(){   /* the bottom of the map card: TODAY only — the trip-wide figures live in the progress card */
-    var w=document.getElementById("tripStrip");if(!w)return;
+  function todayFigures(){   /* THE computation behind today's numbers — the strip under the map and the Daily column both read it, so neither can drift */
     var t=tripStats(),cur=tripDayNow(),dp=dayProg(cur),ds=dayStats(cur);
     var togo=Math.max(0,dp.mi-dp.so),hrs=(t.paceMin!==null)?togo*t.paceMin:null;
     var spent=0,any=false;state.spend.entries.forEach(function(e){if(e.day===cur&&!e.planned){spent+=e.amount;any=true;}});
+    return {t:t,cur:cur,dp:dp,ds:ds,togo:togo,hrs:hrs,spent:spent,any:any};
+  }
+  function renderTripStrip(){   /* the bottom of the map card: TODAY only — the trip-wide figures live in the progress card */
+    var w=document.getElementById("tripStrip");if(!w)return;
+    var F=todayFigures(),t=F.t,dp=F.dp,ds=F.ds,togo=F.togo,hrs=F.hrs,spent=F.spent,any=F.any;
     w.innerHTML='<div class="tr-c"><b>'+(dp.done?"\u2014":num(togo))+'</b><span>'+(dp.done?"arrived":"mi to go")+'</span></div>'+
       '<div class="tr-c"><b>'+((hrs!==null&&!dp.done)?hm(hrs):"\u2014")+'</b><span>time to go</span></div>'+
       '<div class="tr-c"><b>'+((ds&&ds.ch.length)?hm(ds.chMin):"\u2014")+'</b><span>at chargers</span></div>'+

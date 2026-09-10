@@ -165,77 +165,91 @@ for(const [w,h] of [[393,852],[1194,834]]){
     return {t:el.textContent.trim(),lines:Math.round(el.getBoundingClientRect().height/lh)};}));
   ok(rows.length>0&&rows.every(r=>r.lines===1), `${w} every place row title is one line${rows.filter(r=>r.lines!==1).map(r=>' — "'+r.t+'"').join('')}`);
 
-  /* ---------- v103: the picker and its section are BELOW the map at every width; the wide column is
-     Your route, plus a compact context block for the sub-tabs that have a list worth glancing at ---------- */
+  /* ---------- the picker and its section stay BELOW the map at every width; from 768 the side column
+     follows the sub-tab: Your route on Overview, and a 3-number strip plus a one-line list elsewhere ---------- */
   {
     const wide=w>=768;
-    const CTX={hotels:'Nights',places:'Places',charging:'Today\u2019s charges'};
     for(const sec of SECS){
       await seg(sec);
       const L=await p.evaluate(()=>{
         const box=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,r:r.right,b:r.bottom};};
         const map=document.querySelector('.trmap'),segEl=document.getElementById('tripSeg');
         const active=document.querySelector('.trsec.on'),rail=document.getElementById('tripRail');
-        const ctx=document.querySelector('#tripRail .trctx');
         const one=el=>{const lh=parseFloat(getComputedStyle(el).lineHeight)||parseFloat(getComputedStyle(el).fontSize)*1.2;
           return el.getBoundingClientRect().height<=lh*1.6;};
-        const rows=ctx?[...ctx.querySelectorAll('.row')]:[];
-        return {map:box(map),seg:box(segEl),active:box(active),activeId:active.id,
+        const rows=rail?[...rail.querySelectorAll('.row')]:[];
+        const strips=rail?[...rail.querySelectorAll('.statrow')]:[];
+        return {activeId:active.id,
           segBelowMap:segEl.getBoundingClientRect().top>=map.getBoundingClientRect().bottom-1,
           activeBelowSeg:active.getBoundingClientRect().top>=segEl.getBoundingClientRect().bottom-1,
-          segFullWidth:Math.abs(segEl.getBoundingClientRect().width-map.getBoundingClientRect().width)<2,
           inMapCard:!!map.contains(segEl)||!!map.contains(active),
-          railInMapCard:!!(rail&&map.contains(rail)),railVisible:!!(rail&&rail.offsetParent),
-          railHead:rail?(rail.querySelector('.tr-rt')||{}).textContent:null,
-          railSteps:rail?rail.querySelectorAll('.trstep').length:0,stops:STOPS.length,
-          ctx:!!ctx,ctxVisible:!!(ctx&&ctx.offsetParent),
-          ctxTitle:ctx?(ctx.querySelector('.grp-h')||{}).textContent:null,
-          ctxRows:rows.length,
-          ctxWraps:rows.filter(r=>[...r.querySelectorAll('.t1,.v1')].some(e=>!one(e))).map(r=>r.innerText.replace(/\s+/g,' ').trim()),
-          ctxClipped:rows.filter(r=>[...r.querySelectorAll('.t1')].some(e=>getComputedStyle(e).textOverflow!=='ellipsis')).length,
-          ctxTaps:rows.filter(r=>r.getAttribute('data-ctxnight')||r.getAttribute('data-ctxplace')||r.getAttribute('data-ctxchg')).length,
-          ctxAfterRail:!!(ctx&&rail&&rail.querySelector('.trstep')&&
-            ctx.getBoundingClientRect().top>=rail.querySelector('.trstep').getBoundingClientRect().top)};});
-      /* (a) the picker and the live section are below the map, full width, at EVERY width */
-      ok(L.segBelowMap&&L.activeBelowSeg, `${w}/${sec} picker and section sit below the map (${L.activeId})`);
-      ok(!L.inMapCard, `${w}/${sec} and outside the map card, where they were before v102`);
-      ok(L.segFullWidth, `${w}/${sec} the picker spans the card width (${Math.round(L.seg.w)} of ${Math.round(L.map.w)})`);
-      ok(L.railInMapCard&&L.railVisible===wide&&L.railSteps===L.stops,
-         `${w}/${sec} Your route is back in the map card, ${wide?'shown':'hidden'} here (${L.railSteps} steps)`);
-      /* (b) a context block only for Hotels, Places and Charging — and only on the wide layout */
-      const want=CTX[sec]||null;
-      if(wide){
-        ok(L.ctxVisible===!!want, `${w}/${sec} context block ${want?'present':'absent'}${L.ctxVisible?' ('+L.ctxTitle+')':''}`);
-        if(want){
-          ok(L.ctxTitle===want, `${w}/${sec} titled "${L.ctxTitle}"`);
-          ok(L.ctxRows>0&&L.ctxTaps===L.ctxRows, `${w}/${sec} ${L.ctxRows} rows, every one of them tappable`);
-          ok(L.ctxWraps.length===0, `${w}/${sec} nothing wraps${L.ctxWraps.length?' — '+L.ctxWraps[0]:''}`);
-          ok(L.ctxClipped===0, `${w}/${sec} every title ellipsizes at the end`);
-          ok(L.ctxAfterRail, `${w}/${sec} and it sits BELOW Your route, which stays at the top`);
-        }
+          railVisible:!!(rail&&rail.offsetParent),
+          route:rail?rail.querySelectorAll('.trstep').length:0,stops:STOPS.length,
+          strips:strips.length,stripCells:strips.map(s=>s.querySelectorAll('.st').length),
+          stripVals:strips.map(s=>[...s.querySelectorAll('.st')].map(c=>c.querySelector('b').textContent.trim())),
+          titles:rail?[...rail.querySelectorAll('.grp-h')].map(e=>e.textContent.trim()):[],
+          rows:rows.length,
+          wraps:rows.filter(r=>[...r.querySelectorAll('.t1,.v1')].some(e=>!one(e))).map(r=>r.innerText.replace(/\s+/g,' ')),
+          clipped:rows.filter(r=>[...r.querySelectorAll('.t1')].some(e=>getComputedStyle(e).textOverflow!=='ellipsis')).length,
+          tappable:rows.filter(r=>r.getAttribute('role')==='button').length};});
+      ok(L.segBelowMap&&L.activeBelowSeg&&!L.inMapCard, `${w}/${sec} picker and section stay below the map (${L.activeId})`);
+      if(!wide){ ok(!L.railVisible, `${w}/${sec} no column on the phone`); continue; }
+      if(sec==='overview'){
+        ok(L.route===L.stops&&L.strips===0&&L.rows===0,
+           `${w}/overview the column is Your route alone — ${L.route} steps, no strip, no list`);
       }else{
-        /* (c) the phone never shows one: it lives inside the rail, which is display:none below 768 */
-        ok(!L.ctxVisible, `${w}/${sec} no context block on the phone`);
+        ok(L.route===0, `${w}/${sec} no Your route here`);
+        ok(L.strips===1&&L.stripCells[0]===3, `${w}/${sec} exactly one 3-value strip (${L.stripVals[0].join(' · ')})`);
+        ok(L.rows>0&&L.tappable===L.rows-(sec==='daily'?1:0), `${w}/${sec} ${L.rows} list rows, tappable${sec==='daily'?' bar the ETA line':''}`);
+        ok(L.wraps.length===0, `${w}/${sec} nothing wraps${L.wraps.length?' — '+L.wraps[0]:''}`);
+        ok(L.clipped===0, `${w}/${sec} every title ellipsizes at the end`);
       }
     }
-    /* the taps do what the section's own rows do */
     if(wide){
-      await seg('hotels');
-      const tapped=await p.evaluate(()=>{const r=document.querySelector('#tripRail [data-ctxnight]');
-        const id=r.getAttribute('data-ctxnight');r.click();
-        return {id:id,open:HOTEL_OPEN,mode:mapMode()};});
-      await p.waitForTimeout(1200);
-      const after=await p.evaluate(()=>({open:HOTEL_OPEN,mode:mapMode(),
-        expanded:!!document.querySelector('#trHotels .hotelrow.open'),pop:!document.getElementById('pinPop').hidden}));
-      ok(after.open===tapped.id&&after.expanded&&after.mode==='hotel',
-         `${w} tapping a Nights row expands that hotel card and drives the map (${after.open})`);
+      /* every strip figure is the one the section below the map already renders — never a second computation */
+      const same=(a,b)=>a===b;
       await seg('charging');
-      await p.evaluate(()=>{document.querySelector('#tripRail [data-ctxchg]').click();});
-      await p.waitForTimeout(1200);
-      const chg=await p.evaluate(()=>({mode:mapMode(),pop:!document.getElementById('pinPop').hidden,
-        frame:mapFrame()}));
-      ok(chg.mode==='chg'&&chg.frame.w<reset.w-0.5, `${w} tapping a charge row frames that charger (${Math.round(chg.frame.w)} wide vs ${Math.round(reset.w)} full route)`);
-      await p.evaluate(()=>{pinPopClose();setMapMode('route');});
+      const C=await p.evaluate(()=>({strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
+        below:[...document.querySelectorAll('#trCharging .statrow .st b')].map(e=>e.textContent.trim()).slice(0,3)}));
+      ok(C.strip.join('|')===C.below.join('|'), `${w} Charging strip = the section's own stat row (${C.strip.join(' · ')})`);
+      await seg('hotels');
+      const H=await p.evaluate(()=>({strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
+        below:[...document.querySelectorAll('#trHotels .statrow .st b')].map(e=>e.textContent.trim()).slice(0,3)}));
+      ok(H.strip.join('|')===H.below.join('|'), `${w} Hotels strip = the section's own stat row (${H.strip.join(' · ')})`);
+      await seg('daily');
+      const Dl=await p.evaluate(()=>{
+        const strip=[...document.querySelectorAll('#tripRail .statrow .st')].map(c=>c.querySelector('b').textContent.trim()+'/'+c.querySelector('span').textContent.trim());
+        const mapStrip={};document.querySelectorAll('#tripStrip .tr-c').forEach(c=>{mapStrip[c.querySelector('span').textContent.trim()]=c.querySelector('b').textContent.trim();});
+        const hero=[...document.querySelectorAll('#trDaily .statrow .st')].map(c=>c.querySelector('b').textContent.trim()+'/'+c.querySelector('span').textContent.trim());
+        return {strip,mapStrip,hero,day:tripDayNow()};});
+      ok(Dl.strip[1].split('/')[0]===Dl.mapStrip['time to go'], `${w} Daily strip "time to go" = the strip under the map (${Dl.strip[1]})`);
+      ok(Dl.strip[2].split('/')[0]===Dl.mapStrip['spent today'], `${w} Daily strip "spent today" = the strip under the map (${Dl.strip[2]})`);
+      ok(Dl.hero.join(' ').indexOf(Dl.strip[0].split('/')[0])>=0, `${w} Daily strip miles = the day card below (${Dl.strip[0]} vs ${Dl.hero[0]})`);
+      /* the Daily column is TODAY and nothing else */
+      const only=await p.evaluate(()=>{const cur=tripDayNow();
+        const rows=[...document.querySelectorAll('#tripRail .row')].map(r=>r.innerText.replace(/\s+/g,' ').trim());
+        const otherDay=[];
+        CHARGES.filter(c=>!c.planned&&c.date&&dayForDate(parseYMD(c.date))!==cur)
+          .forEach(c=>{if(rows.some(t=>t.indexOf(chgPlace(c)+' \u00b7 '+fmtTime(chgWall(c)))===0))otherDay.push(c.id);});
+        allPlaces().filter(pl=>pl.date&&dayForDate(parseYMD(pl.date))!==cur)
+          .forEach(pl=>{if(rows.some(t=>t.indexOf(pl.name)===0))otherDay.push(pl.id);});
+        nightsList().filter(n=>n.day!==cur&&n.needsRoom)
+          .forEach(n=>{if(rows.some(t=>t.indexOf(hotelName(n.s))===0))otherDay.push(n.s.id);});
+        return {otherDay,cur,rows};});
+      ok(only.otherDay.length===0, `${w} the Daily column carries nothing from another day (Day ${only.cur}: ${only.rows.length} rows)`);
+      /* Places and Itinerary strips reconcile with their own data */
+      await seg('places');
+      const P=await p.evaluate(()=>{const pls=allPlaces().filter(x=>x.date);const d={};let sp=0;
+        pls.forEach(x=>{d[dayForDate(parseYMD(x.date))]=1;sp+=x.cost||0;});
+        return {strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
+          want:[String(pls.length),String(Object.keys(d).length),money(sp)]};});
+      ok(P.strip.join('|')===P.want.join('|'), `${w} Places strip reconciles with the places themselves (${P.strip.join(' · ')})`);
+      await seg('itinerary');
+      const I=await p.evaluate(()=>({strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
+        want:[num(TOTAL_MI),String(TRIP_DAYS),fmtShort(addDays(departDate(),TRIP_DAYS-1))],
+        days:document.querySelectorAll('#tripRail .row').length,today:document.querySelectorAll('#tripRail .row.today').length}));
+      ok(I.strip.join('|')===I.want.join('|'), `${w} Itinerary strip reconciles with the route (${I.strip.join(' · ')})`);
+      ok(I.days===6&&I.today===1, `${w} one row per day with today highlighted (${I.days} rows, ${I.today} today)`);
       await seg('overview');
     }
   }
