@@ -287,13 +287,24 @@
   .pinpop b{display:block;font-size:var(--t-row);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--c-grey-cool);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
   .pinpop .pp-c{flex:none;font-size:var(--t-value-lg);line-height:1;color:var(--c-chevron);}
-  .trrailw{display:none;background:var(--c-card);border-radius:var(--r-card);box-shadow:0 1px 2px rgba(0,0,0,.05);margin-bottom:var(--s4);}   /* the rail is iPad and wider: on a phone the Itinerary stop cards already cover it */
-  .trrail{padding:var(--s4) var(--s4) var(--s4);}
+  .trrailw{display:none;}   /* the rail is iPad and wider: on a phone the Itinerary stop cards already cover it */
+  .trrail{padding:var(--s4) var(--s4) var(--s4);border-top:1px solid var(--c-hairline);}
   .trrail .tr-eb{font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-tertiary);}
   .trrail .tr-nx{font-size:var(--t-section);font-weight:700;letter-spacing:-.02em;margin-top:var(--s2);line-height:1.1;}
   .trrail .tr-mi{font-size:var(--t-row);font-weight:600;color:var(--c-accent);margin-top:var(--s1);}
   .trrail .tr-hr{height:1px;background:var(--c-hairline);margin:var(--s4) 0;}
   .trrail .tr-rt{font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-tertiary);margin-bottom:var(--s3);}
+  /* the context block: the same rows and group heading used everywhere else, inset to the rail's own
+     padding and held to one line each, because this column is narrow */
+  .trctx{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--c-hairline);}
+  .trctx .grp-h{padding:0 0 var(--s2);}
+  .trctx .grp{margin-bottom:0;background:none;border-radius:0;}
+  .trctx .row{padding:var(--s2) 0;min-height:44px;}
+  .trctx .row.noic+.row.noic::before{left:0;}
+  .trctx .row .t1{font-size:var(--t-row);}
+  .trctx .row .v1{font-size:var(--t-label);font-weight:600;white-space:nowrap;}
+  .trctx .row .v1 .ok{color:var(--c-good-ink-2);}     /* booked */
+  .trctx .row .v1 .todo{color:var(--c-tertiary);}     /* still to book */
   .trstep{display:flex;gap:var(--s3);align-items:flex-start;width:100%;border:0;background:none;font-family:inherit;text-align:left;padding:0;cursor:pointer;color:inherit;}
   .trstep .tr-gut{position:relative;width:18px;flex:none;align-self:stretch;display:flex;justify-content:center;}
   .trstep .tr-gut:before{content:"";position:absolute;top:0;bottom:-2px;width:2px;background:var(--c-hairline);}
@@ -316,18 +327,11 @@
   .trstrip .tr-c:first-child{border-left:0;}
   .trstrip .tr-c b{display:block;font-size:var(--t-value);font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
   .trstrip .tr-c span{display:block;font-size:var(--t-micro);line-height:1.3;color:var(--c-grey-cool);white-space:nowrap;}
-  /* From 768 the page itself is the two-column layout: map + Up next + strip on the left, and the
-     SUB-TAB — its picker and whatever section is selected — filling the right column and scrolling
-     inside it. Below the map there is nothing but Up next and the strip, so nothing is said twice.
-     On a phone none of this applies: #tripCol is a plain block sitting under the strip, as before. */
-  @media (min-width:768px){
-    #page-trip.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);column-gap:var(--s4);align-items:start;}
-    #page-trip>.trhead,#page-trip>.trbar{grid-column:1/-1;}
-    #page-trip>.trmapcard{grid-column:1;grid-row:3;}   /* map + Up next + strip, one item, so the column beside it cannot open a gap between them */
-    #tripCol{grid-column:2;grid-row:3;position:sticky;top:0;
-      max-height:calc(100vh - var(--tabh) - var(--s6));overflow-y:auto;overflow-x:hidden;}   /* overflow-x explicitly hidden: overflow-y:auto alone would compute it to auto and open a sideways scroll port */
-    #tripCol #tripSeg{position:sticky;top:0;z-index:2;margin-top:0;background:var(--c-page);}   /* the picker stays put while its section scrolls under it */
-    #trOverview .trrailw{display:block;}   /* Your route: exactly what this column showed before, now the Overview sub-tab */
+  @media (min-width:768px){   /* iPad portrait (820) keeps the rail and the two-column map card; phones stay on the compact Up next line */
+    .trmap{display:grid;grid-template-columns:70% 30%;}   /* the card grows to the taller of map and rail: the rail is never cut, and the map centres in its column */
+    .trmapw{align-self:center;width:100%;}
+    .trrailw{display:block;}
+    .trmap .trrail{border-top:0;border-left:1px solid var(--c-hairline);height:100%;}
   }
   /* map paint */
   .mp-ocean{fill:#BFDDF3;}
@@ -732,7 +736,6 @@
       <div><div class="tr-eb">Southern route</div><h1>Trip to San Francisco</h1></div>
     </div>
     <div class="trcard trbar" id="tripBar"></div>
-    <div class="trmapcard">
     <div class="trcard trmap">
       <div class="trmapw">
       <div class="trmapc">
@@ -814,10 +817,9 @@
       <div class="upnext" id="upNext"></div>
       <div class="lifesum" id="lifeSum" hidden></div>
       </div>
+      <div class="trrailw"><div class="trrail" id="tripRail"></div></div>
     </div>
     <div class="trcard trstrip" id="tripStrip"></div>
-    </div>
-    <div class="trcol" id="tripCol">   <!-- the sub-tab picker and its section: below the strip on a phone, the side column from 768 -->
     <div class="seg segfull" id="tripSeg" role="tablist" aria-label="Trip section"><button type="button" role="tab" data-s="overview" class="on">Overview</button><button type="button" role="tab" data-s="daily">Daily</button><button type="button" role="tab" data-s="charging">Charging</button><button type="button" role="tab" data-s="places">Places</button><button type="button" role="tab" data-s="hotels">Hotels</button><button type="button" role="tab" data-s="itinerary">Itinerary</button></div>
     <section class="trsec on" id="trOverview"></section>
     <section class="trsec" id="trDaily"></section>
@@ -828,7 +830,6 @@
       <div><div class="tl">Trip tracking</div><div class="ts" id="trackStatus">Off — progress from Arrived checks</div></div>
       <button class="sw" id="trackSw" type="button" role="switch" aria-checked="false" aria-label="Trip tracking"><span class="knob"></span></button>
     </div><div id="tripStops"></div></section>
-    </div>
   </div>
 
   <!-- ================= SPEND ================= -->
@@ -841,7 +842,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v102 · Sep 10</div>
+  <div class="appver">SF Move · v103 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2152,15 +2153,23 @@ var ACCENTS = {
   function chgWall(c){var d=parseYMD(c.date),t=String(c.time||"00:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+t[0]||0,+t[1]||0).getTime();}   /* the wall clock as written — display only, and the ts a seeded Spend row has always stored */
   function ensureTripMap(){if(!tripUI.L){buildTripMap();}updateTripMap();renderTripTop();}
   function wireTripUI(){   /* map layer control, pin taps, rail taps, summary tap — called from init, after the zoom module exists */
-    var seg=document.getElementById("mapSeg"),pop=document.getElementById("pinPop");
+    var seg=document.getElementById("mapSeg"),rail=document.getElementById("tripRail"),pop=document.getElementById("pinPop");
     if(!seg)return;
     seg.addEventListener("click",function(e){var b=e.target.closest("[data-m]");if(b)setMapMode(b.getAttribute("data-m"));});
     function railTap(e){
+      var c=e.target.closest("[data-ctxnight],[data-ctxplace],[data-ctxchg]");   /* the context block under Your route */
+      if(c){
+        var hn=c.getAttribute("data-ctxnight");if(hn){toggleHotel(hn);return;}
+        var pn=c.getAttribute("data-ctxplace");if(pn){openPlace(pn);return;}
+        var cn=c.getAttribute("data-ctxchg");if(cn){openCharge(cn);return;}
+      }
       var b=e.target.closest("[data-stop]");if(!b)return;
       if(tripSeg()!=="itinerary")setTripSeg("itinerary");   /* the stop cards live in Itinerary */
       scrollToEl(document.querySelector('#tripStops .card[data-stop="'+b.getAttribute("data-stop")+'"]'));
     }
-    var ov=document.getElementById("trOverview");   /* the rail lives inside Overview now and is rebuilt on every render, so its taps come off this delegate */
+    rail.addEventListener("click",railTap);
+    rail.addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
+    var ov=document.getElementById("trOverview");
     ov.addEventListener("click",railTap);
     ov.addEventListener("keydown",function(e){var r=e.target.closest("[role=button]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}});
     document.getElementById("tripSeg").addEventListener("click",function(e){var b=e.target.closest("[data-s]");if(b)setTripSeg(b.getAttribute("data-s"));});
@@ -2586,7 +2595,7 @@ var ACCENTS = {
       row({ic:"gauge",bg:TINT.route,t1:"Behind the wheel",t2:bad||base,v1:t.driveMin?hm(t.driveMin):"\u2014"})+
       row({ic:"clock",bg:TINT.route,t1:"Moving average",t2:"while actually driving",v1:t.movingMph?Math.round(t.movingMph)+" mph":"\u2014"})+
       row({ic:"pin",bg:TINT.route,t1:"Into San Francisco",t2:t.paceMin!==null?"at "+(Math.round(t.paceMin*100)/100)+" min per mile including charging":"needs a completed day first",v1:t.eta?esc(fmtShort(t.eta))+" \u00b7 "+fmtTime(t.eta):"\u2014"}));
-    w.innerHTML=railHtml()+dig;   /* Your route first — this IS the side column's content from 768px — then the pace digest. Below 768 the rail is display:none, so the phone section is unchanged. */
+    w.innerHTML=dig;   /* the route list lives in Itinerary (and in the rail from 768px) */
   }
   /* ONE progress card at every width. The five cells sit in a fluid grid that reflows on its own, so
      there is no width branch here and no breakpoint in the CSS — the card that used to be rebuilt on
@@ -2607,8 +2616,9 @@ var ACCENTS = {
         seg('<b>'+hrs+'</b> in the car')+
       '</div>';
   }
-  function railHtml(){   /* Your route — the wide layout's Overview content, built here so renderOverview can place it */
-    var pos=loggedMiles(),nx=nextStopIdx(pos);
+  function renderRail(){
+    var ws=[document.getElementById("tripRail")].filter(Boolean);if(!ws.length)return;   /* the map rail is the only route list; the Itinerary cards are the record */
+    var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
     var head='<div class="tr-rt">Your route</div>';   /* next stop is stated once, on the map's UP NEXT line */
     var steps=STOPS.map(function(s,i){
       var passed=(i===0?pos>0||!!state.trip.rolled[STOPS[1]&&STOPS[1].id]:(!!state.trip.arrived[s.id]||CUM[i]<=pos+0.5)),now=(i===nx);
@@ -2618,12 +2628,58 @@ var ACCENTS = {
         '<span class="tr-gut"><span class="tr-mk">'+(passed&&!now?'<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>':'')+'</span></span>'+
         '<span class="tr-tx"><span class="tr-nm">'+esc(i===0?"Chicago":s.short)+'</span><span class="tr-sb">'+sub+'</span></span></button>';
     }).join("");
-    return '<div class="trrailw"><div class="trrail" id="tripRail">'+head+steps+'</div></div>';
-  }
-  function renderRail(){   /* the rail itself is rebuilt by renderOverview; this is the Up next line under the map */
-    var pos=loggedMiles(),nx=nextStopIdx(pos),ns=nx>=0?STOPS[nx]:null;
+    ws.forEach(function(w){w.innerHTML=head+steps+railCtx();});
     var up=document.getElementById("upNext");   /* the map's bottom edge: the one home for next-stop */
     if(up)up.innerHTML='<span class="k">Up next</span><span class="n">'+esc(ns?ns.name:"San Francisco")+'</span><span class="d">'+(ns?num(CUM[nx]-pos)+" mi away":"arrived")+'</span>';
+  }
+  /* The wide column keeps Your route at the top and adds ONE compact block under it for the sub-tabs
+     that have a list worth glancing at. Existing row/grp styling, one line per row, ellipsis at the end
+     — the column is narrow. It lives inside .trrail, which is display:none below 768, so the phone
+     never sees it. Overview, Daily and Itinerary get nothing: the column is Your route alone. */
+  function railCtx(){
+    var k=tripSeg(),rows=[],title="";
+    if(k==="hotels"){
+      title="Nights";
+      hotelStats().nights.forEach(function(n){
+        if(!n.needsRoom)return;
+        var v=n.booked?money(n.total):(n.plan>0?money(n.plan):"\u2014");
+        rows.push(row({t1:"Night "+n.day+" \u00b7 "+esc(n.s.short),
+          v1:'<span class="'+(n.booked?"ok":"todo")+'">'+v+'</span>',cls:"one ctx",
+          attrs:' role="button" tabindex="0" data-ctxnight="'+esc(n.s.id)+'"'}));});
+    }else if(k==="places"){
+      title="Places";
+      allPlaces().filter(function(pl){return pl.lat&&pl.lng;}).forEach(function(pl){
+        rows.push(row({t1:esc(pl.name)+" \u00b7 Day "+dayForDate(parseYMD(pl.date)),
+          v1:pl.cost>0?money(pl.cost):"",cls:"one ctx",
+          attrs:' role="button" tabindex="0" data-ctxplace="'+esc(pl.id)+'"'}));});
+    }else if(k==="charging"){
+      title="Today\u2019s charges";
+      var ds=dayStats(chgDaySel());
+      (ds?ds.ch.filter(function(c){return c.kwh>0;}):[]).forEach(function(c){
+        rows.push(row({t1:esc(chgPlace(c))+" \u00b7 "+fmtTime(chgWall(c)),
+          v1:Math.round(c.kwh)+" kWh \u00b7 "+money(c.cost||0),cls:"one ctx",
+          attrs:' role="button" tabindex="0" data-ctxchg="'+esc(c.id)+'"'}));});
+    }
+    return rows.length?'<div class="trctx">'+grp(title,rows.join(""))+'</div>':"";
+  }
+  function toggleHotel(id){   /* the one home for what tapping a night does: expand the card and drive the map */
+    var opening=HOTEL_OPEN!==id;
+    HOTEL_OPEN=opening?id:null;renderHotelsSec();
+    if(opening)openHotelPin(id);
+  }
+  function openCharge(id){   /* a context row → the charging layer, centred on that session's pin, card open */
+    if(mapMode()!=="chg")setMapMode("chg");
+    var i=placeIdx(id);if(i<0)return;   /* placeIdx searches every cluster by id, so it finds a charge too */
+    var g=pinClusters()[i];
+    document.querySelector(".trmap").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
+    centerOn(g.x,g.y,2.6,PIN_FY);
+    if(pinPopT)clearTimeout(pinPopT);
+    pinPopT=setTimeout(function(){
+      pinPopT=null;
+      if(curPage!=="trip"||tripSeg()!=="charging"||mapMode()!=="chg")return;
+      var mp=document.querySelector(".trmap");if(!mp||!mp.offsetParent)return;
+      var j=placeIdx(id);if(j>=0)pinPopOpen(j);
+    },reducedMotion?0:520);
   }
   function renderTripStrip(){   /* the bottom of the map card: TODAY only — the trip-wide figures live in the progress card */
     var w=document.getElementById("tripStrip");if(!w)return;
@@ -2880,21 +2936,11 @@ var ACCENTS = {
     }
     resetMapZoom(animate);   /* Overview, Charging, Itinerary and Hotels open on the full route — identical to Reset */
   }
-  function scrollBox(el){   /* the box that actually scrolls this element: the side column from 768px, the page below it */
-    for(var n=el.parentElement;n;n=n.parentElement){
-      var cs=getComputedStyle(n);
-      if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+1)return n;
-    }
-    return document.getElementById("scroll");
-  }
   function scrollToCurrentStop(){
-    var c=document.querySelector("#tripStops .tripstop.cur")||document.querySelector("#tripStops .tripstop");
-    if(!c)return;
-    var sc=scrollBox(c);if(!sc)return;
-    var pad=sc.id==="scroll"?64:segPad();   /* the page needs room for the top bar; the column only needs a breath */
-    sc.scrollTo({top:Math.max(0,sc.scrollTop+c.getBoundingClientRect().top-sc.getBoundingClientRect().top-pad),behavior:reducedMotion?"auto":"smooth"});
+    var sc=document.getElementById("scroll"),c=document.querySelector("#tripStops .tripstop.cur")||document.querySelector("#tripStops .tripstop");
+    if(!sc||!c)return;
+    sc.scrollTo({top:Math.max(0,sc.scrollTop+c.getBoundingClientRect().top-64),behavior:reducedMotion?"auto":"smooth"});
   }
-  function segPad(){var g=document.getElementById("tripSeg");return g?Math.round(g.getBoundingClientRect().height)+8:8;}   /* clear the sticky picker at the top of the column */
   /* ---------- one flat icon set: single-weight line glyphs, one colour per concept, everywhere that concept appears ---------- */
   var ICON={
     bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
@@ -3005,11 +3051,15 @@ var ACCENTS = {
          v1:nHot?money2(hotelAct):(hotelPlan>0?money2(hotelPlan):"—")});
     return driving+charging+spend+places+grp("Where I slept",bed);
   }
+  function chgDaySel(){   /* the day the Charging section is showing: the picker, else the last day with a session */
+    var S=stS(),cur=tripDayNow(),t=tripStats();
+    var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
+    return S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg;
+  }
   function renderChargingSec(){
     var w=document.getElementById("trCharging");if(!w)return;
     var t=tripStats(),cur=tripDayNow(),S=stS(),real=realCharges();
-    var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
-    var cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg,ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
+    var cd=chgDaySel(),ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
     var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money(t.cost),"spent"],[real.length?hm(t.chMin):"—","at chargers"]]);   /* every charging number, once, trip-to-date */
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);   /* every trip day, driven or not: an empty day reads "—" rather than vanishing */
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
@@ -3099,9 +3149,7 @@ var ACCENTS = {
     w.addEventListener("click",function(e){
       if(e.target.closest("a"))return;   /* a link inside the open detail is not a toggle */
       var r=e.target.closest("[data-night]");if(!r)return;
-      var id=r.getAttribute("data-night"),opening=HOTEL_OPEN!==id;
-      HOTEL_OPEN=opening?id:null;renderHotelsSec();
-      if(opening)openHotelPin(id);   /* the map follows the night you opened, as the Places rows do */
+      toggleHotel(r.getAttribute("data-night"));   /* the map follows the night you opened, as the Places rows do */
     });
     w.addEventListener("keydown",function(e){
       var r=e.target.closest("[data-night]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();r.click();}

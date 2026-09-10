@@ -165,46 +165,79 @@ for(const [w,h] of [[393,852],[1194,834]]){
     return {t:el.textContent.trim(),lines:Math.round(el.getBoundingClientRect().height/lh)};}));
   ok(rows.length>0&&rows.every(r=>r.lines===1), `${w} every place row title is one line${rows.filter(r=>r.lines!==1).map(r=>' — "'+r.t+'"').join('')}`);
 
-  /* ---------- the side column IS the sub-tab from 768 up; below the map, only Up next + the strip ---------- */
+  /* ---------- v103: the picker and its section are BELOW the map at every width; the wide column is
+     Your route, plus a compact context block for the sub-tabs that have a list worth glancing at ---------- */
   {
     const wide=w>=768;
+    const CTX={hotels:'Nights',places:'Places',charging:'Today\u2019s charges'};
     for(const sec of SECS){
       await seg(sec);
-      const L=await p.evaluate(k=>{
+      const L=await p.evaluate(()=>{
         const box=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,r:r.right,b:r.bottom};};
-        const col=document.getElementById('tripCol'),map=document.querySelector('.trmap'),strip=document.getElementById('tripStrip');
-        const active=document.querySelector('.trsec.on');
-        const card=document.querySelector('.trmapcard');
-        return {col:box(col),map:box(map),strip:box(strip),card:box(card),
-          activeId:active?active.id:null,
-          colHasSeg:col.contains(document.getElementById('tripSeg')),
-          colHasActive:col.contains(active),
-          activeVisible:!!active.offsetParent&&active.getBoundingClientRect().height>0,
-          /* what sits below the map card, other than Up next and the strip */
-          belowCard:[...document.querySelectorAll('#page-trip > *')].filter(e=>e!==card&&e.getBoundingClientRect().top>=card.b-1&&e.getBoundingClientRect().height>0).map(e=>e.id||e.className),
-          inCard:[...document.querySelectorAll('.trmapcard > *')].map(e=>e.className.replace(/\s+/g,'.')),
-          seg:box(document.getElementById('tripSeg'))};},k=sec);
-      ok(L.colHasSeg&&L.colHasActive&&L.activeVisible, `${w}/${sec} the picker and the live section are in #tripCol (${L.activeId})`);
+        const map=document.querySelector('.trmap'),segEl=document.getElementById('tripSeg');
+        const active=document.querySelector('.trsec.on'),rail=document.getElementById('tripRail');
+        const ctx=document.querySelector('#tripRail .trctx');
+        const one=el=>{const lh=parseFloat(getComputedStyle(el).lineHeight)||parseFloat(getComputedStyle(el).fontSize)*1.2;
+          return el.getBoundingClientRect().height<=lh*1.6;};
+        const rows=ctx?[...ctx.querySelectorAll('.row')]:[];
+        return {map:box(map),seg:box(segEl),active:box(active),activeId:active.id,
+          segBelowMap:segEl.getBoundingClientRect().top>=map.getBoundingClientRect().bottom-1,
+          activeBelowSeg:active.getBoundingClientRect().top>=segEl.getBoundingClientRect().bottom-1,
+          segFullWidth:Math.abs(segEl.getBoundingClientRect().width-map.getBoundingClientRect().width)<2,
+          inMapCard:!!map.contains(segEl)||!!map.contains(active),
+          railInMapCard:!!(rail&&map.contains(rail)),railVisible:!!(rail&&rail.offsetParent),
+          railHead:rail?(rail.querySelector('.tr-rt')||{}).textContent:null,
+          railSteps:rail?rail.querySelectorAll('.trstep').length:0,stops:STOPS.length,
+          ctx:!!ctx,ctxVisible:!!(ctx&&ctx.offsetParent),
+          ctxTitle:ctx?(ctx.querySelector('.grp-h')||{}).textContent:null,
+          ctxRows:rows.length,
+          ctxWraps:rows.filter(r=>[...r.querySelectorAll('.t1,.v1')].some(e=>!one(e))).map(r=>r.innerText.replace(/\s+/g,' ').trim()),
+          ctxClipped:rows.filter(r=>[...r.querySelectorAll('.t1')].some(e=>getComputedStyle(e).textOverflow!=='ellipsis')).length,
+          ctxTaps:rows.filter(r=>r.getAttribute('data-ctxnight')||r.getAttribute('data-ctxplace')||r.getAttribute('data-ctxchg')).length,
+          ctxAfterRail:!!(ctx&&rail&&rail.querySelector('.trstep')&&
+            ctx.getBoundingClientRect().top>=rail.querySelector('.trstep').getBoundingClientRect().top)};});
+      /* (a) the picker and the live section are below the map, full width, at EVERY width */
+      ok(L.segBelowMap&&L.activeBelowSeg, `${w}/${sec} picker and section sit below the map (${L.activeId})`);
+      ok(!L.inMapCard, `${w}/${sec} and outside the map card, where they were before v102`);
+      ok(L.segFullWidth, `${w}/${sec} the picker spans the card width (${Math.round(L.seg.w)} of ${Math.round(L.map.w)})`);
+      ok(L.railInMapCard&&L.railVisible===wide&&L.railSteps===L.stops,
+         `${w}/${sec} Your route is back in the map card, ${wide?'shown':'hidden'} here (${L.railSteps} steps)`);
+      /* (b) a context block only for Hotels, Places and Charging — and only on the wide layout */
+      const want=CTX[sec]||null;
       if(wide){
-        ok(L.col.x>=L.map.r-1, `${w}/${sec} the column sits BESIDE the map (col ${Math.round(L.col.x)} vs map right ${Math.round(L.map.r)})`);
-        ok(Math.abs(L.seg.y-L.map.y)<40, `${w}/${sec} the picker is at the TOP of the column, level with the map`);
-        ok(L.belowCard.length===0, `${w}/${sec} nothing below the map card but the column beside it${L.belowCard.length?' — '+L.belowCard.join(', '):''}`);
-        ok(L.inCard.join('|')==='trcard.trmap|trcard.trstrip', `${w}/${sec} the card below the map is the map, Up next and the strip only (${L.inCard.join(' + ')})`);
+        ok(L.ctxVisible===!!want, `${w}/${sec} context block ${want?'present':'absent'}${L.ctxVisible?' ('+L.ctxTitle+')':''}`);
+        if(want){
+          ok(L.ctxTitle===want, `${w}/${sec} titled "${L.ctxTitle}"`);
+          ok(L.ctxRows>0&&L.ctxTaps===L.ctxRows, `${w}/${sec} ${L.ctxRows} rows, every one of them tappable`);
+          ok(L.ctxWraps.length===0, `${w}/${sec} nothing wraps${L.ctxWraps.length?' — '+L.ctxWraps[0]:''}`);
+          ok(L.ctxClipped===0, `${w}/${sec} every title ellipsizes at the end`);
+          ok(L.ctxAfterRail, `${w}/${sec} and it sits BELOW Your route, which stays at the top`);
+        }
       }else{
-        ok(L.col.y>=L.strip.b-1, `${w}/${sec} the column is BELOW the strip, as on a phone today (${Math.round(L.col.y)} vs ${Math.round(L.strip.b)})`);
-        ok(Math.abs(L.col.w-L.map.w)<2, `${w}/${sec} and full width (${Math.round(L.col.w)} of ${Math.round(L.map.w)})`);
+        /* (c) the phone never shows one: it lives inside the rail, which is display:none below 768 */
+        ok(!L.ctxVisible, `${w}/${sec} no context block on the phone`);
       }
     }
-    /* Overview's column content is Your route, exactly what the column showed before */
-    await seg('overview');
-    const rail=await p.evaluate(()=>{const r=document.querySelector('#trOverview .trrail');
-      return {there:!!r,visible:!!(r&&r.offsetParent),
-        stops:r?[...r.querySelectorAll('.trstep')].length:0,want:STOPS.length,
-        head:r?(r.querySelector('.tr-rt')||{}).textContent:null,
-        pace:/Pace/i.test(document.getElementById('trOverview').innerText)};});
-    ok(rail.there&&rail.stops===rail.want, `${w} Overview carries the Your route list, one step per stop (${rail.stops})`);
-    ok(rail.visible===(w>=768), `${w} and it shows only on the wide layout (visible: ${rail.visible})`);
-    ok(rail.pace, `${w} with Pace still below it`);
+    /* the taps do what the section's own rows do */
+    if(wide){
+      await seg('hotels');
+      const tapped=await p.evaluate(()=>{const r=document.querySelector('#tripRail [data-ctxnight]');
+        const id=r.getAttribute('data-ctxnight');r.click();
+        return {id:id,open:HOTEL_OPEN,mode:mapMode()};});
+      await p.waitForTimeout(1200);
+      const after=await p.evaluate(()=>({open:HOTEL_OPEN,mode:mapMode(),
+        expanded:!!document.querySelector('#trHotels .hotelrow.open'),pop:!document.getElementById('pinPop').hidden}));
+      ok(after.open===tapped.id&&after.expanded&&after.mode==='hotel',
+         `${w} tapping a Nights row expands that hotel card and drives the map (${after.open})`);
+      await seg('charging');
+      await p.evaluate(()=>{document.querySelector('#tripRail [data-ctxchg]').click();});
+      await p.waitForTimeout(1200);
+      const chg=await p.evaluate(()=>({mode:mapMode(),pop:!document.getElementById('pinPop').hidden,
+        frame:mapFrame()}));
+      ok(chg.mode==='chg'&&chg.frame.w<reset.w-0.5, `${w} tapping a charge row frames that charger (${Math.round(chg.frame.w)} wide vs ${Math.round(reset.w)} full route)`);
+      await p.evaluate(()=>{pinPopClose();setMapMode('route');});
+      await seg('overview');
+    }
   }
 
   /* ---------- no retired-stop marker is drawn, on any layer ---------- */
