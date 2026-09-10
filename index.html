@@ -268,11 +268,12 @@
   .mapreset{position:absolute;top:12px;right:12px;z-index:3;font-family:inherit;font-size:var(--t-micro);font-weight:600;line-height:1;padding:var(--s2) var(--s3);border-radius:var(--r-pill);border:0;background:rgba(255,255,255,.94);color:var(--c-accent);box-shadow:0 1px 3px rgba(0,0,0,.18);opacity:0;transform:scale(.9);pointer-events:none;transition:opacity .25s ease-out,transform .35s cubic-bezier(.22,1,.36,1);cursor:pointer;}
   .mapreset.show{opacity:1;transform:none;pointer-events:auto;}
   @media (prefers-reduced-motion:reduce){.mapreset{transition:none;}}
-  /* icons only, at the BOTTOM of the map so it stops covering the route. The buttons are visually
-     compact but every tap target is 44px square. */
-  .mapseg{position:absolute;bottom:12px;left:12px;z-index:3;display:flex;gap:2px;padding:3px;border-radius:var(--r-pill);background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(0,0,0,.16);}
-  .mapseg button{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;font-family:inherit;line-height:1;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--c-grey-cool);cursor:pointer;}
-  .mapseg button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  /* icons only, in a bar flush across the BOTTOM EDGE of the map — inside the card's rounded corners,
+     which .trmap's overflow:hidden clips for us. Height is off the space scale (--s7 = 48, so every
+     tap target clears 44); --seg-n is set from the button count, so each segment is 1/n of the bar. */
+  .mapseg{position:absolute;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(var(--seg-n,5),1fr);height:var(--s7);background:rgba(255,255,255,.72);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-top:1px solid rgba(17,18,20,.10);}
+  .mapseg button{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-width:0;font-family:inherit;line-height:1;padding:0;border:0;border-radius:0;background:none;color:var(--c-grey-cool);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .mapseg button svg{width:var(--s4);height:var(--s4);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .mapseg button.on{background:var(--c-accent);color:#fff;}
   /* Lifetime: the route stays for orientation but drops back so the history reads on top */
   #tripSvg.life .rt-case,#tripSvg.life .rt-base,#tripSvg.life .rt-done{opacity:.28;}
@@ -308,11 +309,11 @@
   .trstep:active .tr-mk{transform:scale(.9);}
   .trmap{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;}   /* map card and strip are one continuous card */
   .trstrip{border-top-left-radius:0;border-top-right-radius:0;border-top:1px solid var(--c-hairline);
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(max(var(--cell-min-sm),100%/4),1fr));padding:var(--s3) var(--s1);}
-  .trstrip .tr-c{padding:0 var(--s2);text-align:center;min-width:0;border-left:1px solid var(--c-hairline);}
+    display:grid;grid-template-columns:repeat(4,1fr);padding:var(--s3) var(--s1);}
+  .trstrip .tr-c{padding:0;text-align:center;min-width:0;border-left:1px solid var(--c-hairline);display:flex;flex-direction:column;justify-content:flex-end;}
   .trstrip .tr-c:first-child{border-left:0;}
-  .trstrip .tr-c b{display:block;font-size:var(--t-value);font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .trstrip .tr-c span{display:block;font-size:var(--t-micro);line-height:1.25;color:var(--c-grey-cool);}
+  .trstrip .tr-c b{display:block;font-size:var(--t-value);font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
+  .trstrip .tr-c span{display:block;font-size:var(--t-micro);line-height:1.3;color:var(--c-grey-cool);white-space:nowrap;}
   @media (min-width:768px){   /* iPad portrait (820) keeps the rail and the two-column map card; phones stay on the compact Up next line */
     .trmap{display:grid;grid-template-columns:70% 30%;}   /* the card grows to the taller of map and rail: the rail is never cut, and the map centres in its column */
     .trmapw{align-self:center;width:100%;}
@@ -473,10 +474,12 @@
   .ddsub{font-size:var(--t-label);color:var(--secondary);padding:0 var(--s4) var(--s3);}
   .pillst{font-size:var(--t-micro);font-weight:600;padding:var(--s1) var(--s2);border-radius:var(--r-pill);flex:none;}
   .pillst.done{background:var(--c-good-wash-2);color:var(--c-good-ink-2);}.pillst.today{background:var(--blue);color:#fff;}.pillst.plan{background:var(--fill);color:var(--secondary);}
-  .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(max(var(--cell-min),100%/4),1fr));gap:0;background:var(--c-card);border-radius:var(--r-group);padding:var(--s2) var(--s1);margin-bottom:var(--s5);}
-  .statrow .st{padding:var(--s3) var(--s2);text-align:center;min-width:0;}
-  .statrow .st b{display:block;font-size:var(--t-value-lg);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .statrow .st span{font-size:var(--t-micro);color:var(--secondary);}
+  /* one row, one line: --n equal columns (set from the item count), every cell nowrap and never
+     ellipsized, and the value+label pair sits on the bottom so all four read off one baseline */
+  .statrow{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:0;background:var(--c-card);border-radius:var(--r-group);padding:var(--s2) var(--s1);margin-bottom:var(--s5);}
+  .statrow .st{padding:var(--s3) 0;text-align:center;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;}   /* the column IS the gutter: side padding here is what forced the ellipsis at 320 */
+  .statrow .st b{display:block;font-size:var(--t-value-lg);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .statrow .st span{display:block;font-size:var(--t-micro);line-height:1.3;color:var(--secondary);white-space:nowrap;}
   .dayhero{background:var(--c-card);border-radius:var(--r-group);padding:var(--s4) var(--s4) var(--s3);margin-bottom:var(--s5);}   /* the day in one card: who/when, then its four figures */
   .dayhero .dh-h{font-size:var(--t-value);font-weight:600;letter-spacing:-.01em;margin-bottom:var(--s3);}
   .dayhero .statrow{background:none;border-radius:0;padding:0;margin:0;}
@@ -825,7 +828,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v96 · Sep 9</div>
+  <div class="appver">SF Move · v97 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2153,13 +2156,15 @@ var ACCENTS = {
   }
 
   /* ---------- TRIP MAP: pinch-zoom + pan. Transform-only, rAF springs, nothing persisted ---------- */
+  var MAP_TALL=1.3;   /* the hero stands 30% taller than its natural route crop — a ratio on the fitted box, never a pixel height */
   var VB_ROUTE=(function(){   /* auto-fit: the route bounding box + 8% padding, so no dead ocean sits above the drive */
     var xs=PTS.map(function(p){return p.x;}),ys=PTS.map(function(p){return p.y;});
     var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
     var px=(x1-x0)*0.08,py=(y1-y0)*0.08+10;x0-=px;x1+=px;y0-=py;y1+=py;   /* the extra 10 is headroom for a label sitting above the top node */
     var w=x1-x0,MAXA=1.9;
     if(w/(y1-y0)>MAXA)y1=y0+w/MAXA;   /* a route strip is very wide: give it height downward (toward the Gulf), never back up into Canada */
-    return{x:x0,y:y0,w:w,h:y1-y0};
+    var h=(y1-y0)*MAP_TALL,cy=(y0+y1)/2;   /* grow about the centre, so the route keeps its scale and re-fits: nothing squashed, nothing cut */
+    return{x:x0,y:cy-h/2,w:w,h:h};
   })(),ZMIN=1,ZMAX=5;
   /* the lifetime crop: the bounding box of every logged site, widened to the ROUTE's aspect ratio so
      switching layers re-crops the geography without resizing the card */
@@ -2558,12 +2563,13 @@ var ACCENTS = {
     var t=tripStats(),cur=tripDayNow(),dp=dayProg(cur),ds=dayStats(cur);
     var togo=Math.max(0,dp.mi-dp.so),hrs=(t.paceMin!==null)?togo*t.paceMin:null;
     var spent=0,any=false;state.spend.entries.forEach(function(e){if(e.day===cur&&!e.planned){spent+=e.amount;any=true;}});
-    w.innerHTML='<div class="tr-c"><b>'+(dp.done?"\u2014":num(togo))+'</b><span>'+(dp.done?"arrived":"mi to go today")+'</span></div>'+
-      '<div class="tr-c"><b>'+((hrs!==null&&!dp.done)?"~"+hm(hrs):"\u2014")+'</b><span>time to go today</span></div>'+
-      '<div class="tr-c"><b>'+((ds&&ds.ch.length)?hm(ds.chMin):"\u2014")+'</b><span>at chargers today</span></div>'+
-      '<div class="tr-c"><b>'+(any?money2(spent):"\u2014")+'</b><span>spent today</span></div>';
+    w.innerHTML='<div class="tr-c"><b>'+(dp.done?"\u2014":num(togo))+'</b><span>'+(dp.done?"arrived":"mi to go")+'</span></div>'+
+      '<div class="tr-c"><b>'+((hrs!==null&&!dp.done)?"~"+hm(hrs):"\u2014")+'</b><span>time to go</span></div>'+
+      '<div class="tr-c"><b>'+((ds&&ds.ch.length)?hm(ds.chMin):"\u2014")+'</b><span>at chargers</span></div>'+
+      '<div class="tr-c"><b>'+(any?money(spent):"\u2014")+'</b><span>spent today</span></div>';
   }
   function syncMapSeg(){var g=document.getElementById("mapSeg");if(!g)return;var m=mapMode();   /* the control follows the stored mode on every load */
+    g.style.setProperty("--seg-n",g.children.length);   /* the bar divides itself: add or remove a layer and the fractions follow */
     Array.prototype.forEach.call(g.children,function(b){b.classList.toggle("on",b.getAttribute("data-m")===m);});}
   function renderTripTop(){renderTripBar();renderRail();renderTripStrip();applyMapCrop();syncMapSeg();renderLifeSum();renderOverview();}   /* a stored Lifetime mode restores its crop and summary on load */
   /* charger pins: logged sessions cluster when they sit within CLUSTER_R viewBox units of each other */
@@ -2831,7 +2837,7 @@ var ACCENTS = {
       '<div class="bt'+(o.plan?' plan':'')+'">'+(o.plan?'':'<i style="width:'+Math.max(2,Math.min(100,o.pct)).toFixed(1)+'%;background:'+o.fill+'"></i>')+'</div>'+
       '<div class="bv'+(o.plan?' g':'')+'">'+(o.pill?'<span class="pillst '+o.pillCls+'">'+o.pill+'</span>':'')+'<b>'+o.v+'</b></div></div>';
   }
-  function statrow(items){return '<div class="statrow">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
+  function statrow(items){return '<div class="statrow" style="--n:'+items.length+'">'+items.map(function(x){return '<div class="st"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>';}
   function dayStatus(d,cur){var dp=dayProg(d),r=dayStats(d);return (dp.done||(r&&r.complete))?"done":(d===cur?"today":"plan");}   /* a day before today with no arrival and no stamps was never driven — do not call it done */
   function renderDaily(){
     var w=document.getElementById("trDaily");if(!w)return;
@@ -2848,13 +2854,14 @@ var ACCENTS = {
   }
   function dayHero(sel,cur){   /* the selected day at a glance — the old stat row and day card, merged and full width */
     var ds=dayStats(sel),pp=dayProg(sel),sst=stopForDay(sel),sdt=addDays(departDate(),sel-1),ch=ds?ds.ch:[];
-    var miles=(pp.done||pp.so>0)?(num(pp.so)+(pp.done?"":" of ~"+num(pp.mi))):("0 of ~"+num(pp.mi));
+    var mdone=pp.done,mv=(pp.done||pp.so>0)?num(pp.so):"0";   /* the value is the number; the plan rides in the label, so neither line ever needs an ellipsis */
+    var ml=mdone?("miles"+(sel===cur?" today":"")):("of ~"+num(pp.mi)+" mi");
     return '<div class="grp-h">'+(sel===cur?"Today":"Day "+sel)+'</div><div class="dayhero">'+
       '<div class="dh-h">'+esc(fmtDay(sdt))+' · Day '+sel+' · '+esc(sst.name)+'</div>'+
-      statrow([[miles,"miles"+(sel===cur?" today":"")],
-        [ch.length?hm(ds.chMin):"—","time at chargers"],
-        [ch.length?Math.round(ds.chMin/ch.length)+" min":"—","average stop"],
-        [(ds&&ds.cost>0)?money2(ds.cost):"—","spent"+(sel===cur?" today":"")]])+'</div>';
+      statrow([[mv,ml],
+        [ch.length?hm(ds.chMin):"—","at chargers"],
+        [ch.length?Math.round(ds.chMin/ch.length)+" min":"—","avg stop"],
+        [(ds&&ds.cost>0)?money(ds.cost):"—","spent"+(sel===cur?" today":"")]])+'</div>';
   }
   function daySummary(sel,cur){   /* the whole day, not just its charging: driving, charging, spend, places, bed */
     var ds=dayStats(sel),pp=dayProg(sel),sst=stopForDay(sel),sdt=addDays(departDate(),sel-1),ch=ds?ds.ch:[];
@@ -2905,7 +2912,7 @@ var ACCENTS = {
     var t=tripStats(),cur=tripDayNow(),S=stS(),real=realCharges();
     var lastChg=t.days.filter(function(r){return r.ch.length;}).map(function(r){return r.d;}).pop()||cur;
     var cd=S.chgDay?Math.max(1,Math.min(TRIP_DAYS,+S.chgDay)):lastChg,ds=dayStats(cd),cs=ds?ds.ch.filter(function(c){return c.kwh>0;}):[];
-    var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money2(t.cost),"spent"],[real.length?hm(t.chMin):"—","time at chargers"]]);   /* every charging number, once, trip-to-date */
+    var stats=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money(t.cost),"spent"],[real.length?hm(t.chMin):"—","at chargers"]]);   /* every charging number, once, trip-to-date */
     var opts=[];for(var d=1;d<=TRIP_DAYS;d++)opts.push([d,"Day "+d+" · "+stopForDay(d).short]);   /* every trip day, driven or not: an empty day reads "—" rather than vanishing */
     var head='<div class="grp-h flex"><span>Sessions</span>'+pillSel("Day "+cd+" · "+esc(stopForDay(cd).short),"chgDay",opts,cd)+'</div>';
     var srows=cs.map(function(c){return row({ic:"bolt",bg:TINT.charging,t1:esc(chgPlace(c)),
@@ -2957,8 +2964,8 @@ var ACCENTS = {
   function renderHotelsSec(){
     var w=document.getElementById("trHotels");if(!w)return;
     var H=hotelStats();
-    var stats=statrow([[H.booked+" of "+H.need,"nights booked"],[money2(H.spend),"hotel spend"],
-      [H.avg!==null?money2(H.avg):"\u2014","average a night"],[String(H.left),H.left===1?"night to book":"nights to book"]]);
+    var stats=statrow([[H.booked+" of "+H.need,"booked"],[money(H.spend),"hotel spend"],
+      [H.avg!==null?money(H.avg):"\u2014","avg / night"],[String(H.left),"to book"]]);
     var rows=H.nights.map(function(n,i){
       var open=HOTEL_OPEN===n.s.id;
       var pill=!n.needsRoom?"No hotel needed":(n.booked?"Booked":"Not booked");
