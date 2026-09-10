@@ -299,7 +299,7 @@
   .trctx{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--c-hairline);}
   .trrail>.trctx:first-child{margin-top:0;padding-top:0;border-top:0;}   /* Overview aside, the column opens with its own block */
   .trctx .statrow{background:none;border-radius:0;padding:0;margin:0;}
-  .trctx .statrow .st b{font-size:var(--t-value);}
+  .trctx .statrow .st b{font-size:var(--t-row);}   /* the column strip is 63px a cell at 768: "10h 08m" needs the smaller step */
   .trctx .row .pillst{margin-left:auto;}
   .trctx .row.day .t1{font-size:var(--t-label);}   /* five things on one narrow line: the destination must survive the ellipsis */
   .trctx .grp-h{padding:0 0 var(--s2);}
@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v107 · Sep 10</div>
+  <div class="appver">SF Move · v108 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2682,11 +2682,11 @@ var ACCENTS = {
     return colSec(head,strip)+colSec("Today",'<div class="grp">'+out.join("")+'</div>');
   }
   function colCharging(){
-    var t=tripStats(),real=realCharges(),ds=dayStats(chgDaySel());   /* the same three the Charging stat row renders */
-    var strip=statrow([[String(real.length),"stops"],[kwh1(t.kwh)+"","kWh"],[money(t.cost),"spend"]]);
+    var t=tripStats(),real=realCharges(),ds=dayStats(chgDaySel());   /* the same figures the Charging stat row renders — stops, its "at chargers" tile, and spend */
+    var strip=statrow([[String(real.length),"stops"],[real.length?hm(t.chMin):"\u2014","at chargers"],[money(t.cost),"spend"]]);
     var out=(ds?ds.ch.filter(function(c){return c.kwh>0;}):[]).map(function(c){
       return colRow({t1:esc(chgPlace(c))+" \u00b7 "+fmtTime(chgWall(c)),
-        v1:Math.round(c.kwh)+" kWh \u00b7 "+money(c.cost||0),
+        v1:(c.min||0)+" min \u00b7 "+money(c.cost||0),
         attrs:' role="button" tabindex="0" data-ctxchg="'+esc(c.id)+'"'});});
     return colSec("Trip",strip)+(out.length?colSec("Today\u2019s charges",'<div class="grp">'+out.join("")+'</div>'):"");
   }

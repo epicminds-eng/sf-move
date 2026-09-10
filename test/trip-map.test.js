@@ -209,9 +209,17 @@ for(const [w,h] of [[393,852],[1194,834]]){
       /* every strip figure is the one the section below the map already renders — never a second computation */
       const same=(a,b)=>a===b;
       await seg('charging');
-      const C=await p.evaluate(()=>({strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
-        below:[...document.querySelectorAll('#trCharging .statrow .st b')].map(e=>e.textContent.trim()).slice(0,3)}));
-      ok(C.strip.join('|')===C.below.join('|'), `${w} Charging strip = the section's own stat row (${C.strip.join(' · ')})`);
+      /* the strip is stops · AT CHARGERS · spend — so the middle cell compares against the section's
+         "at chargers" tile, not its kWh one; each is matched by the tile's own label, never by index */
+      const C=await p.evaluate(()=>{
+        const tile={};document.querySelectorAll('#trCharging .statrow .st').forEach(c=>{tile[c.querySelector('span').textContent.trim()]=c.querySelector('b').textContent.trim();});
+        const cells=[...document.querySelectorAll('#tripRail .statrow .st')].map(c=>({v:c.querySelector('b').textContent.trim(),l:c.querySelector('span').textContent.trim()}));
+        return {cells,tile,rows:[...document.querySelectorAll('#tripRail .row .v1')].map(e=>e.textContent.trim())};});
+      ok(C.cells.map(c=>c.l).join('|')==='stops|at chargers|spend', `${w} Charging strip is stops · at chargers · spend (${C.cells.map(c=>c.v).join(' · ')})`);
+      ok(C.cells[0].v===C.tile['stops']&&C.cells[2].v===C.tile['spent'], `${w} its stops and spend are the section's own (${C.cells[0].v}, ${C.cells[2].v})`);
+      ok(C.cells[1].v===C.tile['at chargers'], `${w} and the middle cell IS the "at chargers" tile (${C.cells[1].v})`);
+      ok(C.rows.length>0&&C.rows.every(t=>/ min · \$/.test(t))&&!C.rows.some(t=>/kWh/.test(t)),
+         `${w} every Today's charges row reads minutes and cost, not kWh (${C.rows.join(' | ')})`);
       await seg('hotels');
       const H=await p.evaluate(()=>({strip:[...document.querySelectorAll('#tripRail .statrow .st b')].map(e=>e.textContent.trim()),
         below:[...document.querySelectorAll('#trHotels .statrow .st b')].map(e=>e.textContent.trim()).slice(0,3)}));
