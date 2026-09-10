@@ -24,7 +24,7 @@
        old max-width:429 and max-width:359 queries were doing by hand */
     --t-title:clamp(29px,8.75vw,34px);
     --t-section:clamp(24px,7.2vw,28px);
-    --t-value-lg:clamp(19px,5.7vw,22px);
+    --t-value-lg:clamp(17px,5.7vw,22px);   /* the floor only bites below ~333px; 19 stopped "10h 08m" fitting a 4-up row at 320 */
     --t-value:clamp(15px,4.4vw,17px);
     --t-row:clamp(14px,3.9vw,15px);
     --t-label:clamp(12px,3.4vw,13px);
@@ -490,7 +490,7 @@
   .pillst.done{background:var(--c-good-wash-2);color:var(--c-good-ink-2);}.pillst.today{background:var(--blue);color:#fff;}.pillst.plan{background:var(--fill);color:var(--secondary);}
   /* one row, one line: --n equal columns (set from the item count), every cell nowrap and never
      ellipsized, and the value+label pair sits on the bottom so all four read off one baseline */
-  .statrow{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:0;background:var(--c-card);border-radius:var(--r-group);padding:var(--s2) var(--s1);margin-bottom:var(--s5);}
+  .statrow{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:0;background:var(--c-card);border-radius:var(--r-group);padding:var(--s2) 0;margin-bottom:var(--s5);}   /* the cells carry no side padding, so the row must not either */
   .statrow .st{padding:var(--s3) 0;text-align:center;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;}   /* the column IS the gutter: side padding here is what forced the ellipsis at 320 */
   .statrow .st b{display:block;font-size:var(--t-value-lg);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .statrow .st span{display:block;font-size:var(--t-micro);line-height:1.3;color:var(--secondary);white-space:nowrap;}
@@ -842,7 +842,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v105 · Sep 10</div>
+  <div class="appver">SF Move · v106 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -2234,7 +2234,7 @@ var ACCENTS = {
   /* the lifetime crop: the bounding box of every logged site, widened to the ROUTE's aspect ratio so
      switching layers re-crops the geography without resizing the card */
   var VB_LIFE=(function(){
-    var ps=LIFETIME.map(function(r){return proj(r.lat,r.lng);});
+    var ps=lifeRows().map(function(r){return proj(r.lat,r.lng);});   /* the merged history, so a trip session can never sit outside its own crop */
     var xs=ps.map(function(p){return p.x;}),ys=ps.map(function(p){return p.y;});
     var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
     var px=(x1-x0)*0.06+4,py=(y1-y0)*0.06+4;x0-=px;x1+=px;y0-=py;y1+=py;
@@ -2712,11 +2712,29 @@ var ACCENTS = {
     sight:"M0 -2.3L0.7 -0.8 2.3 -0.6 1.1 0.5 1.4 2.2 0 1.4-1.4 2.2-1.1 0.5-2.3 -0.6-0.7 -0.8Z"};
   var BED="M-2.1 -1.6h0.75v3.2h-0.75zM-1.1 -0.75h1.45v0.95h-1.45zM-2.1 0.35h4.2v0.95h-4.2z";   /* headboard · pillow · mattress */
   var PLACE_G={food:"fork",coffee:"cup",sight:"star"};   /* the same glyphs the lists use */
-  var LIFE_CL=null,LIFE_SUM=null;
+  var LIFE_CL=null,LIFE_SUM=null,LIFE_ROWS=null,LIFE_KEY="";
+  /* The lifetime layer is the WHOLE history: the exported log PLUS the sessions logged on this trip,
+     which the next export will eventually carry too. De-duplicated on date+time, so when that export
+     lands and already contains them, nothing counts twice. LIFETIME itself is never written to, and
+     CHARGES and every trip total are untouched — this mapping is read-only in both directions. */
+  function lifeRows(){
+    var key=CHARGES.length+"/"+(CHARGES.length?CHARGES[CHARGES.length-1].id:"");
+    if(LIFE_ROWS&&LIFE_KEY===key)return LIFE_ROWS;
+    var seen={},out=[];
+    LIFETIME.forEach(function(r){seen[r.d+"T"+r.t]=1;out.push(r);});
+    CHARGES.forEach(function(c){
+      if(c.planned||!c.date||!c.time||c.lat===undefined)return;   /* a planned charger is not a session */
+      var k=c.date+"T"+c.time;if(seen[k])return;   /* the export already has this one */
+      seen[k]=1;out.push({d:c.date,t:c.time,s:c.name,lat:c.lat,lng:c.lng,kwh:c.kwh||0,c:c.cost||0});
+    });
+    LIFE_ROWS=out;LIFE_KEY=key;LIFE_CL=null;LIFE_SUM=null;   /* CHARGES moved: the pins and the summary are stale */
+    return out;
+  }
   function lifeClusters(){   /* one pin per physical site: same coordinates merge, whatever name variants the log used */
+    var rows=lifeRows();   /* first, so a change to CHARGES drops the cache before we read it */
     if(LIFE_CL)return LIFE_CL;
     var by={},out=[];
-    LIFETIME.forEach(function(r){
+    rows.forEach(function(r){
       var k=r.lat.toFixed(3)+","+r.lng.toFixed(3),g=by[k];
       if(!g){var pt=proj(r.lat,r.lng);g=by[k]={x:pt.x,y:pt.y,list:[],names:{},life:true};out.push(g);}
       g.list.push(r);g.names[r.s]=(g.names[r.s]||0)+1;
@@ -2730,17 +2748,18 @@ var ACCENTS = {
     out.sort(function(a,b){return a.list.length-b.list.length;});   /* the busiest sites paint last, on top */
     LIFE_CL=out;return out;
   }
-  function lifeSummary(){   /* every figure counted from LIFETIME, so the line can never drift from the data */
+  function lifeSummary(){   /* every figure counted from the merged rows, so the line can never drift from the data */
+    var rows=lifeRows();
     if(LIFE_SUM)return LIFE_SUM;
     var sites={},states={},kw=0,c=0,first=null;
-    LIFETIME.forEach(function(r){
+    rows.forEach(function(r){
       sites[r.s]=1;kw+=r.kwh||0;c+=r.c||0;
       var m=/,\s*([A-Z]{2})\b/.exec(r.s);if(m)states[m[1]]=1;
       if(!first||r.d<first)first=r.d;
     });
     var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     var since=first?MON[+first.slice(5,7)-1]+" "+first.slice(0,4):"";
-    LIFE_SUM={n:LIFETIME.length,sites:Object.keys(sites).length,states:Object.keys(states).length,
+    LIFE_SUM={n:rows.length,sites:Object.keys(sites).length,states:Object.keys(states).length,
       kwh:Math.round(kw),cost:Math.round(c),since:since};
     return LIFE_SUM;
   }
