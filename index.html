@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v108 · Sep 10</div>
+  <div class="appver">SF Move · v109 · Sep 10</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1849,7 +1849,6 @@ var ACCENTS = {
      and seeds Spend like any other:
      {id:"chg-oasis", planned:true, name:"Tesla Oasis – Lost Hills, CA", addr:"…", lat:35.617, lng:-119.694, leg:"Mom's → Coalinga"} */
   var CHARGES=[
-    {id:"chg-oasis", planned:true, name:"Tesla Oasis \u2013 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills, CA 93249", lat:35.6175, lng:-119.6945, leg:"Mom\u0027s \u2192 Coalinga"},
     {id:"chg-001", name:"Normal, IL – West Raab Rd", addr:"610 West Raab Rd, Normal, IL 61761", lat:40.5327, lng:-88.9918, date:"2026-09-06", time:"10:27", kwh:29.83, rate:0.35, cost:10.43, min:14},
     {id:"chg-002", name:"Springfield, IL – South Dirksen", addr:"1501 S Dirksen Pkwy, Springfield, IL 62703", lat:39.7755, lng:-89.6089, date:"2026-09-06", time:"11:41", kwh:43.79, rate:0.36, cost:15.76, min:28},
     {id:"chg-003", name:"Fenton, MO \u2013 Wally\u0027s", addr:"950 Assembly Pkwy, Fenton, MO 63026", lat:38.5093, lng:-90.4527, date:"2026-09-06", time:"13:45", kwh:36.59, rate:0.44, cost:16.10, min:21},
@@ -1876,7 +1875,9 @@ var ACCENTS = {
     {id:"chg-024", name:"Quartzsite, AZ", addr:"1451 W Main St, Quartzsite AZ 85346", lat:33.664, lng:-114.231, date:"2026-09-10", time:"08:53", kwh:43.65, rate:0.41, cost:17.89, min:29},
     {id:"chg-025", name:"Indio, CA", addr:"42100 Jackson St, Indio CA 92203", lat:33.737, lng:-116.217, date:"2026-09-10", time:"11:00", kwh:36.89, rate:0.44, cost:16.23, min:24},
     {id:"chg-026", name:"Ontario, CA", addr:"3760 Inland Empire Blvd, Ontario CA 91764", lat:34.068, lng:-117.588, date:"2026-09-10", time:"12:42", kwh:31.68, rate:0.51, cost:16.15, min:19},
-    {id:"chg-027", name:"Castaic, CA", addr:"31884 Castaic Rd, Castaic CA 91384", lat:34.489, lng:-118.620, date:"2026-09-10", time:"14:23", kwh:37.39, rate:0.47, cost:17.57, min:28}
+    {id:"chg-027", name:"Castaic, CA", addr:"31884 Castaic Rd, Castaic CA 91384", lat:34.489, lng:-118.620, date:"2026-09-10", time:"14:23", kwh:37.39, rate:0.47, cost:17.57, min:28},
+    {id:"chg-028", name:"Tejon Ranch, CA", addr:"5701 Outlets at Tejon Pkwy, Arvin CA 93203", lat:35.052, lng:-118.870, date:"2026-09-10", time:"15:36", kwh:28.67, rate:0.44, cost:12.61, min:20},
+    {id:"chg-029", name:"Tesla Oasis \u00b7 Lost Hills, CA", addr:"22422 Highway 46, Lost Hills CA 93249", lat:35.617, lng:-119.694, date:"2026-09-10", time:"16:49", kwh:20.72, rate:0.44, cost:9.11, min:14}
   ];
   /* ---------- LIFETIME charging history: every Supercharger session since Jan 2024, inlined from
      data/lifetime-charges.json so the app stays one self-contained file with no runtime fetch.

@@ -73,7 +73,7 @@ const day=(stopId,d,rolled,arrived)=>p.evaluate(({stopId,d,rolled,arrived})=>{
     charge:CHARGES.filter(c=>c.id==='chg-019').map(c=>({tz:chgTz(c),ts:chgTs(c),wall:chgWall(c)}))[0],
     tx:chgTz(CHARGES.filter(c=>c.id==='chg-012')[0]),
     nm:chgTz(CHARGES.filter(c=>c.id==='chg-016')[0]),
-    ca:chgTz(CHARGES.filter(c=>c.id==='chg-oasis')[0]),
+    ca:chgTz(CHARGES.filter(c=>c.id==='chg-029')[0]),   /* chg-oasis (planned) was retired in v109, fulfilled by chg-029 at the same Lost Hills, CA address */
     il:chgTz(CHARGES.filter(c=>c.id==='chg-001')[0])}));
   const H=3600000;
   ok(z.phx-z.chi===2*H, `Phoenix is two hours behind Chicago on a September morning (${(z.phx-z.chi)/H}h)`);
