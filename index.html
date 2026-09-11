@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v115 · Sep 11</div>
+  <div class="appver">SF Move · v116 · Sep 11</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1339,6 +1339,11 @@ var ACCENTS = {
   if(!state.spend.pl002CostFixV1){   /* pl-002 was seeded at 146.44, a transcription error: the check was $128.44 + $28 tip = $156.44. seedPlaces only ever adds a row it does not already have, so an established store keeps the wrong total until it is rewritten here. Guarded on the old value, so an amount edited by hand stands */
     state.spend.entries.forEach(function(e){if(e.id==="pl-002"&&e.amount===146.44)e.amount=156.44;});
     state.spend.pl002CostFixV1=true;save(state);
+  }
+  if(!state.trip.sfArrivedV1){   /* SF: arrived 1442A Grove St, Sept 11 9:11 AM Pacific — the trip is complete. Set even over a stamp tapped by hand at another time, so the door-to-door maths uses 9:11. Every stop before SF is arrived too: a fresh install has flags only for the three backfilled nights, and a trip that reached its last stop reached all of them. This block IS the seed default — trip.arrived starts empty and the flagged backfills fill it. STOPS is assigned further down, so the ids are literal here like the rest of this block */
+    state.trip.arrivedAt.sf="2026-09-11T09:11";
+    ["strobert","amarillo","holbrook","moms","coalinga","sf"].forEach(function(id){state.trip.arrived[id]=true;});
+    state.trip.sfArrivedV1=true;save(state);
   }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});

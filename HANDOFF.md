@@ -1,39 +1,36 @@
 # SF Move HQ — handoff
 
-**Status: v115 · Sep 11 · previous main head 361a220.** Single-file PWA, `index.html`, no build, no CDN.
-localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only — never in app state, never in the repo.
+**Status: v116 · Sep 11 · previous main head 8790186. THE TRIP IS COMPLETE.** Single-file PWA, `index.html`,
+no build, no CDN. localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only — never in
+app state, never in the repo.
 
-## This session (v114 → v115, two commits)
-- **v114** appended `fastrak-tag` to the After Landing card in `PHASES`. No migration and none needed:
-  Move checklists are read from the constant every render, the store keeps only `done[id]`. Proven on a
-  populated store in `test/move-seeds.test.js`; shots `design/verify/v114-fastrak-*.png`.
-- **v115** appended **`chg-032` Pleasanton, CA** (Sept 11 07:38, 30.5787 kWh, $14.67, 14 min) — the first
-  **Day 6** session. tz derives from the address (`America/Los_Angeles`). Nothing else in CHARGES touched.
-  CHARGES now holds **32 logged sessions** (chg-001..032, contiguous, zero planned) — the brief said 30;
-  32 − 2 is the mirrored Harris Ranch pair chg-030/031, the likely gap. Day 6 has one stop. It seeds one
-  Day 6 charging row on Spend and reaches Lifetime through `lifeRows()` (export ends Sept 9, no de-dupe).
-- The map test's session count is now **structural**: logged count must equal the last id's number with no
-  gaps — a lost or doubled entry fails it, and no literal has to be retyped when the next session lands.
-- The Charging strip's first cell is `real.length` labelled **"stops"** — that is the on-screen session count.
-  The test reads that cell and compares it to CHARGES rather than retyping 30 as an expectation of the UI.
+## This session (v116)
+- **`sfArrivedV1`** — arrived 1442A Grove St, Sept 11 **9:11 AM Pacific**. Sets `arrivedAt.sf="2026-09-11T09:11"`
+  unconditionally (over a hand-tapped stamp too, so door-to-door uses 9:11) and marks every stop arrived.
+  **That block IS the seed default:** `trip.arrived` starts `{}` and the flagged backfills fill it — there is
+  no separate defaults object. `STOPS` is assigned later in the file, so the ids are literal there.
+- **Every "done" renders from that one stamp.** `arrived.sf` → `tripProgress` (miles = TOTAL_MI, 2,556 logged,
+  0 to go), `dayProg().done` → strip "arrived", `dayStatus(6)` → Done pill, Your Route → Arrived. No
+  hard-coded "complete" strings existed and none were added.
+- **Why the other stops are marked too:** a fresh install had `arrived` only for the three backfilled nights,
+  so Days 4–5 would read Planned under a finished trip. Reaching the last stop implies reaching all of them.
+- **Day 6 door-to-door on a fresh install is "—"**: there is no Day 6 *roll* stamp to compute from and none
+  was invented. A device that tapped Rolling computes it from 9:11 (tested with a 06:40 fixture roll).
 
 ## Where things are (index.html)
-- `CHARGES` ~1876–1904 (append at the end) · `LIFETIME` ~1905 (read-only) · `lifeRows` ~2817 · `PLACES` ~1925.
-- `PHASES` ~866 (Move cards) · `renderMove` ~1379 · `renderChargingSec` ~3184 · `renderSpendDays` ~3541.
-- `seedCharges` ~3427 · `seedPlaces` ~3456 · `seedExpenses` ~3440 · `dayForDate` ~3710 · `TRIP_DAYS` ~3334.
-- Migrations ~1200–1345, `pl002CostFixV1` last. **New ones go at the END, behind a NEW flag** — editing an
-  already-flagged block is a no-op on every device that consumed the flag (how `seed-h3` survived). Spend
-  seeds only ever ADD rows, so editing a shipped amount needs a migration too (v113).
-- `pinClusters` ~2873 · `mapMode` ~2622 (layer keys `route` `chg` `places` `life` `hotel`) · footer ~850.
+- Migrations ~1200–1348, `sfArrivedV1` last. **New ones go at the END, behind a NEW flag** — an already-
+  flagged block is a no-op on every device that consumed it. Spend seeds only ADD rows (edit ⇒ migrate).
+- `tripProgress` ~2142 · `dayProg` ~2615 · `dayStatus` ~3110 · `todayFigures`/`renderTripStrip` ~2787.
+- `STOPS` ~1832 (sf is last, `off:5`; `TRIP_DAYS` = 6) · `CHARGES` ~1876 · `PLACES` ~1925 · `PHASES` ~866.
+- `EXTRA` ~1135 (per-card HTML: `joey`, `logistics`, `landing`, `ref`) · `renderMove` ~1379 · footer ~850.
 
 ## Tests
-- Repo: `test/trip-time.test.js`, `test/trip-map.test.js` (ends with a chg-032 block at 390 and 1194),
-  `test/move-seeds.test.js`. Sweep: `scratchpad/sweep.sh`, **39 suites**. Verify shots are named by the live
-  footer, so they are written ONLY with `SHOTS=1 node test/<file>` — an unguarded run filed duplicates once.
+- Repo: `test/trip-time.test.js` (now ends with the SF-arrival block: fresh store + pre-tapped store, 390 and
+  1194), `test/trip-map.test.js`, `test/move-seeds.test.js`. Sweep: `scratchpad/sweep.sh`, **39 suites**.
+  Verify shots write only with `SHOTS=1` (`design/verify/v116-arrived-*.png`).
 - **HARNESS RULE:** never retype a number that also lives in index.html — derive from the source arrays,
-  assert the delta, or assert structure. Locate pins **by id**, never by a screen-pixel radius. Group headers
-  are `.grp-h`, CSS-uppercased — match case-insensitively. `.sec-head .m` also holds the ▼ chevron.
+  assert the delta, or assert structure. Locate pins **by id**. `.sec-head .m` also holds the ▼ chevron.
 - verify-77 intermittently reports NO RESULT inside the sweep and passes standalone — runner flake.
 
 ## Next
-Nothing outstanding. Day 6 (SF) has no rolled/arrived stamps yet, so it stays out of the averages.
+Reference-card garage code field + SF Setup link pill (commit 2 of this pair).

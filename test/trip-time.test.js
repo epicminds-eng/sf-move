@@ -94,6 +94,58 @@ const day=(stopId,d,rolled,arrived)=>p.evaluate(({stopId,d,rolled,arrived})=>{
   ok(shown.wall==='1:51 PM'&&shown.stored==='13:51', `a charge still displays its station-local clock (${shown.stored} → ${shown.wall})`);
 }
 
+/* ---------- SF arrival: the trip is complete, and every "done" reads from the one stamp ----------
+   Two stores: a fresh install, and a device that had already tapped Arrived at SF at a different time.
+   Both must end on arrivedAt.sf === 2026-09-11T09:11; nothing here retypes a mileage — TOTAL_MI is read. */
+{
+  const SF='2026-09-11T09:11';
+  const TAPPED={trip:{departDate:'2026-09-06',
+    arrived:{strobert:true,amarillo:true,holbrook:true,moms:true,coalinga:true,sf:true},
+    arrivedAt:{strobert:'2026-09-06T17:49',amarillo:'2026-09-07T19:30',holbrook:'2026-09-08T16:30',moms:'2026-09-09T12:45',coalinga:'2026-09-10T15:10',sf:'2026-09-11T10:05'},
+    rolled:{strobert:'2026-09-06T08:30',amarillo:'2026-09-07T07:19',holbrook:'2026-09-08T07:05',moms:'2026-09-09T08:15',coalinga:'2026-09-10T07:30',sf:'2026-09-11T06:40'},
+    dateMigratedV1:true,dateMigratedV2:true,day2AmarilloV1:true,day3WinslowV1:true,day3HolbrookV1:true,day5CoalingaV1:true,
+    arrivedAtV1:true,rolledV1:true,day2ArrivedV1:true,day3ArrivedV1:true,day1ArrivedFixV1:true},
+    spend:{seededV1:true,entries:[]},disp:{},customTasks:{},custom:{},meta:{stamped:true,touched:{}}};
+  for(const [tag,seed] of [['fresh install',null],['device that tapped Arrived at 10:05',TAPPED]]){
+    console.log(`\n===== SF arrival — ${tag} =====`);
+    for(const [w,h] of [[390,844],[1194,834]]){
+      const c=await b.newContext({viewport:{width:w,height:h}});
+      if(seed)await c.addInitScript(S=>{localStorage.setItem('sfMoveApp_v1',JSON.stringify(S));},seed);
+      const q=await c.newPage();const e2=[];
+      q.on('pageerror',e=>e2.push('pageerror: '+e.message));
+      await q.goto(URL);await q.waitForTimeout(900);
+      await q.click('#nav-trip');await q.waitForTimeout(700);
+      const d=await q.evaluate(SF=>{
+        const sf=STOPS[STOPS.length-1],r=dayStats(TRIP_DAYS),cur=tripDayNow(),F=todayFigures();
+        const all=[];for(let d=1;d<=TRIP_DAYS;d++)all.push(dayStatus(d,cur));
+        const card=[].slice.call(document.querySelectorAll('#tripStops .card, [data-stop="sf"]')).pop();
+        const route=document.getElementById('tripStops')?document.getElementById('tripStops').innerText:'';
+        return {id:sf.id,at:state.trip.arrivedAt.sf,flag:!!state.trip.sfArrivedV1,arr:!!state.trip.arrived.sf,
+          arrivedT:r?r.arrivedT:null,want:zonedToEpoch(SF,sf.tz),rolled:state.trip.rolled.sf||null,d2d:r?r.d2d:null,complete:!!(r&&r.complete),
+          statuses:all,logged:loggedMiles(),total:TOTAL_MI,loggedTxt:num(loggedMiles()),togo:F.togo,dpDone:F.dp.done,
+          strip:(document.getElementById('tripStrip')||{}).innerText||'',
+          routeArrived:/Arrived/.test(route)&&!/Upcoming|In progress/.test(route),
+          hero:(document.querySelector('.tr-meta,.trbar')||{}).innerText||''};},SF);
+      const t=`${tag} @ ${w}`;
+      ok(d.at===SF&&d.flag&&d.arr, `${t}: arrivedAt.sf is ${d.at}, arrived, sfArrivedV1 flagged`);
+      ok(d.arrivedT===d.want, `${t}: Day 6 arrival instant is 9:11 read in ${d.id}'s own zone`);
+      if(d.rolled){const want=naive(d.rolled,SF);
+        ok(d.d2d===want&&d.complete, `${t}: Day 6 door to door computed from 9:11 — ${hm(d.d2d)} from a ${d.rolled.slice(11)} roll`);}
+      else ok(d.d2d===null, `${t}: no Day 6 roll stamp on a fresh install, so door to door stays "—" (not fabricated)`);
+      ok(d.statuses.every(s=>s==='done'), `${t}: ${d.statuses.filter(s=>s==='done').length} of ${d.statuses.length} days read Done (${d.statuses.join(' ')})`);
+      ok(d.logged===d.total&&d.loggedTxt==='2,556', `${t}: ${d.loggedTxt} mi logged = TOTAL_MI`);
+      ok(d.togo===0&&d.dpDone&&/arrived/.test(d.strip)&&!/mi to go/.test(d.strip), `${t}: 0 mi to go — the strip reads "arrived"`);
+      ok(d.routeArrived, `${t}: Your Route shows every stop Arrived, none Upcoming`);
+      ok(e2.length===0, `${t}: no page errors${e2.length?' — '+e2[0]:''}`);
+      if(process.env.SHOTS&&!seed){   /* verify pass only: the fresh store, Trip tab top */
+        const v=await q.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1]);
+        await q.screenshot({path:path.resolve(__dirname,'..','design','verify',`v${v}-arrived-${w}.png`)});
+      }
+      await c.close();
+    }
+  }
+}
+
 ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
 await b.close();
 console.log(FAIL?`\n${FAIL} FAILURE(S)`:'\nALL CHECKS PASSED');
