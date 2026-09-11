@@ -347,8 +347,10 @@ for(const [w,h] of [[390,844],[1194,834]]){
   ok(d.day===6&&d.dayN===1&&d.dayIds.join()==='chg-032', `Day 6 has exactly one stop, and it is chg-032`);
   ok(d.pins===1&&d.pinSize===1&&d.pinPlanned===false, `one Pleasanton ⚡ pin on the map, located by id, a real session`);
   ok(d.life===d.wantLife&&d.lifeHas, `Lifetime layer carries it via lifeRows() (${d.life} rows)`);
-  await p.waitForTimeout(400);
-  await p.screenshot({path:path.resolve(__dirname,'..','design','verify',`v${await p.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1])}-pleasanton-${w}.png`)});
+  if(process.env.SHOTS){   /* named by the live footer — a verify-pass artefact, not a per-run one: SHOTS=1 */
+    await p.waitForTimeout(400);
+    await p.screenshot({path:path.resolve(__dirname,'..','design','verify',`v${await p.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1])}-pleasanton-${w}.png`)});
+  }
   /* Spend: the row lands on the Day 6 card */
   const sp=await p.evaluate(()=>{
     document.getElementById('nav-spend').click();renderSpend();

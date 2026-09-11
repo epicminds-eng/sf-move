@@ -81,9 +81,13 @@ for(const [w,h] of [[390,844],[1194,834]]){
   /* park the card just under the sticky title bar so its own header row is in the shot */
   await p.evaluate(top=>{const s=document.getElementById('scroll')||document.scrollingElement;const bar=document.querySelector('header,.hdr,.topbar');const off=bar?bar.getBoundingClientRect().height:0;s.scrollTo(0,Math.max(0,top-off-12));},d.cardTop);
   await p.waitForTimeout(300);
-  const file=path.join(OUT,`v${ver}-fastrak-${w}.png`);
-  await p.screenshot({path:file,fullPage:false});
-  console.log(`  shot  ${path.relative(path.resolve(__dirname,'..'),file)}`);
+  /* shots are named by the live footer, so an unguarded run would file a new set on every version bump;
+     write them only for a verify pass: SHOTS=1 node test/move-seeds.test.js */
+  if(process.env.SHOTS){
+    const file=path.join(OUT,`v${ver}-fastrak-${w}.png`);
+    await p.screenshot({path:file,fullPage:false});
+    console.log(`  shot  ${path.relative(path.resolve(__dirname,'..'),file)}`);
+  }
   await c.close();
 }
 await b.close();

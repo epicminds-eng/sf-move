@@ -27,9 +27,9 @@ localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only 
 - `pinClusters` ~2873 · `mapMode` ~2622 (layer keys `route` `chg` `places` `life` `hotel`) · footer ~850.
 
 ## Tests
-- Repo: `test/trip-time.test.js`, `test/trip-map.test.js` (now ends with a chg-032 block at 390 and 1194 that
-  also writes `design/verify/v115-pleasanton-*.png`), `test/move-seeds.test.js`. Sweep: `scratchpad/sweep.sh`,
-  **39 suites**.
+- Repo: `test/trip-time.test.js`, `test/trip-map.test.js` (ends with a chg-032 block at 390 and 1194),
+  `test/move-seeds.test.js`. Sweep: `scratchpad/sweep.sh`, **39 suites**. Verify shots are named by the live
+  footer, so they are written ONLY with `SHOTS=1 node test/<file>` — an unguarded run filed duplicates once.
 - **HARNESS RULE:** never retype a number that also lives in index.html — derive from the source arrays,
   assert the delta, or assert structure. Locate pins **by id**, never by a screen-pixel radius. Group headers
   are `.grp-h`, CSS-uppercased — match case-insensitively. `.sec-head .m` also holds the ▼ chevron.
