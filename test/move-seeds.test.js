@@ -90,6 +90,68 @@ for(const [w,h] of [[390,844],[1194,834]]){
   }
   await c.close();
 }
+/* ---------- Reference card: garage code field + After Landing: SF Setup pill ----------
+   The code is typed on device and lives only in the store (ref.garageCode) — never in index.html, which
+   is public. So this block also greps the source for the value it types, and expects NOT to find it. */
+{
+  const fs=require('fs'),SRC=fs.readFileSync(path.resolve(__dirname,'..','index.html'),'utf8');
+  const CODE='9062',SETUP='https://epicminds-eng.github.io/sf-setup/';
+  ok(!SRC.includes(CODE), `index.html does not contain the code the test types (store-only by design)`);
+  for(const [w,h] of [[390,844],[1194,834]]){
+    console.log(`\n===== garage code + SF Setup @ ${w}×${h} =====`);
+    const c=await b.newContext({viewport:{width:w,height:h}});
+    const p=await c.newPage();const errs=[];
+    p.on('pageerror',e=>errs.push('pageerror: '+e.message));
+    p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text());});
+    await p.goto(URL);await p.waitForTimeout(900);
+    await p.click('#nav-move');await p.waitForTimeout(400);
+    /* the Move tab before anything is typed: the field is empty, the store has no code */
+    const before=await p.evaluate(()=>{
+      const inp=document.getElementById('garageCode');
+      const titles=[].slice.call(document.querySelectorAll('#phaseGroups .sec-head .t')).map(e=>e.textContent);
+      const want=PHASES.map(ph=>typeof ph.title==='function'?ph.title():ph.title).concat(['Reference']);
+      const rows=document.querySelectorAll('#phaseGroups .check').length;
+      const wantRows=PHASES.reduce((a,ph)=>a+ph.items.length+((state.customTasks[ph.id]||[]).length),0);
+      const ref=[].slice.call(document.querySelectorAll('#phaseGroups .card')).find(x=>x.querySelector('.sec-head .t').textContent==='Reference');
+      const inRef=!!(inp&&ref&&ref.contains(inp)),addr=ref?/1442A Grove St/.test(ref.innerText):false;
+      return {has:!!inp,inRef:inRef,addr:addr,val:inp?inp.value:null,mode:inp?inp.getAttribute('inputmode'):null,
+        tnum:inp?getComputedStyle(inp).fontVariantNumeric:null,stored:state.ref&&state.ref.garageCode,
+        titles:titles.join('|'),want:want.join('|'),rows:rows,wantRows:wantRows};});
+    ok(before.has&&before.inRef&&before.addr, `Garage code field sits on the Reference card next to the Grove St address`);
+    ok(before.val===''&&!before.stored, `empty by default, nothing in the store`);
+    ok(before.mode==='numeric'&&/tabular-nums/.test(before.tnum), `numeric keyboard, tabular figures (inputmode=${before.mode}, ${before.tnum})`);
+    ok(before.titles===before.want, `card set is exactly PHASES + Reference — nothing else on Move changed`);
+    ok(before.rows===before.wantRows, `checklist row count unchanged (${before.rows})`);
+    /* type it, leave the field, reload */
+    await p.fill('#garageCode',CODE);await p.dispatchEvent('#garageCode','change');await p.evaluate(()=>document.getElementById('garageCode').blur());
+    await p.waitForTimeout(300);
+    const typed=await p.evaluate(()=>({stored:state.ref.garageCode,raw:JSON.parse(localStorage.getItem('sfMoveApp_v1')).ref.garageCode}));
+    ok(typed.stored===CODE&&typed.raw===CODE, `saved on change/blur to ref.garageCode in sfMoveApp_v1`);
+    if(process.env.SHOTS){
+      const ver=await p.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1]);
+      await p.evaluate(()=>{const e=document.getElementById('garageCode');const s=document.getElementById('scroll')||document.scrollingElement;s.scrollTo(0,Math.max(0,e.getBoundingClientRect().top+s.scrollTop-160));});
+      await p.waitForTimeout(300);
+      await p.screenshot({path:path.join(OUT,`v${ver}-garage-${w}.png`)});
+    }
+    await p.reload();await p.waitForTimeout(900);await p.click('#nav-move');await p.waitForTimeout(300);
+    const after=await p.evaluate(()=>{
+      const inp=document.getElementById('garageCode');let exp=null;try{exp=JSON.parse(exportJSON());}catch(e){}
+      const landing=[].slice.call(document.querySelectorAll('#phaseGroups .card')).find(x=>/After Landing/.test(x.querySelector('.sec-head .t').textContent));
+      const pills=landing?[].slice.call(landing.querySelectorAll('.btns a.btn')):[];
+      const pill=pills.find(a=>a.textContent.trim()==='SF Setup');
+      return {val:inp?inp.value:null,stored:state.ref.garageCode,exp:exp&&exp.ref&&exp.ref.garageCode,
+        pill:!!pill,href:pill?pill.getAttribute('href'):null,pillTexts:pills.map(a=>a.textContent.trim()),
+        isItem:landing?[].slice.call(landing.querySelectorAll('.check .ct')).some(e=>/SF Setup/.test(e.textContent)):false};});
+    ok(after.val===CODE&&after.stored===CODE, `persists across a reload (${after.val})`);
+    ok(after.exp===CODE, `appears in the Export JSON at ref.garageCode`);
+    ok(after.pill&&after.href===SETUP, `"SF Setup" link pill on After Landing → ${after.href}`);
+    ok(!after.isItem, `it is a link pill, not a checklist item`);
+    ok(after.pillTexts.every(t=>!/\b(open in|link to|tap to|go to|view|click)\b/i.test(t)), `pill labels never announce a link (${after.pillTexts.join(' · ')})`);
+    ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
+    await c.close();
+  }
+}
+
 await b.close();
 console.log(FAIL?`\n${FAIL} FAILURE(S)`:'\nALL CHECKS PASSED');
 process.exit(FAIL?1:0);

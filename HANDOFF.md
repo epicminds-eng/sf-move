@@ -1,36 +1,38 @@
 # SF Move HQ — handoff
 
-**Status: v116 · Sep 11 · previous main head 8790186. THE TRIP IS COMPLETE.** Single-file PWA, `index.html`,
-no build, no CDN. localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only — never in
-app state, never in the repo.
+**Status: v117 · Sep 11 · previous main head 8790186. THE TRIP IS COMPLETE — arrived 1442A Grove St,
+Sept 11 9:11 AM Pacific.** Single-file PWA, `index.html`, no build, no CDN. localStorage key `sfMoveApp_v1`.
+Sync (Gist + token) lives in `sfMoveSync` only — never in app state, never in the repo.
 
-## This session (v116)
-- **`sfArrivedV1`** — arrived 1442A Grove St, Sept 11 **9:11 AM Pacific**. Sets `arrivedAt.sf="2026-09-11T09:11"`
-  unconditionally (over a hand-tapped stamp too, so door-to-door uses 9:11) and marks every stop arrived.
-  **That block IS the seed default:** `trip.arrived` starts `{}` and the flagged backfills fill it — there is
-  no separate defaults object. `STOPS` is assigned later in the file, so the ids are literal there.
-- **Every "done" renders from that one stamp.** `arrived.sf` → `tripProgress` (miles = TOTAL_MI, 2,556 logged,
-  0 to go), `dayProg().done` → strip "arrived", `dayStatus(6)` → Done pill, Your Route → Arrived. No
-  hard-coded "complete" strings existed and none were added.
-- **Why the other stops are marked too:** a fresh install had `arrived` only for the three backfilled nights,
-  so Days 4–5 would read Planned under a finished trip. Reaching the last stop implies reaching all of them.
-- **Day 6 door-to-door on a fresh install is "—"**: there is no Day 6 *roll* stamp to compute from and none
-  was invented. A device that tapped Rolling computes it from 9:11 (tested with a 06:40 fixture roll).
+## This session — two commits
+- **v116 `c04cb6c` — the arrival. This is the hash Mile Marker 2.3 pins.** `sfArrivedV1` sets
+  `arrivedAt.sf="2026-09-11T09:11"` unconditionally and marks every stop arrived. That block IS the seed
+  default (`trip.arrived` starts `{}`; the flagged backfills fill it). Every finished-trip state derives from
+  that flag — `tripProgress` (2,556 logged, 0 to go), `dayProg().done` (strip "arrived"), `dayStatus(6)`
+  (Done pill), Your Route. A fresh install has no Day 6 roll stamp, so its door-to-door stays "—".
+- **v117 — Reference card `Garage code` field + After Landing `SF Setup` pill.**
+  - The field is **store-only by design**: `ref.garageCode` in `sfMoveApp_v1`, typed on device, saved on
+    change/blur, carried by Export and gist sync like any leaf. **The repo is public — no code value is ever
+    in index.html**, and the test greps the source for the value it types and expects NOT to find it.
+  - The Reference card had no address on it; a `Home` line (1442A Grove St) now sits above the facts with
+    the field beside it, reusing the `.addr` block the Joey card already uses. Same input rules as the ✎ note
+    editors; `inputmode="numeric"`, tabular figures.
+  - `SF Setup` → https://epicminds-eng.github.io/sf-setup/ is one more `a.btn` on the existing Links block.
 
 ## Where things are (index.html)
-- Migrations ~1200–1348, `sfArrivedV1` last. **New ones go at the END, behind a NEW flag** — an already-
-  flagged block is a no-op on every device that consumed it. Spend seeds only ADD rows (edit ⇒ migrate).
-- `tripProgress` ~2142 · `dayProg` ~2615 · `dayStatus` ~3110 · `todayFigures`/`renderTripStrip` ~2787.
-- `STOPS` ~1832 (sf is last, `off:5`; `TRIP_DAYS` = 6) · `CHARGES` ~1876 · `PLACES` ~1925 · `PHASES` ~866.
-- `EXTRA` ~1135 (per-card HTML: `joey`, `logistics`, `landing`, `ref`) · `renderMove` ~1379 · footer ~850.
+- Migrations ~1200–1348, `sfArrivedV1` last. **New ones go at the END, behind a NEW flag.** Spend seeds only
+  ADD rows, so editing a shipped amount needs a migration too (v113).
+- `state.ref` init ~1216 · `EXTRA` ~1135 (`ref` carries the address + field; `landing` the pills) ·
+  `renderMove` ~1379 (binds `#garageCode`) · `.addr .garage` CSS ~132.
+- `tripProgress` ~2145 · `dayProg` ~2618 · `dayStatus` ~3113 · `STOPS` ~1835 · `CHARGES` ~1879 · footer ~850.
 
 ## Tests
-- Repo: `test/trip-time.test.js` (now ends with the SF-arrival block: fresh store + pre-tapped store, 390 and
-  1194), `test/trip-map.test.js`, `test/move-seeds.test.js`. Sweep: `scratchpad/sweep.sh`, **39 suites**.
-  Verify shots write only with `SHOTS=1` (`design/verify/v116-arrived-*.png`).
-- **HARNESS RULE:** never retype a number that also lives in index.html — derive from the source arrays,
-  assert the delta, or assert structure. Locate pins **by id**. `.sec-head .m` also holds the ▼ chevron.
+- Repo: `test/trip-time.test.js` (SF arrival, fresh + pre-tapped, 390/1194), `test/trip-map.test.js`,
+  `test/move-seeds.test.js` (FasTrak; garage code + SF Setup). Sweep: `scratchpad/sweep.sh`, **39 suites**.
+  Verify shots write only with `SHOTS=1` (`design/verify/v116-arrived-*`, `v117-garage-*`).
+- **HARNESS RULE:** never retype a number that also lives in index.html — derive, assert the delta, or
+  assert structure. Locate pins **by id**. `.sec-head .m` also holds the ▼ chevron.
 - verify-77 intermittently reports NO RESULT inside the sweep and passes standalone — runner flake.
 
 ## Next
-Reference-card garage code field + SF Setup link pill (commit 2 of this pair).
+Nothing outstanding. The move itself continues in the SF Setup app.

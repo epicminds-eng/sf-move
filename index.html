@@ -129,6 +129,9 @@
   .addrow::before{content:"";position:absolute;left:16px;right:0;top:0;height:.5px;background:var(--sep);}
   .addrow input{width:100%;font-family:inherit;font-size:var(--t-row);padding:var(--s2) var(--s3);border:1px solid var(--sep);border-radius:var(--r-group);outline:none;background:var(--cell);color:var(--label);}
   .addrow input:focus{border-color:var(--blue);}
+  .addr .garage{flex:none;display:flex;flex-direction:column;gap:2px;}
+  .addr .garage input{width:5.5em;font-family:inherit;font-size:var(--t-row);padding:var(--s2) var(--s3);border:1px solid var(--sep);border-radius:var(--r-group);outline:none;background:var(--cell);color:var(--label);font-variant-numeric:tabular-nums;text-align:center;}
+  .addr .garage input:focus{border-color:var(--blue);}
 
   /* tally */
   .tally{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2);margin-bottom:var(--s4);}
@@ -847,7 +850,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v116 · Sep 11</div>
+  <div class="appver">SF Move · v117 · Sep 11</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1147,8 +1150,11 @@ var ACCENTS = {
       '<a class="btn" href="https://www.coveredca.com">Covered California — 60-day SEP</a>'+
       '<a class="btn" href="https://flybirdfitness.com">FLYBIRD — bench, SF edition</a></div></div>',
     landing:'<div class="refblock"><div class="rt">Links</div><div class="btns wrap">'+
-      '<a class="btn" href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits">SF residential parking permit</a></div></div>',
-    ref:'<div class="fact"><strong>iMac + monitor:</strong> ride in car (blankets, trunk) — never movers.<span class="verdict keep">CAR</span></div>'+
+      '<a class="btn" href="https://www.sfmta.com/getting-around/drive-park/residential-parking-permits">SF residential parking permit</a>'+
+      '<a class="btn" href="https://epicminds-eng.github.io/sf-setup/">SF Setup</a></div></div>',
+    ref:'<div class="addr"><div class="txt"><div class="al">Home</div><div class="av">1442A Grove St, San Francisco, CA 94117</div></div>'+
+      '<label class="garage"><span class="al">Garage code</span><input id="garageCode" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="\u00b7\u00b7\u00b7\u00b7" aria-label="Garage code"></label></div>'+
+      '<div class="fact"><strong>iMac + monitor:</strong> ride in car (blankets, trunk) — never movers.<span class="verdict keep">CAR</span></div>'+
       '<div class="fact"><strong>Printer:</strong> $60–120 to replace; heavy, ink leaks in transit.<span class="verdict sell">LEAVE / SELL</span></div>'+
       '<div class="fact"><strong>Mirror + Hue lights:</strong> mirror = leave; Hue is small — car box.<span class="verdict tbd">HUE CAR · MIRROR TBD</span></div>'+
       '<div class="fact"><strong>Coolers:</strong> the good one rides (drive snacks/Kane water), rest leave.<span class="verdict keep">ONE RIDES</span></div>'+
@@ -1214,6 +1220,7 @@ var ACCENTS = {
   state.collapsed=state.collapsed||{};
   state.packed=state.packed||{};   /* pack tab — additive, everything starts unpacked */
   state.customTasks=state.customTasks||{};   /* move tab custom tasks, keyed by card — additive */
+  state.ref=state.ref||{};                   /* Reference card fields typed on device (ref.garageCode) — additive; the values never live in this file */
   state.trip=state.trip||{};                 /* trip tab — additive */
   state.trip.arrived=state.trip.arrived||{};
   state.trip.tracking=!!state.trip.tracking;
@@ -1446,6 +1453,10 @@ var ACCENTS = {
     rh.addEventListener("click",togR);
     rh.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();togR();}});
     rc.appendChild(rh);rc.appendChild(el("div","sec-note","DESK / MISC — QUICK CALLS"));rc.appendChild(el("div","sec-body",EXTRA.ref));
+    var gc=rc.querySelector("#garageCode");   /* store-only: read on render, written on change/blur, synced and exported like any leaf */
+    if(gc){gc.value=state.ref.garageCode||"";
+      var saveGc=function(){var v=gc.value.replace(/\s+/g,"");if(v)state.ref.garageCode=v;else delete state.ref.garageCode;save(state);};
+      gc.addEventListener("change",saveGc);gc.addEventListener("blur",saveGc);}
     wrap.appendChild(rc);
     document.getElementById("moveNum").textContent=dn+" / "+total;
     document.getElementById("moveFill").style.width=(total?Math.round(dn/total*100):0)+"%";
