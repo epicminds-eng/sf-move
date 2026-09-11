@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v109 · Sep 10</div>
+  <div class="appver">SF Move · v110 · Sep 11</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1298,28 +1298,42 @@ var ACCENTS = {
     if(!state.trip.arrivedAt.holbrook){state.trip.arrivedAt.holbrook="2026-09-08T16:30";state.trip.arrived.holbrook=true;}
     state.trip.day3ArrivedV1=true;save(state);
   }
+  /* one home for "the room is booked, so its plan goes": every hotel retire step below goes through
+     these, so a row is only ever retired BY ID and no later step can quietly widen the predicate */
+  function retirePlanned(id){state.spend.entries=state.spend.entries.filter(function(e){return !(e.id===id&&e.planned);});}
+  function retireRow(id){state.spend.entries=state.spend.entries.filter(function(e){return e.id!==id;});}
   if(!state.spend.hotel5BookedV1){   /* Coalinga booked on Expedia (actual exp-009): retire the planned room row, exactly as Days 1, 2 and 3 did. The pet fee stays planned — it is still to come. */
-    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h5"&&e.planned);});
+    retirePlanned("seed-h5");
     state.spend.hotel5BookedV1=true;save(state);
   }
   if(!state.spend.day1PetV1){   /* Day 1 pet fee paid (actual exp-004): retire the planned row; if it was already confirmed by hand, keep that and skip exp-004 instead */
     if(state.spend.entries.some(function(e){return e.id==="seed-p1"&&!e.planned;})){state.spend.dismissedExpenses=state.spend.dismissedExpenses||{};state.spend.dismissedExpenses["exp-004"]=true;}
-    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-p1"&&e.planned);});
+    retirePlanned("seed-p1");
     state.spend.day1PetV1=true;save(state);
   }
   if(!state.spend.day1HotelV1){   /* Day 1 hotel became Candlewood Springfield (actual exp-002): retire the planned Quality Inn row, reprice the planned pet fee; confirmed actuals are left alone */
-    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h1"&&e.planned);});
+    retirePlanned("seed-h1");
     state.spend.entries.forEach(function(e){if(e.id==="seed-p1"&&e.planned){e.amount=25;e.note="Pet fee · Candlewood";}});
     state.spend.day1HotelV1=true;save(state);
   }
   if(!state.spend.day3HotelV1){   /* Day 3 hotel booked: Best Western Arizonian Inn (actual exp-007). Retire the planned hotel row so it cannot double-count; a hotel already confirmed by hand is left alone, and the planned pet fee stands until the Arizonian's is known */
-    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h3"&&e.planned);});
+    retirePlanned("seed-h3");
     state.spend.day3HotelV1=true;save(state);
   }
   if(!state.spend.day2HotelV1){   /* Day 2 hotel booked: Home2 Suites Amarillo East (actual exp-005). Retire the planned hotel row and reprice the planned pet fee to Home2's $75; a pet fee already confirmed by hand is left alone */
-    state.spend.entries=state.spend.entries.filter(function(e){return !(e.id==="seed-h2"&&e.planned);});
+    retirePlanned("seed-h2");
     state.spend.entries.forEach(function(e){if(e.id==="seed-p2"&&e.planned){e.amount=75;e.note="Pet fee · Home2 Suites";}});
     state.spend.day2HotelV1=true;save(state);
+  }
+  if(!state.trip.day1ArrivedFixV1){   /* Day 1 arrival was stamped 2026-09-07, a day late: the span from the Sept 6 roll ran past MAX_DAY_MIN, so the day was rejected and never counted. Rewrite the DATE only — the wall clock stands exactly as stored */
+    var a1=state.trip.arrivedAt.strobert;
+    if(typeof a1==="string"&&a1.indexOf("2026-09-07")===0)state.trip.arrivedAt.strobert="2026-09-06"+a1.slice(10);
+    state.trip.day1ArrivedFixV1=true;save(state);
+  }
+  if(!state.spend.seedH3RetireV1){   /* seed-h3 outlived its actual (exp-007): day3HotelV1 was already flagged on stores that ran a build predating its retire line, so that line never ran there. Drop the row outright, and sweep the other three booked nights by id for the same reason */
+    retireRow("seed-h3");
+    ["seed-h1","seed-h2","seed-h5"].forEach(function(id){retirePlanned(id);});
+    state.spend.seedH3RetireV1=true;save(state);
   }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});

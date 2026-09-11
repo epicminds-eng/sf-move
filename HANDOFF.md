@@ -1,31 +1,33 @@
-# SF Move — handoff
+# SF Move HQ — handoff
 
-## Status
-v109 · Sep 10 · previous main head 798a929. Single-file PWA: index.html + sf-icon.png + data/lifetime-charges.json (source only — its 262 rows are INLINED as LIFETIME; the app never fetches at runtime) + three design/*mockup.html + design/verify/*.png (acceptance shots per build; the v102-sidecol-* set shows a layout v103 reverted, kept as that build's record) + test/trip-time.test.js and test/trip-map.test.js. All state in localStorage key sfMoveApp_v1 (+ sfMoveSync for the Gist ID/token/device, never merged, never in the repo). Served from epicminds-eng.github.io/sf-move (Pages deployment unverified this session).
+**Status: v110 · Sep 11 · previous main head 7a9ff8c.** Single-file PWA, `index.html`, no build, no CDN.
+localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only — never in app state, never in the repo.
 
-## This session (v83 → v109)
-- v109 chg-028 Tejon Ranch, CA (15:36, 28.67 kWh, $12.61, 20 min) and chg-029 Tesla Oasis · Lost Hills, CA (16:49, 20.72 kWh, $9.11, 14 min) appended — 29 logged sessions, seven on Day 5, now Buckeye → Quartzsite → Indio → Ontario → Castaic → Tejon Ranch → Tesla Oasis in time order. chg-029 FULFILLS the long-standing planned `chg-oasis` entry at the same Lost Hills coordinates, under a NEW id (per the brief) rather than in place — so chg-oasis was RETIRED (dropped from CHARGES entirely, not just flagged) rather than edited. Result: zero planned chargers remain, one real filled pin at Lost Hills (no leftover hollow "planned" marker), no Spend row for the retired entry, no double count. Six scratchpad suites (verify-74/75/79/83/84/86/92/96) had hardcoded "exactly one planned charger = the Oasis"; all now derive the expected planned count from `CHARGES.filter(c=>c.planned).length` instead of assuming 1. `test/trip-time.test.js`'s CA-timezone check moved from the retired `chg-oasis` to `chg-029`, same address, same assertion.
-- v108 THE CHARGING COLUMN reads time, not energy. Its Trip strip is stops · AT CHARGERS · spend — the middle cell is literally the expression the Charging section's "at chargers" tile renders (`real.length?hm(t.chMin):"—"`), so the two can never disagree; kWh is gone from the strip. Today's charges rows read "<min> min · $<cost>" on the right; left side (name · station clock) unchanged. Column strip value size stepped from --t-value to --t-row for the 63px cell at 768.
-- v107 THE WIDE COLUMN FOLLOWS THE SUB-TAB, nothing below the map moved. `railCol()` picks the column's content: Overview is Your route alone; every other sub-tab is a three-number `statrow` strip plus a one-line list (`colSec`/`colRow`, existing `grp`/`row` styling). Daily is TODAY ONLY (Rolled, each charge/place in time order, tonight's hotel, ETA); Charging/Places/Hotels/Itinerary each get a strip + list. Taps reuse `openCharge`/`openPlace`/`openHotelPin`/`toggleHotel`/`[data-stop]`. `todayFigures()` was extracted so the strip under the map and the Daily column read one computation — the column deliberately MIRRORS numbers also shown below the map at this width; verify-78's duplicate audit reads the map card WITHOUT the column to allow it.
-- v106 THE LIFETIME LAYER MERGES THE TRIP LOG via `lifeRows()` (LIFETIME + non-planned CHARGES, de-duped on date+time) — the one input to `lifeClusters()`/`lifeSummary()`. LIFETIME itself is never written to; trip totals still count CHARGES alone. Caches (`LIFE_CL`/`LIFE_SUM`) drop whenever CHARGES changes. Also widened `--t-value-lg`'s clamp floor 19px→17px so "10h 08m" fits a 4-up stat row at 320.
-- v103–v105: reverted v102's wide layout then rebuilt it properly as the column above; Coalinga booked (Harris Ranch Inn, Expedia #73541759098262, exp-009 $252.74 replaces the planned room row); chg-023…027 appended. v99 the sub-tab owns the map frame, two-line popups, no link-announcing labels, no tildes. v98 time zones. v97 the map layer bar, the taller hero, one-line stat rows.
+## This session (v110)
+- **`day1ArrivedFixV1`** — Day 1's arrival was stamped `2026-09-07`, a day late, so the span from the Sept 6
+  roll ran past `MAX_DAY_MIN` and the day was rejected: it never counted toward Pace or any average. The
+  migration rewrites the **date only**, keeping the stored wall clock. A stamp already on Sept 6 is untouched.
+- **`seedH3RetireV1`** — drops `seed-h3` outright and sweeps `seed-h1/h2/h5` by id.
+- **Diagnosis, plainly:** the four hotel-retire steps *already* filtered by id. `seed-h3` survived because
+  `day3HotelV1` was set by a build that predates its retire line, so the flag short-circuited the block that
+  later grew that line. Same trap catches `seed-h5` on a store that never ran `day5CoalingaV1`. Retiring is
+  now one shared helper — `retirePlanned(id)` / `retireRow(id)` — so the rule has a single home.
+- **Trap to remember:** adding a line inside an already-flagged migration block is a no-op on every device
+  that consumed the flag. A behaviour change needs a NEW flag, not an edit to an old block.
 
-## Rough
-- No planned charger remains in CHARGES at all now (the Oasis was the last one). If a future planned charger is added, re-check that the six repointed suites' `d.planned`/`chg.planned` fields still resolve — they read `CHARGES.filter(c=>c.planned).length` live, so they should, but they were only ever exercised against exactly 0 or 1.
-- No night is unbooked any more, so the "hollow pin" and "$X planned" hotel paths have no subject in the current data; those assertions are self-locating (derive booked state from STOPS, assert the positive when nothing is unbooked).
-- Buckeye sits 5.67 map units from chg-022 Chandler with CLUSTER_R 6, so those two share one badged pin though they are ~50 road miles apart.
-- Spend's per-day headers each print WHOLE dollars, so six rounded headers need not sum to the rounded grand total. The invariant is per day.
-- Only STOPS and charge addresses carry zones; extend TZ_STATE if the route leaves IL/MO/OK/TX/KS/NM/CO/AZ/CA/NV.
-- Everything is verified only in headless Chromium. Nothing has been run on a real iPhone or iPad.
+## Where things are (index.html)
+- Migrations: ~1200–1340, in dependency order. New ones go at the END of that run, behind a new flag.
+- `dayStats` / `tripStats` ~2496; `MAX_DAY_MIN` ~2777. `seedSpend` ~3330; `seedExpenses` ~3434 (EXPENSES ~1903).
+- `STOPS` ~1808 (every stop carries `tz`); footer version at line ~850.
 
-## Where things live
-- Data: STOPS :1786, CHARGES :1842 (now ends chg-029, no planned entries), EXPENSES :1874, seedSpend/`P()` :3225.
-- Lifetime: lifeRows/lifeClusters/lifeSummary :2715+. Hotels: nightsList/hotelStats/renderHotelsSec :2790+.
-- Wide column: `@media (min-width:768px)` :319; railCol/colSec/colRow/colDaily/colCharging/colPlaces/colHotels/colItinerary after renderRail :2530+.
-- Zones: TZ_STATE/zonedToEpoch/chgTz/chgTs/chgWall :2104–2140. Trip: dayStats :2480, tripStats :2514, todayFigures :2745.
-- TESTS in the repo: `node test/trip-map.test.js` and `node test/trip-time.test.js` (both `NODE_PATH=$(npm root -g)`, Chromium at /opt/pw-browsers/chromium). verify-74…verify-97 + edge + the per-build v100/v101/v104/v109 suites are SCRATCHPAD-ONLY and die with the session. HARNESS RULE: never retype a number that also lives in index.html — v109 repointed six suites that hardcoded "the Oasis is the one planned charger" to instead read `CHARGES.filter(c=>c.planned).length`.
+## Tests
+- Repo: `test/trip-time.test.js`, `test/trip-map.test.js`.
+- Scratchpad sweep: `scratchpad/sweep.sh` — **35 suites, all green at v110**. `v110.js` builds three stores
+  (broken device, hand-corrected device, fresh install) from the shipped seeds and asserts Day 1 = 9h 00m and
+  computing, Pace "over 4 completed days", and no planned hotel row on any day that has an actual.
+- **HARNESS RULE:** never retype a number that also lives in index.html. Reconcile from the source arrays,
+  assert the delta a change causes, or assert structure/behaviour. Fixture inputs use obviously-fake values.
+- verify-77 occasionally reports NO RESULT inside the sweep but passes standalone — runner flake, not a fail.
 
 ## Next
-- Create the secret gist + a gist-scope classic PAT, connect the iPhone first (its data wins), then the iPad.
-- Keep logging the drive: sessions into CHARGES (chg-030…), receipts into EXPENSES (exp-010…); both seed Spend once by id.
-- Read the footer before the next bump.
+Nothing outstanding. Day 5 (Coalinga) has no stamps yet, so it is correctly excluded from the averages.
