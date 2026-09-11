@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v111 · Sep 11</div>
+  <div class="appver">SF Move · v112 · Sep 11</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1917,7 +1917,12 @@ var ACCENTS = {
   /* Places I stopped and liked — not route stops. Seeded once by id like EXPENSES (spend.dismissedPlaces remembers a delete); a cost also seeds one Spend
      entry under the same id (food/coffee → "food", sight → "misc"), so it counts exactly once. Never touch route miles, progress or charging stats. */
   var PLACES=[
-    {id:"pl-001", name:"Rudy\u0027s Country Store & Bar-B-Q", kind:"food", addr:"3751 W Interstate 40, Amarillo, TX 79109", lat:35.1938, lng:-101.9297, date:"2026-09-07", time:"16:55", note:"Texas BBQ", cost:17.83}
+    {id:"pl-001", name:"Rudy\u0027s Country Store & Bar-B-Q", kind:"food", addr:"3751 W Interstate 40, Amarillo, TX 79109", lat:35.1938, lng:-101.9297, date:"2026-09-07", time:"16:55", note:"Texas BBQ", cost:17.83},
+    /* kind is the closed taxonomy key (food|coffee|sight) that picks the glyph and the Spend category — the
+       human descriptor goes in note, exactly as Rudy's carries "Texas BBQ". detail is the order itself: it
+       renders nowhere, like chg-031's note, and is here so the receipt is not lost. */
+    {id:"pl-002", name:"Prime Steakhouse at Harris Ranch", kind:"food", addr:"24505 W Dorris Ave, Coalinga, CA 93210", lat:36.141, lng:-120.362, date:"2026-09-10", time:"20:44", note:"Steakhouse", cost:146.44, stopId:"coalinga",
+      detail:"Beet & citrus salad \u00b7 Western Wagyu \u00b7 Saratoga sparkling \u00b7 $128.44 + $28 tip"}
   ];
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
