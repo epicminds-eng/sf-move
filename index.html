@@ -847,7 +847,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v112 · Sep 11</div>
+  <div class="appver">SF Move · v113 · Sep 11</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1334,6 +1334,10 @@ var ACCENTS = {
     retireRow("seed-h3");
     ["seed-h1","seed-h2","seed-h5"].forEach(function(id){retirePlanned(id);});
     state.spend.seedH3RetireV1=true;save(state);
+  }
+  if(!state.spend.pl002CostFixV1){   /* pl-002 was seeded at 146.44, a transcription error: the check was $128.44 + $28 tip = $156.44. seedPlaces only ever adds a row it does not already have, so an established store keeps the wrong total until it is rewritten here. Guarded on the old value, so an amount edited by hand stands */
+    state.spend.entries.forEach(function(e){if(e.id==="pl-002"&&e.amount===146.44)e.amount=156.44;});
+    state.spend.pl002CostFixV1=true;save(state);
   }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
@@ -1921,8 +1925,8 @@ var ACCENTS = {
     /* kind is the closed taxonomy key (food|coffee|sight) that picks the glyph and the Spend category — the
        human descriptor goes in note, exactly as Rudy's carries "Texas BBQ". detail is the order itself: it
        renders nowhere, like chg-031's note, and is here so the receipt is not lost. */
-    {id:"pl-002", name:"Prime Steakhouse at Harris Ranch", kind:"food", addr:"24505 W Dorris Ave, Coalinga, CA 93210", lat:36.141, lng:-120.362, date:"2026-09-10", time:"20:44", note:"Steakhouse", cost:146.44, stopId:"coalinga",
-      detail:"Beet & citrus salad \u00b7 Western Wagyu \u00b7 Saratoga sparkling \u00b7 $128.44 + $28 tip"}
+    {id:"pl-002", name:"Prime Steakhouse at Harris Ranch", kind:"food", addr:"24505 W Dorris Ave, Coalinga, CA 93210", lat:36.141, lng:-120.362, date:"2026-09-10", time:"20:44", note:"Steakhouse", cost:156.44, stopId:"coalinga",
+      detail:"Beet & citrus salad \u00b7 Western Wagyu \u00b7 Saratoga sparkling \u00b7 $128.44 + $28 tip \u003d $156.44"}
   ];
   /* highway waypoints the road actually follows; stop:<id> marks the 8 stops (cards stay per stop) */
   var WAYPTS=[
