@@ -308,6 +308,63 @@ for(const [w,h] of [[393,852],[1194,834]]){
   ok(errs.length===0, `${w} no page or console errors${errs.length?' — '+errs[0]:''}`);
   await c.close();
 }
+
+/* ---------- chg-032 Pleasanton: the Day 6 session. Counts are read from CHARGES in the page and from
+   what the Charging strip actually prints — the "30" is the expectation, the strip is the evidence ---------- */
+for(const [w,h] of [[390,844],[1194,834]]){
+  console.log(`\n===== chg-032 @ ${w}×${h} =====`);
+  const c=await b.newContext({viewport:{width:w,height:h}});
+  const p=await c.newPage();const errs=[];
+  p.on('pageerror',e=>errs.push('pageerror: '+e.message));
+  p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text());});
+  await p.goto(URL);await p.waitForTimeout(900);
+  await p.click('#nav-trip');await p.waitForTimeout(600);
+  await p.evaluate(()=>setTripSeg('charging'));await p.waitForTimeout(700);
+  const d=await p.evaluate(()=>{
+    const c=CHARGES.find(x=>x.id==='chg-032'),real=CHARGES.filter(x=>!x.planned);
+    const day=c?dayForDate(parseYMD(c.date)):null,ds=day?dayStats(day):null;
+    const strip=document.querySelector('#trCharging .statrow');
+    const cells=strip?[].slice.call(strip.querySelectorAll('.st')).map(e=>e.innerText.replace(/\s+/g,' ').trim()):[];
+    setMapMode('chg');
+    const cl=pinClusters(),mine=cl.filter(g=>g.list.some(x=>x.id==='chg-032'));
+    /* Lifetime: the export ends before this date, so the merged log must gain exactly this row */
+    const rows=lifeRows(),seen={};LIFETIME.forEach(r=>{seen[r.d+'T'+r.t]=1;});
+    const wantLife=LIFETIME.length+real.filter(x=>x.date&&x.time&&x.lat!==undefined&&!seen[x.date+'T'+x.time]).length;
+    const nums=real.map(x=>+(x.id.match(/^chg-(\d+)$/)||[])[1]).filter(n=>n>0),lastN=Math.max.apply(null,nums);
+    const gaps=[];for(let i=1;i<=lastN;i++)if(nums.indexOf(i)<0)gaps.push(i);
+    return {c:c,last:CHARGES[CHARGES.length-1].id,lastN:lastN,gaps:gaps,dupes:CHARGES.length-new Set(CHARGES.map(x=>x.id)).size,
+      real:real.length,tz:c?chgTz(c):null,day:day,dayN:ds?ds.ch.length:null,dayIds:ds?ds.ch.map(x=>x.id):[],
+      cell0:cells[0]||'',pins:mine.length,pinSize:mine.length?mine[0].list.length:0,pinPlanned:mine.length?!!mine[0].planned:null,
+      life:rows.length,wantLife:wantLife,lifeHas:rows.some(r=>r.d==='2026-09-11'&&r.t==='07:38'&&/Pleasanton/.test(r.s))};});
+  ok(d.c&&d.c.kwh===30.5787&&d.c.rate===0.48&&d.c.cost===14.67&&d.c.min===14&&d.c.time==='07:38'&&d.c.lat===37.695&&d.c.lng===-121.881,
+     `chg-032 fields exact (${d.c&&d.c.kwh} kWh, $${d.c&&d.c.cost}, ${d.c&&d.c.min} min @ ${d.c&&d.c.time})`);
+  ok(d.last==='chg-032'&&d.dupes===0, `appended last, no duplicate ids`);
+  ok(d.tz==='America/Los_Angeles', `tz derives from the address state: ${d.tz}`);
+  /* the count is structural, not a retyped literal: ids run chg-001.. with no gap, none planned, so the
+     number of logged sessions must equal the last id's number — a lost or doubled entry breaks this */
+  ok(d.real===d.lastN&&d.gaps.length===0, `${d.real} logged sessions in CHARGES — ids contiguous to chg-${String(d.lastN).padStart(3,'0')}${d.gaps.length?', gaps: '+d.gaps.join(','):''}`);
+  ok(d.cell0.replace(/\D/g,'')===String(d.real), `Charging strip prints that count — "${d.cell0}"`);
+  ok(d.day===6&&d.dayN===1&&d.dayIds.join()==='chg-032', `Day 6 has exactly one stop, and it is chg-032`);
+  ok(d.pins===1&&d.pinSize===1&&d.pinPlanned===false, `one Pleasanton ⚡ pin on the map, located by id, a real session`);
+  ok(d.life===d.wantLife&&d.lifeHas, `Lifetime layer carries it via lifeRows() (${d.life} rows)`);
+  await p.waitForTimeout(400);
+  await p.screenshot({path:path.resolve(__dirname,'..','design','verify',`v${await p.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1])}-pleasanton-${w}.png`)});
+  /* Spend: the row lands on the Day 6 card */
+  const sp=await p.evaluate(()=>{
+    document.getElementById('nav-spend').click();renderSpend();
+    const e=state.spend.entries.filter(x=>x.id==='chg-032');
+    const card=document.querySelector('#spendDays .spday[data-day="6"]');
+    const txt=card?card.innerText.replace(/\s+/g,' '):'';
+    return {n:e.length,a:e.length?e[0].amount:null,d:e.length?e[0].day:null,cat:e.length?e[0].cat:null,
+      hasCard:!!card,rowText:txt.includes('Pleasanton')&&txt.includes('14.67'),
+      dupes:state.spend.entries.length-new Set(state.spend.entries.map(x=>x.id)).size};});
+  ok(sp.n===1&&sp.a===14.67&&sp.d===6&&sp.cat==='charging', `seeds one Day 6 charging row at $${sp.a}`);
+  ok(sp.hasCard&&sp.rowText, `Spend's Day 6 card shows the $14.67 Pleasanton row`);
+  ok(sp.dupes===0, `no duplicate spend ids`);
+  ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
+  await c.close();
+}
+
 await b.close();
 console.log(FAIL?`\n${FAIL} FAILURE(S)`:'\nALL CHECKS PASSED');
 process.exit(FAIL?1:0);
