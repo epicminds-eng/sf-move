@@ -850,7 +850,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v117 · Sep 11</div>
+  <div class="appver">SF Move · v118 · Sep 24</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -873,7 +873,7 @@
         {id:"decide-place", t:"Decide on the SF spot (or line up 2\u20133 backups)", d:"Sign the lease \u2014 confirm small dogs allowed, in writing; confirm what furniture it comes with"},
         {id:"car-service", t:"Tesla pre-trip check: tire rotation + tread/pressure", d:"2,555 mi \u2014 also worth a quick check of wipers and cabin filter"},
         {id:"route-plan", t:"Route + hotels \u2014 see Trip tab", d:"Springfield MO \u00b7 Amarillo \u00b7 Holbrook AZ \u00b7 Mom\u0027s \u00b7 Coalinga CA \u00b7 SF"},
-        {id:"gear-decisions", t:"Make the gear calls", d:"Launch monitor car-vs-ship \u00b7 gamer clubs car-vs-Ship Sticks \u00b7 bench ship-vs-rebuy \u00b7 AB coaster sell? \u00b7 iMac/monitor/printer/mirror/Hue fates \u00b7 which cooler rides \u2014 numbers coming from Claude"}
+        {id:"gear-decisions", t:"Make the gear calls", d:"Launch monitor car-vs-ship \u00b7 gamer clubs car-vs-ship \u00b7 bench ship-vs-rebuy \u00b7 AB coaster sell? \u00b7 iMac/monitor/printer/mirror/Hue fates \u00b7 which cooler rides \u2014 numbers coming from Claude"}
       ]
     },
     {
@@ -897,9 +897,7 @@
         {id:"jh-golfbag", t:"Golf travel bag \u2192 Joey's", d:""},
         {id:"jh-items", t:"Joey-tagged items delivered", d:""},
         {id:"jh-key", t:"House key (18 Freeman Rd) \u2192 Joey", d:""},
-        {id:"jh-garage", t:"Garage door opener \u2192 Joey", d:""},
-        {id:"jh-plan", t:"Walk Joey through the ship plan", d:"Ship Sticks pickup from his address"},
-        {id:"jh-labels", t:"After landing: send Joey the SF address + prepaid Ship Sticks labels", d:"From Joey \u00b7 405 E Foster Ave, Roselle, IL 60172 \u2192 1442A Grove Street, San Francisco, CA 94117"}
+        {id:"jh-garage", t:"Garage door opener \u2192 Joey", d:""}
       ]
     },
     {
@@ -1136,11 +1134,6 @@ var ACCENTS = {
 
   /* reference blocks folded in from the old Info tab — every link stays a tappable button */
   var EXTRA={
-    joey:'<div class="refblock"><div class="rt">Ship Sticks · 3 pieces</div>'+
-      '<div class="addr"><div class="txt"><div class="al">From (pickup)</div><div class="av">Joey · 405 E Foster Ave, Roselle, IL 60172</div></div><button class="btn copybtn" type="button" data-copy="405 E Foster Ave, Roselle, IL 60172">Copy</button></div>'+
-      '<div class="addr"><div class="txt"><div class="al">To (delivery)</div><div class="av">1442A Grove Street, San Francisco, CA 94117</div></div><button class="btn copybtn" type="button" data-copy="1442A Grove Street, San Francisco, CA 94117">Copy</button></div>'+
-      '<div class="fact"><span class="vg">Set Joey\u0027s address as your Ship Sticks default pickup: My Account → Choose Default Address.</span></div>'+
-      '<div class="btns"><a class="btn go" href="https://www.shipsticks.com">Book on Ship Sticks</a></div></div>',
     logistics:'<div class="refblock"><div class="rt">Workout gear — sell vs ship</div>'+
       '<div class="fact"><strong>FLYBIRD bench:</strong> new $117–162 depending on model ($150 typical) · used resale $50–80.<span class="vg">Sell here + rebuy in SF ≈ net $70–100 — about what shipping a 30 lb bench costs anyway.</span><span class="verdict sell">SELL + REBUY IN SF</span></div>'+
       '<div class="fact"><strong>Merach ab trainer:</strong> new $60–90 · used $25–40.<span class="vg">Never worth freight.</span><span class="verdict sell">SELL / DONATE</span></div>'+
@@ -1351,6 +1344,13 @@ var ACCENTS = {
     state.trip.arrivedAt.sf="2026-09-11T09:11";
     ["strobert","amarillo","holbrook","moms","coalinga","sf"].forEach(function(id){state.trip.arrived[id]=true;});
     state.trip.sfArrivedV1=true;save(state);
+  }
+  if(!state.spend.spendCloseoutV1){   /* SPEND CLOSE-OUT — the trip is over and the UI cannot delete a seeded row. Pet fees and tolls still planned become actuals at their planned amount (id, category, day and label kept; a row already confirmed by hand at another amount is not planned, so it is untouched). Ship Sticks never happened: its estimate goes. The hand-entered "Watter" becomes "Water". seedSpend now seeds the same end state, so a fresh install needs none of this */
+    ["seed-p2","seed-p3","seed-p5","seed-t1","seed-t2"].forEach(function(id){
+      state.spend.entries.forEach(function(e){if(e.id===id&&e.planned){e.planned=false;e.billsLater=false;}});});
+    retireRow("seed-m0");
+    state.spend.entries.forEach(function(e){if(e.note==="Watter"&&e.amount===18.72)e.note="Water";});
+    state.spend.spendCloseoutV1=true;save(state);
   }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
@@ -3363,17 +3363,16 @@ var ACCENTS = {
     if(last>0)return STOPS[last].off+1;
     return todayDay();
   }
-  function seedSpend(){   /* once: planned entries that feed the projection */
+  function seedSpend(){   /* once. The trip is closed out: these seed as ACTUALS at their planned amounts, so a fresh install lands exactly where spendCloseoutV1 leaves an established device. Ship Sticks (seed-m0) never happened and no longer seeds */
     if(state.spend.seededV1)return;
     var t=Date.now();
-    function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:true,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
+    function P(id,amount,cat,note,day,stopId,x){var e={id:id,amount:amount,cat:cat,note:note,day:day,stopId:stopId,ts:t,planned:false,billsLater:false};if(x)for(var k in x)e[k]=x[k];return e;}
     state.spend.entries=state.spend.entries.concat([
       P("seed-p2",75,"kane","Pet fee · Home2 Suites",2,"amarillo"),
       P("seed-p3",50,"kane","Pet fee · Holbrook",3,"holbrook"),
-      P("seed-p5",50,"kane","Pet fee · Harris Ranch",5,"coalinga"),   /* the room itself is booked (exp-009); only the pet fee is still a plan */
-      P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert",{billsLater:true}),
-      P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo",{billsLater:true}),
-      P("seed-m0",240,"misc","Ship Sticks · 3 pieces",0,null)
+      P("seed-p5",50,"kane","Pet fee · Harris Ranch",5,"coalinga"),
+      P("seed-t1",5,"tolls","Illinois Tollway (I-PASS)",1,"strobert"),
+      P("seed-t2",12,"tolls","Oklahoma turnpikes (Will Rogers + Turner)",2,"amarillo")
     ]);
     state.spend.seededV1=true;saveSeed(state);
   }
@@ -3487,7 +3486,7 @@ var ACCENTS = {
 
   /* ---------- SPEND: one page — summary, a card per day with the current day's add form open, projection. Plus the Add expense sheet ---------- */
   function catIcon(c){return icon(c.g,c.c);}
-  function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":"Planned"));}
+  function entrySource(e){return isChargeId(e.id)?"Tesla":(isPlaceId(e.id)?"Place":isExpenseId(e.id)?"Receipt":(String(e.id).charAt(0)==="e"?"Added by hand":(e.planned?"Planned":"At planned amount")));}   /* a seed row closed out as an actual is not "Planned" any more */
   function txRow(e,isNew){   /* an actual entry as an inset row; swipe-left or long-press → delete, as before */
     var c=CATMAP[e.cat]||CATMAP.misc,sub=(e.cat==="charging"&&e.kwh?e.kwh+" kWh · ":entrySource(e)+" · ")+fmtTime(e.ts);
     var r=el("div","row"+(isNew?" new":""),catIcon(c)+'<div class="tt"><div class="t1">'+esc(e.note||c.l)+'</div><div class="t2">'+esc(sub)+'</div></div><div class="vv"><div class="v1">'+money2(e.amount)+'</div></div>');
