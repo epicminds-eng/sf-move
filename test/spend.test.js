@@ -129,6 +129,54 @@ for(const [w,h] of [[390,844],[1194,834]]){
     await c.close();
   }
 }
+/* ---------- projected = spent once the trip is done ----------
+   spendTotals used to add MISC_TAIL (and the remaining-miles/days extrapolations) unconditionally, so a
+   finished trip showed projected above spent. "Done" is arrived on the last stop — the same value every
+   trip-complete state reads. Under way, nothing changes: projected still exceeds spent by the tail. */
+{
+  const UNDERWAY=JSON.parse(JSON.stringify(REAL));   /* the same device, but the final stop NOT arrived */
+  const last=Object.keys(UNDERWAY.trip.arrived).pop();
+  UNDERWAY.trip.arrived.sf=false;delete UNDERWAY.trip.arrivedAt.sf;   /* sfArrivedV1 is already flagged in TRIP, so nothing re-arrives it on load */
+  const probeP=()=>{const r2=n=>Math.round(n*100)/100,t=spendTotals();
+    const spend=(document.getElementById('page-spend')||{}).innerText||'';
+    const hero=document.querySelector('#page-spend .sphero');
+    return {done:t.done,soFar:r2(t.soFar),proj:r2(t.proj),tail:t.tail,chEst:r2(t.chEst),foodEst:r2(t.foodEst),pl:r2(t.plHotelPet+t.plOther),MISC:MISC_TAIL,
+      lastArrived:!!state.trip.arrived[STOPS[STOPS.length-1].id],
+      heroSoFar:hero?hero.querySelector('.big').firstChild.textContent.trim():null,heroProj:hero?hero.querySelector('.proj b').textContent.trim():null,
+      plusSpend:/\+\$/.test(spend),
+      tripProj:(document.getElementById('spProj')||{}).textContent||null,tripSoFar:(document.getElementById('spSoFar')||{}).textContent||null,
+      plusTrip:/\+\$/.test((document.getElementById('page-trip')||{}).innerText||'')};};
+  for(const [w,h] of [[390,844],[1194,834]]){
+    console.log(`\n===== projected vs spent @ ${w}×${h} =====`);
+    {
+      const {c,p,errs}=await open(w,h,REAL);
+      await p.click('#nav-trip');await p.waitForTimeout(500);await p.click('#nav-spend');await p.waitForTimeout(400);
+      const d=await p.evaluate(probeP);
+      ok(d.lastArrived&&d.done, `completed store: the last stop is arrived, spendTotals reads done`);
+      ok(d.proj===d.soFar, `projected equals spent so far exactly ($${d.proj} = $${d.soFar})`);
+      ok(d.tail===0&&d.chEst===0&&d.foodEst===0&&d.pl===0, `tail, charging and food extrapolations and planned are all 0`);
+      ok(d.heroProj===d.heroSoFar, `Spend hero shows the same figure twice (${d.heroSoFar} / ${d.heroProj})`);
+      ok(d.tripProj===null||d.tripProj===d.tripSoFar, `Trip's projected figure matches spent (${d.tripProj} / ${d.tripSoFar})`);
+      ok(!d.plusSpend&&!d.plusTrip, `no "+$" delta renders on Spend or Trip`);
+      ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
+      if(process.env.SHOTS){
+        const ver=await p.evaluate(()=>(document.querySelector('.appver').textContent.match(/v(\d+)/)||[])[1]);
+        await p.screenshot({path:path.join(OUT,`v${ver}-projected-${w}.png`)});
+      }
+      await c.close();
+    }
+    {
+      const {c,p,errs}=await open(w,h,UNDERWAY);
+      const d=await p.evaluate(probeP);
+      ok(!d.lastArrived&&!d.done, `under-way store: the last stop is not arrived`);
+      ok(d.proj>d.soFar&&d.tail===d.MISC, `projected still exceeds spent (+$${r2(d.proj-d.soFar)}), tail $${d.tail} = MISC_TAIL`);
+      ok(r2(d.proj-d.soFar)===r2(d.tail+d.chEst+d.foodEst+d.pl)&&r2(d.proj-d.soFar)>=d.MISC, `the excess is exactly tail + extrapolations + planned ($${d.tail} + $${d.chEst} + $${d.foodEst} + $${d.pl})`);
+      ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
+      await c.close();
+    }
+  }
+}
+
 await b.close();
 console.log(FAIL?`\n${FAIL} FAILURE(S)`:'\nALL CHECKS PASSED');
 process.exit(FAIL?1:0);

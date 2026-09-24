@@ -850,7 +850,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v118 · Sep 24</div>
+  <div class="appver">SF Move · v119 · Sep 24</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -3388,10 +3388,13 @@ var ACCENTS = {
     var dEl=Math.min(todayDay(),TRIP_DAYS),remDays=Math.max(0,TRIP_DAYS-dEl);
     var hasKwh=chKwh>0,perKwh=hasKwh?chAmt/chKwh:KWH_FALLBACK;
     var foodDay=(dEl>0&&food>0)?food/dEl:FOOD_FALLBACK;
-    var chEst=remMiles*KWH_PER_MI*perKwh,foodEst=foodDay*remDays;
-    var proj=soFar+plHotelPet+plOther+chEst+foodEst+MISC_TAIL;
+    /* once the final stop is arrived the trip is over: nothing is left to extrapolate and the misc tail
+       has nothing to cover, so projected IS spent. Same value every trip-complete state reads. */
+    var done=!!state.trip.arrived[STOPS[STOPS.length-1].id];
+    var chEst=done?0:remMiles*KWH_PER_MI*perKwh,foodEst=done?0:foodDay*remDays,tail=done?0:MISC_TAIL;
+    var proj=soFar+plHotelPet+plOther+chEst+foodEst+tail;
     return{soFar:soFar,byCat:byCat,miles:miles,perMile:miles>0?soFar/miles:null,perDay:dEl>0?soFar/dEl:null,perKwh:perKwh,hasKwh:hasKwh,
-      proj:proj,plHotelPet:plHotelPet,plOther:plOther,nHotels:nHotels,chEst:chEst,foodDay:foodDay,budget:state.spend.budget||null};
+      proj:proj,plHotelPet:plHotelPet,plOther:plOther,nHotels:nHotels,chEst:chEst,foodEst:foodEst,tail:tail,done:done,foodDay:foodDay,budget:state.spend.budget||null};
   }
   function spendProj(){var t=spendTotals();return{soFar:t.soFar,proj:t.proj};}   /* the ONE projected total: Spend hero "$X projected" and the Trip progress flag both read this */
   var LEGEND=[["charging","Charging"],["hotel","Hotels"],["food","Food"],["groceries","Groceries"],["kane","Kane"],["gray","Tolls · parking · misc"]];
@@ -3413,9 +3416,10 @@ var ACCENTS = {
     $("kMiles").textContent=Math.round(t.miles).toLocaleString();
     $("budgetLink").textContent=t.budget?"Budget "+money(t.budget)+" · edit":"Set budget";
     var bo=$("budgetOver");bo.textContent=t.budget?(over?"· "+money(t.soFar-t.budget)+" over":"· "+money(t.budget-t.soFar)+" left"):"";bo.classList.toggle("over",over);
-    $("spEst").innerHTML="Built from what’s known: "+t.nHotels+" hotels + pet fees ("+money(t.plHotelPet)+"), charging estimated from remaining miles at "+
+    $("spEst").innerHTML=t.done?"The trip is done, so projected is what was spent: nothing is left to estimate and no tail is held back.":
+      "Built from what’s known: "+t.nHotels+" hotels + pet fees ("+money(t.plHotelPet)+"), charging estimated from remaining miles at "+
       (t.hasKwh?"your running <span id=\"kKwh\">$"+t.perKwh.toFixed(2)+"</span>/kWh":"<span id=\"kKwh\">$"+t.perKwh.toFixed(2)+"</span>/kWh (estimate)")+" ("+money(t.chEst)+"), food at "+
-      (t.foodDay===FOOD_FALLBACK?"an estimated":"your running daily average of")+" "+money(t.foodDay)+"/day, tolls + parking + misc ("+money(t.plOther+MISC_TAIL)+"). Updates itself as real entries replace planned ones.";
+      (t.foodDay===FOOD_FALLBACK?"an estimated":"your running daily average of")+" "+money(t.foodDay)+"/day, tolls + parking + misc ("+money(t.plOther+t.tail)+"). Updates itself as real entries replace planned ones.";
   }
   var spCat="charging";   /* last chosen category carries across cards */
   function syncNow(){   /* default open = the current day; reasserts whenever the current day changes */
