@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b0d10">
 <title>Greek Night</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==" crossorigin="">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylineoffset/1.1.1/leaflet.polylineoffset.js" crossorigin=""></script>
 <style>
   :root{
     --bg:#0b0d10; --card:#14181d; --card2:#1b2127; --line:#262d35;
@@ -65,53 +68,35 @@
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
   .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-  /* phone widths: the card takes the route's own shape (--mapH, set from its width), capped at 75vh, no floor */
-  @media (max-width:767px){
-    .mapcard{aspect-ratio:auto;max-height:none;height:min(var(--mapH, 75vw), 75vh);height:min(var(--mapH, 75vw), 75dvh)}
-  }
-  .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-  /* one finger on the map pans it; on this strip it scrolls the page (touch-action narrows down the tree, so the map
-     surface, not the card, is the one set to none) */
-  .maphandle{position:absolute;left:0;right:0;bottom:0;height:var(--s3);z-index:3;display:grid;place-items:center;touch-action:pan-y}
-  .maphandle::after{content:"";width:2.25rem;height:.25rem;border-radius:999px;background:rgba(0,0,0,.18)}
-  .gn-land{fill:#ece6d8}
-  .gn-campus{fill:#dfe6d3}
-  .gn-st-case{stroke:rgba(0,0,0,.10);stroke-width:3;stroke-linecap:round}
-  .gn-st{stroke:#fff;stroke-width:1.5;stroke-linecap:round}
-  .gn-st-case,.gn-st,.gn-route-case,.gn-route{vector-effect:non-scaling-stroke}
-  .gn-st-l{font-size:9px;fill:#8b8578;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:500}
-  .gn-route-case{fill:none;stroke:#fff;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
-  .gn-route{fill:none;stroke:var(--now);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
-  .gn-route.ret{stroke-dasharray:8 6;opacity:.7}
+  @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:60vh;height:60dvh}}
+  #gnmap{position:absolute;inset:0;background:#e9e5dc;font:inherit}
+  .leaflet-container{font-family:inherit}
+  .leaflet-control-attribution{font-size:9px;line-height:1.2;padding:1px 4px;background:rgba(255,255,255,.7);color:#6f6a5f}
+  .leaflet-control-attribution a{color:#6f6a5f}
+  /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
+  .pinm{width:28px;height:28px;border-radius:50%;background:var(--now);border:2px solid #fff;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:opacity .2s}
+  .pinm.greek{background:var(--accent);color:#0b0d10}
+  .pinm.two{font-size:9px;letter-spacing:-.03em}
+  .pinm.done{opacity:.45}
+  .pinm.now::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--now);animation:gnPulse 2s ease-out infinite}
+  @keyframes gnPulse{from{transform:scale(1);opacity:.9}to{transform:scale(2.4);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.pinm.now::after{animation:none;transform:scale(1.5);opacity:.6}}
+  .pinlbl{background:none;border:0;box-shadow:none;padding:0 4px;font-size:9pt;font-weight:600;color:#6f6a5f;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+  .pinlbl::before{display:none}
+  /* walk-time pills, centred on the leg; the icon itself is a point and the pill hangs off it */
+  .walk{width:0;height:0;overflow:visible}
+  .walk span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;background:#fff;border:1.5px solid;border-radius:999px;padding:1px 7px;font-size:9px;font-weight:700;line-height:1.3}
+  .walk.ret span{opacity:.7}
   .pp-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.35rem;vertical-align:.05em}
-  .pin-l{font-size:9px;fill:#6f6a5f;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:600}
-  .walk-b{fill:#fff;stroke-width:1.5}
-  .walk-t{font-size:9px;font-weight:700}
-  .walk.ret{opacity:.7}
-  .walk.ret .walk-b{stroke-dasharray:3 2}
-  .pin{cursor:pointer;transition:opacity .2s}
-  .pin.done{opacity:.45}
-  .pin-c{fill:var(--now);stroke:#fff;stroke-width:2}
-  .pin.greek .pin-c{fill:var(--accent)}
-  .pin-n{fill:#fff;font-size:10px;font-weight:700;pointer-events:none}
-  .pin.greek .pin-n{fill:#0b0d10}
-  .pin-n.two{font-size:7px;letter-spacing:-.03em}
-  .pin-hit{fill:transparent}
-  .pulse{display:none;fill:none;stroke:var(--now);stroke-width:2;transform-box:fill-box;transform-origin:center}
-  .pin.now .pulse{display:block;animation:gnPulse 2s ease-out infinite}
-  @keyframes gnPulse{from{transform:scale(1);opacity:.9}to{transform:scale(2.6);opacity:0}}
-  @media (prefers-reduced-motion:reduce){.pin.now .pulse{animation:none;transform:scale(1.6);opacity:.6}}
-  .pinpop{position:absolute;z-index:4;width:max-content;min-width:168px;max-width:250px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r);padding:var(--s2) var(--s3);box-shadow:0 8px 26px rgba(0,0,0,.45);font-size:var(--t4);line-height:1.35;transform:translate(-50%,-100%)}
-  .pinpop.below{transform:translate(-50%,0)}
+  /* the pin popup: the page's dark pill; the whole card is the Apple Maps link */
+  .pinpop .leaflet-popup-content-wrapper{background:var(--card2);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 26px rgba(0,0,0,.45);color:var(--ink);padding:0}
+  .pinpop .leaflet-popup-content{margin:var(--s2) var(--s3);font-size:var(--t4);line-height:1.35}
+  .pinpop .leaflet-popup-tip{background:var(--card2);border:1px solid var(--line);border-top:0;border-left:0}
   .pinpop .pp{display:flex;align-items:center;gap:var(--s2);color:inherit;text-decoration:none}
   .pinpop .pp-t{flex:1;min-width:0}
   .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
   .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
-  .me-ring{fill:var(--now);opacity:.12}
-  .me-dot{fill:var(--now);stroke:#fff;stroke-width:2}
-  .me-arrow{fill:var(--now);stroke:#fff;stroke-width:1.5;stroke-linejoin:round}
-  .me-l{font-size:9px;font-weight:700;fill:var(--now);stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round}
   #clock{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1.3}
   #clock .sub{color:var(--ink2);font-size:var(--t4)}
   #clock .sub[hidden]{display:none}
@@ -131,9 +116,7 @@
 </header>
 
 <div class="mapcard" id="mapcard">
-  <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
-  <div class="pinpop" id="pinpop" hidden></div>
-  <div class="maphandle" id="maphandle" aria-hidden="true"></div>
+  <div id="gnmap" role="img" aria-label="Route map"></div>
 </div>
 
 <section>
@@ -327,7 +310,7 @@
     paintMap(ps.cur);
   }
 
-  /* ---------- map hero: offline SVG, projected from the data ---------- */
+  /* ---------- the route: pins, legs, bypasses ---------- */
   var SHARED = [
     {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[4]},
     {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
@@ -381,19 +364,6 @@
   /* a pin stays while any of its steps is live: skip 9 and City Club remains for dinner, reading 10 */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
-  /* [name, N–S?, fixed coord, from, to, labelled]; a null end runs to the frame's edge (south / west for from, north / east for to) */
-  var STREETS = [
-    ['Shattuck Ave', true, -122.2682, null, null, true],
-    ['Oxford St', true, -122.2662, 37.866, 37.876, true],
-    ['Telegraph Ave', true, -122.2588, null, 37.8687, true],
-    ['College Ave', true, -122.2535, null, 37.8745, true],
-    ['Durant Ave', false, 37.8677, null, null, true],
-    ['Bancroft Way', false, 37.8687, null, null, false],
-    ['Haste St', false, 37.8658, -122.270, -122.250, false],
-    ['Hearst Ave', false, 37.8747, -122.270, -122.250, true],
-    ['Center St', false, 37.8702, -122.270, -122.2662, false],
-    ['Gayley Rd', true, -122.2545, 37.8705, 37.876, false]
-  ];
   /* walk time per leg: haversine along the waypoints, 3 mph (20 min/mile); the climb to the Greek at 2.5 mph */
   function metres(a, b){
     var R = 6371000, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dg = (b[1] - a[1]) * r;
@@ -431,14 +401,7 @@
   }
   var LEGS = [];
   function routeData(){ LEGS = walkLegs(); }
-  var CAMPUS = [[37.8687, -122.2662], [37.8687, -122.2545], [37.8755, -122.2545], [37.8755, -122.2662]];
   var K = Math.cos(37.87 * Math.PI / 180);
-  var NS = 'http://www.w3.org/2000/svg';
-  var cardEl = document.getElementById('mapcard');
-  var svg = document.getElementById('gnmap');
-  var popEl = document.getElementById('pinpop');
-  var handleEl = document.getElementById('maphandle');
-  var pinEls = [], linkedRows = [];
   /* the active mode's steps 1–3 and 12, pins and walk back */
   function applyMode(){
     var md = MODES[mode()];
@@ -460,62 +423,40 @@
   /* plan rows with a pin take the pin's colour for their step number */
   PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
 
-  function S(tag, attrs, parent){
-    var e = document.createElementNS(NS, tag);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
-    if (parent) parent.appendChild(e);
-    return e;
-  }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function popPill(href, name, lines){
     return '<a class="pp" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="pp-t"><b>' + name + '</b>' +
       lines.map(function(l){ return '<span class="pp-m">' + l + '</span>'; }).join('') + '</span><span class="pp-c">›</span></a>';
   }
-  function f(n){ return n.toFixed(1); }
+  /* ---------- the map: Leaflet on CARTO Voyager tiles. Legs, pins and pills are a layer group rebuilt from the live
+     pin list; Leaflet does the projection, the gestures, the labels and the popup. ---------- */
+  var cardEl = document.getElementById('mapcard'), linkedRows = [], markers = [];
+  var NOW = '#5aa9ff', ACCENT = '#f5b84a';   /* --now and --accent, for SVG paths that can't read CSS variables */
+  var map = L.map('gnmap', {zoomControl:false, maxZoom:19, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
+  map.attributionControl.setPrefix('');
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:19, attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  var routeLayer = L.layerGroup().addTo(map), meLayer = L.layerGroup().addTo(map);
+  var meDot = null, meRing = null;
+  var hasOffset = !!(window.L && L.PolylineOffset);   /* leaflet-polylineoffset: a shared street draws its two legs ±4px apart */
 
-  /* label collision: a candidate box scores 0 only when it is inside the map and clear of pins, route, chip and other labels */
-  function segHitsRect(a, b, r){
-    var t0 = 0, t1 = 1, dx = b[0] - a[0], dy = b[1] - a[1];
-    var p = [-dx, dx, -dy, dy], q = [a[0] - r.x, r.x + r.w - a[0], a[1] - r.y, r.y + r.h - a[1]];
-    for (var i = 0; i < 4; i++) {
-      if (p[i] === 0) { if (q[i] < 0) return false; continue; }
-      var t = q[i] / p[i];
-      if (p[i] < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
-      else { if (t < t0) return false; if (t < t1) t1 = t; }
-    }
-    return true;
-  }
-  function rectsHit(a, b){ return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
-  function scoreBox(r, ob, w, h){
-    var s = 0;
-    if (r.x < 3 || r.y < 3 || r.x + r.w > w - 3 || r.y + r.h > h - 3) s += 100;
-    ob.circles.forEach(function(c){
-      var nx = Math.max(r.x, Math.min(c[0], r.x + r.w)), ny = Math.max(r.y, Math.min(c[1], r.y + r.h));
-      if ((nx - c[0]) * (nx - c[0]) + (ny - c[1]) * (ny - c[1]) < c[2] * c[2]) s += 10;
-    });
-    var R = {x:r.x - 4.5, y:r.y - 4.5, w:r.w + 9, h:r.h + 9};   /* route casing half-width 3.5 + 1 */
-    ob.segs.forEach(function(sg){ if (segHitsRect(sg[0], sg[1], R)) s += 10; });
-    ob.rects.forEach(function(o){ if (rectsHit(r, o)) s += 10; });
-    return s;
-  }
-
-  /* Shared streets: where two legs run along the same stretch, draw them side by side so both colours show.
-     1. split any segment where another leg's segment runs along it (under 8° apart, within 5 units), at the overlap's ends;
-     2. a split segment whose ends match another leg's segment that way, either direction, is shared;
-     3. every sharer snaps to one centreline and is offset 3.5 units off it, opposite sides; corners mitre, pin ends stay under the pin.
-     5 units, not 2: at wide sizes the City Club sits a few units off the Durant line, so its two legs fan out at slightly
-     different slopes while their 4-unit strokes still overlap. */
-  function parallelLegs(legs, P){
-    var TOL = 5, PAR = 0.14, GAP = 7, polys = legs.map(function(l){ return l.pts.map(function(c){ return P(c[0], c[1]); }); });
+  /* Shared streets: where two legs run along the same stretch they're drawn side by side. In local metres: split any
+     segment where another leg's segment runs along it (under 8° apart, within 3 m), at the overlap's ends; a split segment
+     whose ends match another leg's that way is shared, and each sharer takes a side. A leg comes out as parts: runs of
+     segments with the same side, each its own polyline. */
+  function legParts(legs){
+    var TOL = 3, PAR = 0.14, MX = K * 111320, MY = 111320;
+    function M(c){ return [c[1] * MX, c[0] * MY]; }
+    function LL(p){ return [p[1] / MY, p[0] / MX]; }
     function sub(a, b){ return [a[0] - b[0], a[1] - b[1]]; }
     function dot(a, b){ return a[0] * b[0] + a[1] * b[1]; }
     function unit(a, b){ var d = sub(b, a), L = Math.hypot(d[0], d[1]) || 1; return [d[0] / L, d[1] / L]; }
-    function along(a0, a1, b0, b1){   /* b runs along a: parallel and both ends close to a's line */
+    function along(a0, a1, b0, b1){
       var u = unit(a0, a1), v = unit(b0, b1);
       if (Math.abs(u[0] * v[1] - u[1] * v[0]) > PAR) return false;
       var t0 = sub(b0, a0), t1 = sub(b1, a0);
       return Math.abs(u[0] * t0[1] - u[1] * t0[0]) <= TOL && Math.abs(u[0] * t1[1] - u[1] * t1[0]) <= TOL;
     }
+    var polys = legs.map(function(l){ return l.pts.map(M); });
     var cuts = polys.map(function(pl){ return pl.slice(1).map(function(){ return []; }); });
     polys.forEach(function(A, i){ polys.forEach(function(B, j){
       if (j === i) return;
@@ -527,8 +468,8 @@
           if (!along(s0, A[k + 1], B[m], B[m + 1])) continue;
           var a = dot(u, sub(B[m], s0)), b = dot(u, sub(B[m + 1], s0));
           var lo = Math.max(0, Math.min(a, b)), hi = Math.min(L, Math.max(a, b));
-          if (hi - lo < 3) continue;
-          [lo, hi].forEach(function(q){ if (q > 0.5 && q < L - 0.5) cuts[i][k].push(q); });
+          if (hi - lo < 5) continue;
+          [lo, hi].forEach(function(q){ if (q > 1 && q < L - 1) cuts[i][k].push(q); });
         }
       }
     }); });
@@ -537,7 +478,7 @@
       for (var k = 0; k < pl.length - 1; k++) {
         var d = sub(pl[k + 1], pl[k]), L = Math.hypot(d[0], d[1]);
         cuts[i][k].sort(function(x, y){ return x - y; }).forEach(function(q, n, arr){
-          if (n && q - arr[n - 1] < 0.5) return;
+          if (n && q - arr[n - 1] < 1) return;
           out.push([pl[k][0] + d[0] * q / L, pl[k][1] + d[1] * q / L]);
         });
         out.push(pl[k + 1]);
@@ -545,330 +486,96 @@
       return out;
     });
     function near(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]) <= TOL; }
-    var off = polys.map(function(pl, i){
-      return pl.slice(1).map(function(_, k){
-        var a = pl[k], b = pl[k + 1], who = [{i:i, a:a, b:b}];
+    polys.forEach(function(pl, i){
+      var sides = pl.slice(1).map(function(_, k){
+        var a = pl[k], b = pl[k + 1], who = [i];
         polys.forEach(function(Q, j){
           if (j === i) return;
-          for (var m = 0; m < Q.length - 1; m++) {
-            if (near(a, Q[m]) && near(b, Q[m + 1]) && along(a, b, Q[m], Q[m + 1])) { who.push({i:j, a:Q[m], b:Q[m + 1]}); break; }
-            if (near(a, Q[m + 1]) && near(b, Q[m]) && along(a, b, Q[m + 1], Q[m])) { who.push({i:j, a:Q[m + 1], b:Q[m]}); break; }
-          }
+          for (var m = 0; m < Q.length - 1; m++)
+            if ((near(a, Q[m]) && near(b, Q[m + 1]) && along(a, b, Q[m], Q[m + 1])) || (near(a, Q[m + 1]) && near(b, Q[m]) && along(a, b, Q[m + 1], Q[m]))) { who.push(j); break; }
         });
-        if (who.length < 2) return {o:0, a:a, b:b};
-        who.sort(function(x, y){ return x.i - y.i; });
-        var ref = who[0], r0 = near(a, ref.a) ? ref.a : ref.b, r1 = r0 === ref.a ? ref.b : ref.a;   /* the shared centreline, in this leg's direction */
-        var c0 = (r0[0] < r1[0] || (r0[0] === r1[0] && r0[1] < r1[1])) ? r0 : r1, c1 = c0 === r0 ? r1 : r0;   /* the same normal for every sharer */
-        var n = unit(c0, c1);
-        var rank = who.map(function(x){ return x.i; }).indexOf(i);
-        return {o:(rank - (who.length - 1) / 2) * GAP, n:[-n[1], n[0]], a:r0, b:r1};
+        if (who.length < 2) return 0;
+        who.sort(function(x, y){ return x - y; });
+        /* the same side of the street for every sharer: the sign follows the stretch's west→east (or south→north) direction */
+        var fwd = a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]) ? 1 : -1;
+        return (who.indexOf(i) === 0 ? -1 : 1) * fwd;
       });
-    });
-    /* a leg keeps its offset along a straight continuation of a shared run, instead of jogging back to the centreline
-       right where another leg turns the corner */
-    off.forEach(function(sgs, i){
-      var pl = polys[i], changed = true;
-      while (changed) {
-        changed = false;
-        sgs.forEach(function(sg, k){
-          if (sg.o) return;
-          [k - 1, k + 1].forEach(function(nb){
-            if (sg.o || nb < 0 || nb >= sgs.length || !sgs[nb].o) return;
-            var u = unit(pl[k], pl[k + 1]), v = unit(pl[nb], pl[nb + 1]);
-            if (Math.abs(u[0] * v[1] - u[1] * v[0]) > PAR || dot(u, v) < 0) return;
-            sg.o = sgs[nb].o; sg.n = sgs[nb].n; changed = true;
-            if (nb === k - 1) sg.a = sgs[nb].b; else sg.b = sgs[nb].a;   /* start exactly where the snapped shared run ends */
-          });
-        });
-      }
-    });
-    polys.forEach(function(pl, i){
-      var seg = off[i].map(function(sg){
-        var n = sg.n || [0, 0];
-        return {o:sg.o, A:[sg.a[0] + n[0] * sg.o, sg.a[1] + n[1] * sg.o], B:[sg.b[0] + n[0] * sg.o, sg.b[1] + n[1] * sg.o]};
+      var parts = [], cur = null;
+      sides.forEach(function(sd, k){
+        if (!cur || cur.off !== sd) { cur = {off:sd, ll:[LL(pl[k])]}; parts.push(cur); }
+        cur.ll.push(LL(pl[k + 1]));
       });
-      var draw = [seg[0].A];
-      for (var k = 1; k < seg.length; k++) {
-        var p = seg[k - 1], q = seg[k], v = pl[k];
-        if (!p.o && !q.o) { draw.push(v); continue; }
-        var r = sub(p.B, p.A), t = sub(q.B, q.A), den = r[0] * t[1] - r[1] * t[0];
-        if (Math.abs(den) > 1e-6) {
-          var w0 = sub(q.A, p.A), x = (w0[0] * t[1] - w0[1] * t[0]) / den, X = [p.A[0] + r[0] * x, p.A[1] + r[1] * x];
-          if (Math.hypot(X[0] - v[0], X[1] - v[1]) < 12) { draw.push(X); continue; }
-        }
-        draw.push(p.B); if (Math.hypot(p.B[0] - q.A[0], p.B[1] - q.A[1]) > 0.3) draw.push(q.A);
-      }
-      draw.push(seg[seg.length - 1].B);
-      legs[i].draw = draw;
+      legs[i].parts = parts;
     });
   }
 
-  /* ---------- the map: a fitted frame (user units = card px at 1×), a view onto it (pinch / pan / wheel),
-     and a layout placed in screen px for that view. Pins, names, pills and the me-dot are anchored groups
-     scaled by 1/zoom, so they keep their size; lines keep their width (non-scaling stroke). ---------- */
-  var FIT = null, VIEW = {x:0, y:0, z:1}, gTop = null;
-  function toScreen(u){ return [(u[0] - VIEW.x) * VIEW.z, (u[1] - VIEW.y) * VIEW.z]; }
-  function toUser(sp){ return [VIEW.x + sp[0] / VIEW.z, VIEW.y + sp[1] / VIEW.z]; }
-  function kT(a){ return 'translate(' + a[0].toFixed(2) + ' ' + a[1].toFixed(2) + ') scale(' + (1 / VIEW.z).toFixed(4) + ')'; }
-  function kGroup(cls, a, parent, extra){   /* a group drawn in screen px around an anchor in user units */
-    var attrs = {'class':cls + ' k', 'data-ax':a[0].toFixed(2), 'data-ay':a[1].toFixed(2), transform:kT(a)};
-    for (var x in extra) attrs[x] = extra[x];
-    return S('g', attrs, parent);
+  function legDraw(l){
+    var dash = l.ret ? '8 6' : null;
+    l.parts.forEach(function(pt, n){
+      var off = hasOffset ? pt.off * 4 : 0, thin = !hasOffset && pt.off > 0;
+      var cls = 'leg' + (l.ret ? ' ret' : '') + ' l' + l.name.replace(/[^0-9]+/g, '-');
+      if (!thin) L.polyline(pt.ll, {color:'#fff', weight:9, opacity:1, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:'legcase'}).addTo(routeLayer);
+      L.polyline(pt.ll, {color:l.col, weight:thin ? 3 : 5, opacity:l.ret ? .7 : 1, dashArray:dash, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:cls}).addTo(routeLayer);
+    });
+  }
+
+  /* a pill at the leg's midpoint by path length; none for a walk under 3 min */
+  function pillAt(l){
+    var cum = [0];
+    for (var j = 1; j < l.pts.length; j++) cum.push(cum[j - 1] + metres(l.pts[j - 1], l.pts[j]));
+    var d = cum[cum.length - 1] / 2, j = 1;
+    while (j < l.pts.length - 1 && cum[j] < d) j++;
+    var a = l.pts[j - 1], b = l.pts[j], t = (d - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
   }
 
   function buildMap(){
-    var w = svg.clientWidth, h = svg.clientHeight;
-    if (!w || !h) return;
     routeData();
-    var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
-    framePts().forEach(function(c){
-      var x = c[1] * K, y = -c[0];
-      minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
-    });
-    var sc = Math.min(w * 0.84 / (maxx - minx), h * 0.84 / (maxy - miny));   /* 8% all round */
-    var ox = w / 2 - sc * (minx + maxx) / 2, oy = h / 2 - sc * (miny + maxy) / 2;
-    function P(lat, lng){ return [ox + sc * lng * K, oy - sc * lat]; }
-    if (!FIT || FIT.w !== w || FIT.h !== h) VIEW = {x:0, y:0, z:1};   /* a new size starts fitted; a rebuild (a skip) keeps the view */
-    FIT = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P};
-
-    svg.textContent = '';
-    var defs = S('defs', {}, svg);
-    var flt = S('filter', {id:'gn-soft', x:'-10%', y:'-10%', width:'120%', height:'120%'}, defs);
-    S('feGaussianBlur', {stdDeviation:'3'}, flt);
-    S('rect', {'class':'gn-land', x:0, y:0, width:w, height:h}, svg);
-    S('polygon', {'class':'gn-campus', filter:'url(#gn-soft)', points:CAMPUS.map(function(c){ var p = P(c[0], c[1]); return f(p[0]) + ',' + f(p[1]); }).join(' ')}, svg);
-    var gs = S('g', {}, svg);
-    FIT.streets = STREETS.map(function(st){
-      var a, b;
-      if (st[1]) { var x = P(0, st[2])[0]; a = st[3] === null ? [x, h] : P(st[3], st[2]); b = st[4] === null ? [x, 0] : P(st[4], st[2]); }
-      else { var y = P(st[2], 0)[1]; a = st[3] === null ? [0, y] : P(st[2], st[3]); b = st[4] === null ? [w, y] : P(st[2], st[4]); }
-      var ln = {x1:f(a[0]), y1:f(a[1]), x2:f(b[0]), y2:f(b[1])};
-      ln['class'] = 'gn-st-case'; S('line', ln, gs);
-      ln['class'] = 'gn-st'; S('line', ln, gs);
-      return [a, b];
-    });
-    gTop = S('g', {}, svg);
-    layout();
-  }
-
-  function applyViewBox(){
-    svg.setAttribute('viewBox', [VIEW.x, VIEW.y, FIT.w / VIEW.z, FIT.h / VIEW.z].map(function(v){ return v.toFixed(2); }).join(' '));
-  }
-  /* per gesture frame: move the window and keep the anchored groups their size; nothing is re-placed */
-  function applyView(){
-    if (!FIT) return;
-    applyViewBox();
-    var ks = gTop.querySelectorAll('.k');
-    for (var i = 0; i < ks.length; i++) ks[i].setAttribute('transform', kT([+ks[i].getAttribute('data-ax'), +ks[i].getAttribute('data-ay')]));
-    drawMe();
-  }
-  function clampView(){   /* 1×–4×, and the fitted frame never leaves the card */
-    VIEW.z = Math.max(1, Math.min(4, VIEW.z));
-    VIEW.x = Math.max(0, Math.min(FIT.w - FIT.w / VIEW.z, VIEW.x));
-    VIEW.y = Math.max(0, Math.min(FIT.h - FIT.h / VIEW.z, VIEW.y));
-  }
-
-  /* the routes, pills, names and pins for the current view: placed in screen px, then anchored in user units */
-  function layout(){
-    if (!FIT) return;
-    var w = FIT.w, h = FIT.h;
-    function Ps(lat, lng){ return toScreen(FIT.P(lat, lng)); }
-    function onScreen(p, m){ return p[0] > -m && p[0] < w + m && p[1] > -m && p[1] < h + m; }
-    gTop.textContent = '';
-    applyViewBox();
-
-    parallelLegs(LEGS, Ps);
-    function routeD(pts){ return pts.map(function(p, k){ var u = toUser(p); return (k ? 'L' : 'M') + u[0].toFixed(2) + ' ' + u[1].toFixed(2); }).join(''); }
-    var gr = S('g', {}, gTop), outs = LEGS.filter(function(l){ return !l.ret; }), ret = LEGS.filter(function(l){ return l.ret; });
-    /* all casings first so no casing covers a neighbouring line; the return under the outbound legs */
-    ret.concat(outs).forEach(function(l){ S('path', {'class':'gn-route-case', d:routeD(l.draw)}, gr); });
-    ret.concat(outs).forEach(function(l){
-      S('path', {'class':'gn-route' + (l.ret ? ' ret' : ''), d:routeD(l.draw), style:'stroke:' + l.col, 'data-leg':l.name}, gr);
-    });
-
-    /* obstacles for label placement, in screen px */
-    var ob = {circles:[], segs:[], rects:[]};
-    livePlaces().forEach(function(s){ var p = Ps(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
-    LEGS.forEach(function(l){ for (var i = 1; i < l.draw.length; i++) ob.segs.push([l.draw[i - 1], l.draw[i]]); });
-    var strip = handleEl.offsetHeight;
-    ob.rects.push({x:0, y:h - strip - 2, w:w, h:strip + 2});   /* the page-scroll strip */
-
-    var gp = S('g', {}, gTop);   /* pills: above both routes, under the names and pins */
-    var gl = S('g', {}, gTop);
-    function measure(cls, txt){
-      var t = S('text', {'class':cls, x:-999, y:-999}, gl); t.textContent = txt;
-      var len = t.getComputedTextLength(); gl.removeChild(t); return len;
-    }
-    function best(cands){
-      var pick = null, ps = Infinity;
-      cands.forEach(function(c){ var s = scoreBox(c.r, ob, w, h); if (s < ps) { ps = s; pick = c; } });
-      return {c:pick, s:ps};
-    }
-
-    /* walk-time pills: centred on the leg at its midpoint by path length, like a route bubble, so the line passes under them.
-       One that lands within 14 units of a pin slides along the leg away from it. A leg under 3 min gets none. */
-    var pinPts = livePlaces().map(function(s){ return Ps(s.lat, s.lng); }), pillBoxes = [];
+    routeLayer.clearLayers(); markers = [];
+    legParts(LEGS);
+    LEGS.filter(function(l){ return l.ret; }).concat(LEGS.filter(function(l){ return !l.ret; })).forEach(legDraw);
     LEGS.forEach(function(l){
       if (l.min < 3) return;
-      var txt = l.name + ' · ' + l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 12, ph = 14;
-      var pts = l.draw, cum = [0];
-      for (var j = 1; j < pts.length; j++) cum.push(cum[j - 1] + Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1]));
-      function at(fr){
-        var d = cum[cum.length - 1] * fr, j = 1;
-        while (j < pts.length - 1 && cum[j] < d) j++;
-        var a = pts[j - 1], b = pts[j], t = (d - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
-        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-      }
-      function crowding(c){   /* the pin, earlier pill or card edge this spot is too close to, if any */
-        var r = {x:c[0] - pw / 2, y:c[1] - ph / 2, w:pw, h:ph};
-        if (r.x < 3 || r.y < 3 || r.x + r.w > w - 3 || r.y + r.h > h - strip - 3)
-          return [r.x < 3 ? -1e3 : r.x + r.w > w - 3 ? w + 1e3 : c[0], r.y < 3 ? -1e3 : r.y + r.h > h - strip - 3 ? h + 1e3 : c[1]];
-        for (var i = 0; i < pinPts.length; i++) {
-          var q = pinPts[i];
-          if (Math.hypot(q[0] - c[0], q[1] - c[1]) < 14) return q;
-          var nx = Math.max(r.x, Math.min(q[0], r.x + r.w)), ny = Math.max(r.y, Math.min(q[1], r.y + r.h));
-          if ((nx - q[0]) * (nx - q[0]) + (ny - q[1]) * (ny - q[1]) < 12 * 12) return q;
-        }
-        for (var j = 0; j < pillBoxes.length; j++) if (rectsHit(r, pillBoxes[j])) return [pillBoxes[j].x + pillBoxes[j].w / 2, pillBoxes[j].y + pillBoxes[j].h / 2];
-        return null;
-      }
-      var fr0 = 0.5;
-      var c = at(fr0), q = crowding(c);
-      if (q) {
-        var step = 1.5 / cum[cum.length - 1], a0 = at(Math.max(0, fr0 - step)), b0 = at(Math.min(1, fr0 + step));
-        var dirs = Math.hypot(b0[0] - q[0], b0[1] - q[1]) > Math.hypot(a0[0] - q[0], a0[1] - q[1]) ? [1, -1] : [-1, 1], found = null;
-        dirs.some(function(dir){
-          for (var fr = fr0 + dir * step; fr > 0.04 && fr < 0.96; fr += dir * step) { var cc = at(fr); if (!crowding(cc)) { found = cc; return true; } }
-          return false;
-        });
-        if (found) c = found;
-      }
-      var g = kGroup('walk' + (l.ret ? ' ret' : ''), toUser(c), gp, {'data-leg':l.name});
-      S('rect', {'class':'walk-b', x:f(-pw / 2), y:f(-ph / 2), width:f(pw), height:ph, rx:ph / 2, style:'stroke:' + l.col}, g);
-      S('text', {'class':'walk-t', x:0, y:3.2, 'text-anchor':'middle', style:'fill:' + darker(l.col)}, g).textContent = txt;
-      pillBoxes.push({x:c[0] - pw / 2 - 1, y:c[1] - ph / 2 - 1, w:pw + 2, h:ph + 2});
-      ob.rects.push({x:c[0] - pw / 2 - 2, y:c[1] - ph / 2 - 2, w:pw + 4, h:ph + 4});
+      var txt = l.name + ' · ' + l.min + ' min' + (l.ret ? ' ⇣' : '');
+      var html = '<span style="border-color:' + l.col + ';color:' + darker(l.col) + (l.ret ? ';border-style:dashed' : '') + '">' + esc(txt) + '</span>';
+      L.marker(pillAt(l), {icon:L.divIcon({className:'walk' + (l.ret ? ' ret' : ''), html:html, iconSize:[0, 0]}), interactive:false, keyboard:false}).addTo(routeLayer);
     });
-
-    /* pin names: right of the pin (left in the right third), then the other side, then above / below.
-       The most boxed-in pin picks first, so a roomy neighbour doesn't take the only spot near it. */
-    function nameCands(s){
-      var p = Ps(s.lat, s.lng), len = measure('pin-l', s.n), H = 10;
-      var R = {r:{x:p[0] + 13, y:p[1] - 5, w:len, h:H}, anchor:'start', x:p[0] + 13};
-      var L = {r:{x:p[0] - 13 - len, y:p[1] - 5, w:len, h:H}, anchor:'end', x:p[0] - 13};
-      var cands = p[0] > w * 2 / 3 ? [L, R] : [R, L];
-      [p[1] - 15, p[1] + 5].forEach(function(y){
-        cands.push({r:{x:p[0] + 11, y:y, w:len, h:H}, anchor:'start', x:p[0] + 11});
-        cands.push({r:{x:p[0] - 11 - len, y:y, w:len, h:H}, anchor:'end', x:p[0] - 11});
-      });
-      [p[1] - 13 - H, p[1] + 13, p[1] - 22 - H, p[1] + 22].forEach(function(y){
-        cands.push({r:{x:p[0] - len / 2, y:y, w:len, h:H}, anchor:'middle', x:p[0]});
-        cands.push({r:{x:p[0] + 8, y:y, w:len, h:H}, anchor:'start', x:p[0] + 8});
-        cands.push({r:{x:p[0] - 8 - len, y:y, w:len, h:H}, anchor:'end', x:p[0] - 8});
-      });
-      return cands;
-    }
-    livePlaces().filter(function(s){ return onScreen(Ps(s.lat, s.lng), 0); })   /* off the zoomed window: nothing to label */
-      .map(function(s, i){ return {s:s, i:i, free:nameCands(s).filter(function(c){ return scoreBox(c.r, ob, w, h) === 0; }).length}; })
-      .sort(function(x, y){ return x.free - y.free || x.i - y.i; })
-      .forEach(function(e){
-        var s = e.s, p = Ps(s.lat, s.lng), len = measure('pin-l', s.n), H = 10, cands = nameCands(s);
-        var bb = best(cands), b = bb.c;
-        if (bb.s > 0) {
-          /* crowded corner: take the nearest clear spot close to the pin instead */
-          var near = null, nd = Infinity;
-          for (var dy = -44; dy <= 44; dy++) for (var dx = -len - 44; dx <= 44; dx++) {
-            var r = {x:p[0] + dx, y:p[1] + dy, w:len, h:H};
-            var qx = Math.max(r.x, Math.min(p[0], r.x + r.w)) - p[0], qy = Math.max(r.y, Math.min(p[1], r.y + r.h)) - p[1];
-            var d = Math.sqrt(qx * qx + qy * qy);
-            if (d < nd && scoreBox(r, ob, w, h) === 0) { nd = d; near = r; }
-          }
-          if (near) b = {r:near, anchor:'start', x:near.x};
-        }
-        var g = kGroup('pin-lg', FIT.P(s.lat, s.lng), gl);
-        S('text', {'class':'pin-l', x:f(b.x - p[0]), y:f(b.r.y + 8 - p[1]), 'text-anchor':b.anchor}, g).textContent = s.n;
-        ob.rects.push(b.r);
-      });
-
-    /* street names: beside the line on its visible part; a street with no clear spot goes unlabelled rather than under the route.
-       East–west names go first: a north–south name can slide along its whole street, Hearst only has a strip by the top edge. */
-    STREETS.map(function(st, i){ return i; }).sort(function(i, j){ return STREETS[i][1] - STREETS[j][1] || i - j; }).forEach(function(i){
-      var st = STREETS[i];
-      if (!st[5]) return;
-      var a = toScreen(FIT.streets[i][0]), b = toScreen(FIT.streets[i][1]), len = measure('gn-st-l', st[0]), cands = [];
-      /* the preferred spots first, then every 5% along, for a street whose free stretch is short; then the same again
-         5 units farther out, for a street carrying a pair of parallel legs */
-      [0, 5].forEach(function(o){
-        [0.7, 0.5, 0.85, 0.3, 0.15, 0.6, 0.4, 0.95, 0.05, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.2, 0.1, 0.8, 0.9].forEach(function(fr){
-          if (st[1]) {
-            var y0 = Math.min(h - 6, Math.max(a[1], b[1])), y1 = Math.max(6, Math.min(a[1], b[1]));
-            var ly = y0 - (y0 - y1) * fr, x = a[0];
-            /* a rotated label renders about a unit wider than its nominal 10: allow for it */
-            cands.push({r:{x:x + 5 + o, y:ly - len / 2, w:12, h:len}, x:x, y:ly, dy:String(15 + o), rot:true});
-            cands.push({r:{x:x - 17 - o, y:ly - len / 2, w:12, h:len}, x:x, y:ly, dy:String(-7 - o), rot:true});
-          } else {
-            var x0 = Math.max(6, Math.min(a[0], b[0])), x1 = Math.min(w - 6, Math.max(a[0], b[0]));
-            var lx = x0 + (x1 - x0) * fr - len / 2, yy = a[1];
-            cands.push({r:{x:lx, y:yy - 16 - o, w:len, h:10}, x:lx, y:yy, dy:String(-8 - o)});
-            cands.push({r:{x:lx, y:yy + 6 + o, w:len, h:10}, x:lx, y:yy, dy:String(15 + o)});
-          }
-        });
-      });
-      var r = best(cands);
-      if (r.s > 0) return;
-      var c = r.c, g = kGroup('st-lg', toUser([c.x, c.y]), gl), at = {'class':'gn-st-l', x:0, y:0, dy:c.dy};
-      if (c.rot) { at['text-anchor'] = 'middle'; at.transform = 'rotate(-90)'; }
-      S('text', at, g).textContent = st[0];
-      ob.rects.push(c.r);
-    });
-
-    pinEls = PLACES.map(function(s, i){
+    PLACES.forEach(function(s, i){
       var steps = liveSteps(s);
-      if (!steps.length) return null;
-      var g = kGroup('pin' + (s.greek ? ' greek' : ''), FIT.P(s.lat, s.lng), gTop, {'data-i':i});
-      S('circle', {'class':'pin-hit', r:20}, g);
-      S('circle', {'class':'pulse', r:9}, g);
-      S('circle', {'class':'pin-c', r:9}, g);
-      var n = S('text', {'class':'pin-n' + (steps.length > 1 ? ' two' : ''), 'text-anchor':'middle', dy:steps.length > 1 ? '2.5' : '3.5'}, g);
-      n.textContent = steps.join('·');
-      return g;
+      if (!steps.length) return;
+      var cls = 'pinm' + (s.greek ? ' greek' : '') + (steps.length > 1 ? ' two' : '');
+      var m = L.marker([s.lat, s.lng], {icon:L.divIcon({className:cls, html:'<span>' + steps.join('·') + '</span>', iconSize:[28, 28], iconAnchor:[14, 14]}), keyboard:false, riseOnHover:true}).addTo(routeLayer);
+      m.bindTooltip(esc(s.n), {permanent:true, direction:'auto', className:'pinlbl', offset:[0, 0], interactive:false});
+      m.on('click', function(){ popOpen(i, m); });
+      m.place = s; markers.push(m);
     });
+    map.fitBounds(L.latLngBounds(PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK)), {padding:[24, 24]});
     paintMap(planStates().cur);
-    drawMe();
   }
 
   function paintMap(ni){
-    pinEls.forEach(function(g, i){
-      if (!g) return;
-      var steps = liveSteps(PLACES[i]);
-      g.classList.toggle('done', steps.every(function(k){ return !!state['p' + (k - 1)]; }));
-      g.classList.toggle('now', steps.some(function(k){ return k - 1 === ni && !state['p' + (k - 1)]; }));
+    markers.forEach(function(m){
+      var el = m.getElement(); if (!el) return;
+      var steps = liveSteps(m.place);
+      el.classList.toggle('done', steps.every(function(k){ return !!state['p' + (k - 1)]; }));
+      el.classList.toggle('now', steps.some(function(k){ return k - 1 === ni && !state['p' + (k - 1)]; }));
     });
   }
 
-  function popClose(){
-    popEl.hidden = true; popEl.innerHTML = '';
-    linkedRows.forEach(function(r){ r.classList.remove('linked'); }); linkedRows = [];
-  }
-  function popOpen(i){
+  function popClose(){ map.closePopup(); }
+  function popOpen(i, m){
     var s = PLACES[i], steps = liveSteps(s);
     var lines = [steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / ')];
     LEGS.forEach(function(l){
       if (l.a === s || l.b === s) lines.push('<i class="pp-dot" style="background:' + l.col + '"></i>' + l.name + ' · ' + l.min + ' min');
     });
-    popEl.innerHTML = popPill(PLAN[steps[0] - 1].map, esc(s.n), lines);
-    popEl.hidden = false;
+    L.popup({className:'pinpop', closeButton:false, minWidth:168, maxWidth:250, offset:[0, -12], autoPanPadding:[12, 12]})
+      .setLatLng(m.getLatLng()).setContent(popPill(PLAN[steps[0] - 1].map, esc(s.n), lines)).openOn(map);
     linkedRows.forEach(function(r){ r.classList.remove('linked'); });
     linkedRows = steps.map(function(k){ return rowEls[k - 1]; });
     linkedRows.forEach(function(r){ r.classList.add('linked'); });
-    var c = pinEls[i].querySelector('.pin-c').getBoundingClientRect(), r = cardEl.getBoundingClientRect();
-    var cx = c.left + c.width / 2 - r.left, top = c.top - r.top, bot = c.bottom - r.top;
-    var pw = popEl.offsetWidth, ph = popEl.offsetHeight;
-    var below = top - 8 - ph < 4;
-    popEl.classList.toggle('below', below);
-    popEl.style.left = Math.max(pw / 2 + 8, Math.min(r.width - pw / 2 - 8, cx)) + 'px';
-    popEl.style.top = (below ? bot + 8 : top - 8) + 'px';
   }
+  map.on('popupclose', function(){ linkedRows.forEach(function(r){ r.classList.remove('linked'); }); linkedRows = []; });
 
   /* ---------- live location: always on, foreground only; never re-fits the map, never checks a step.
      Denied or unavailable: nothing is said, the chip just never gets its second line. ---------- */
@@ -887,27 +594,14 @@
     else sub((n.m / 1609.344).toFixed(1) + ' mi from Berkeley');
   }
   function drawMe(){
-    var old = svg.querySelector('.me'); if (old) svg.removeChild(old);
-    if (!fix || !FIT) return;
-    var w = FIT.w, h = FIT.h, m = 16, u = FIT.P(fix.lat, fix.lng), p = toScreen(u);
-    if (p[0] >= m && p[0] <= w - m && p[1] >= m && p[1] <= h - m) {
-      var g = S('g', {'class':'me', transform:kT(u)}, svg);
-      var rpx = Math.min(60, (fix.acc || 0) * FIT.sc / 111320);   /* accuracy metres → px at the fitted scale */
-      if (rpx > 6) S('circle', {'class':'me-ring', r:f(rpx)}, g);
-      S('circle', {'class':'me-dot', r:6}, g);
+    if (!fix) { meLayer.clearLayers(); meDot = meRing = null; return; }
+    var ll = [fix.lat, fix.lng];
+    if (!meDot) {
+      meRing = L.circle(ll, {radius:fix.acc, color:NOW, weight:0, fillColor:NOW, fillOpacity:.12, interactive:false}).addTo(meLayer);
+      meDot = L.circleMarker(ll, {radius:6, color:'#fff', weight:2, fillColor:NOW, fillOpacity:1, interactive:false}).addTo(meLayer);
       return;
     }
-    /* off the window (still in SF, on BART, or zoomed away): an arrow on the edge pointing at the true position, with the distance to it */
-    var cx = w / 2, cy = h / 2, dx = p[0] - cx, dy = p[1] - cy, t = Infinity;
-    if (dx > 0) t = Math.min(t, (w - m - cx) / dx); else if (dx < 0) t = Math.min(t, (m - cx) / dx);
-    if (dy > 0) t = Math.min(t, (h - m - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
-    var ex = cx + dx * t, ey = cy + dy * t, ang = Math.atan2(dy, dx) * 180 / Math.PI, eu = toUser([ex, ey]);
-    var eLat = (FIT.oy - eu[1]) / FIT.sc, eLng = (eu[0] - FIT.ox) / (FIT.sc * K);
-    var mi = metres([eLat, eLng], [fix.lat, fix.lng]) / 1609.344;
-    var ge = S('g', {'class':'me', transform:kT(eu)}, svg);
-    S('path', {'class':'me-arrow', d:'M8 0L-6 6L-3 0L-6 -6Z', transform:'rotate(' + f(ang) + ')'}, ge);
-    var len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, off = 12 + Math.abs(ux) * 16 + Math.abs(uy) * 6;
-    S('text', {'class':'me-l', x:f(-ux * off), y:f(-uy * off), dy:'3.5', 'text-anchor':'middle'}, ge).textContent = mi.toFixed(1) + ' mi';
+    meRing.setLatLng(ll).setRadius(fix.acc); meDot.setLatLng(ll);   /* every fix; the map never pans to it */
   }
   function onFix(pos){
     fix = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy || 0};
@@ -925,175 +619,14 @@
   }
   document.addEventListener('visibilitychange', function(){ if (document.hidden) stopWatch(); else startWatch(); });
 
-  /* ---------- pinch zoom and pan, no controls: two fingers zoom about their midpoint, one finger pans,
-     a still finger is a tap, a double tap goes back to the fitted view, the wheel zooms on desktop.
-     Mouse and pen come through pointer events; touch through touch events, below. ---------- */
-  var ptrs = {}, gest = null, lastTap = null, wheelT = null, anim = null;
-  function local(e){ var r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-  function down(){ return Object.keys(ptrs); }
-  function startPan(sp){ gest = {mode:'pan', s:sp, v0:{x:VIEW.x, y:VIEW.y}}; }
-  function startPinch(){
-    var k = down(), a = ptrs[k[0]], b = ptrs[k[1]];
-    gest = {mode:'pinch', d0:Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z0:VIEW.z, U0:toUser([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])};
-  }
-  function stopAnim(){ if (anim) { cancelAnimationFrame(anim); anim = null; } }
-  svg.addEventListener('pointerdown', function(e){
-    if (e.pointerType === 'touch') return;   /* touch is handled by the touch events */
-    stopAnim();
-    try { svg.setPointerCapture(e.pointerId); } catch (err) {}
-    ptrs[e.pointerId] = local(e);
-    var n = down().length;
-    if (n === 1) gest = {mode:'tap', s:ptrs[e.pointerId], target:e.target};
-    else if (n === 2) { popClose(); startPinch(); }
-    e.preventDefault();
-  });
-  svg.addEventListener('pointermove', function(e){
-    if (!(e.pointerId in ptrs) || !gest) return;
-    var sp = ptrs[e.pointerId] = local(e);
-    if (gest.mode === 'tap') {
-      if (Math.hypot(sp[0] - gest.s[0], sp[1] - gest.s[1]) <= 6) return;
-      popClose(); startPan(gest.s);
-    }
-    if (gest.mode === 'pan') {
-      VIEW.x = gest.v0.x - (sp[0] - gest.s[0]) / VIEW.z; VIEW.y = gest.v0.y - (sp[1] - gest.s[1]) / VIEW.z;
-    } else if (gest.mode === 'pinch' && down().length === 2) {
-      var k = down(), a = ptrs[k[0]], b = ptrs[k[1]], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      VIEW.z = Math.max(1, Math.min(4, gest.z0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gest.d0));
-      VIEW.x = gest.U0[0] - m[0] / VIEW.z; VIEW.y = gest.U0[1] - m[1] / VIEW.z;   /* the point under the fingers stays under them */
-    }
-    clampView(); applyView();
-  });
-  function lift(e){
-    if (!(e.pointerId in ptrs)) return;
-    delete ptrs[e.pointerId];
-    if (!gest) return;
-    var left = down();
-    if (left.length === 1 && gest.mode === 'pinch') { startPan(ptrs[left[0]]); return; }   /* one finger lifts: the other pans on */
-    if (left.length) return;
-    var g = gest; gest = null;
-    if (g.mode === 'tap') { if (e.type === 'pointerup') tap(g); }
-    else layout();   /* zoom / pan end: place the labels for the new window */
-  }
-  svg.addEventListener('pointerup', lift);
-  svg.addEventListener('pointercancel', lift);
-  function tap(g){
-    var now = Date.now();
-    if (lastTap && now - lastTap.t < 300 && Math.hypot(g.s[0] - lastTap.s[0], g.s[1] - lastTap.s[1]) < 10) {
-      lastTap = null; popClose(); fitView(); return;
-    }
-    lastTap = {t:now, s:g.s};
-    var pin = g.target && g.target.closest ? g.target.closest('.pin') : null;
-    if (pin) popOpen(+pin.getAttribute('data-i')); else popClose();
-  }
-  function fitView(){
-    if (VIEW.z === 1 && !VIEW.x && !VIEW.y) return;
-    var from = {x:VIEW.x, y:VIEW.y, z:VIEW.z}, t0 = null;
-    function step(t){
-      if (t0 === null) t0 = t;
-      var k = Math.min(1, (t - t0) / 200), e = 1 - Math.pow(1 - k, 3);
-      VIEW = {x:from.x * (1 - e), y:from.y * (1 - e), z:from.z + (1 - from.z) * e};
-      applyView();
-      if (k < 1) anim = requestAnimationFrame(step); else { anim = null; VIEW = {x:0, y:0, z:1}; layout(); }
-    }
-    stopAnim(); anim = requestAnimationFrame(step);
-  }
-  /* Touch. iOS Safari zooms the whole page on a two-finger pinch unless the touches themselves are cancelled, so the
-     card listens to touch events (not passive) and drives the zoom from the finger pair, live on every move.
-     The strip along the card's bottom and the open pill are left alone: there one finger scrolls the page or taps the link. */
-  function tpts(e){ var r = svg.getBoundingClientRect(); return Array.prototype.map.call(e.touches, function(t){ return [t.clientX - r.left, t.clientY - r.top]; }); }
-  function pinchFrom(a, b){ gest = {mode:'pinch', d0:Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z0:VIEW.z, U0:toUser([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])}; }
-  function onMap(e){ return !handleEl.contains(e.target) && !popEl.contains(e.target); }
-  cardEl.addEventListener('touchstart', function(e){
-    var ts = tpts(e);
-    if (ts.length >= 2) { e.preventDefault(); stopAnim(); popClose(); pinchFrom(ts[0], ts[1]); return; }
-    if (!onMap(e)) { gest = null; return; }
-    stopAnim(); gest = {mode:'tap', s:ts[0], target:e.target};
-  }, {passive:false});
-  cardEl.addEventListener('touchmove', function(e){
-    if (!gest) return;
-    e.preventDefault();
-    var ts = tpts(e);
-    if (ts.length >= 2) {
-      if (gest.mode !== 'pinch') { popClose(); pinchFrom(ts[0], ts[1]); }
-      var a = ts[0], b = ts[1], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      VIEW.z = Math.max(1, Math.min(4, gest.z0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gest.d0));
-      VIEW.x = gest.U0[0] - m[0] / VIEW.z; VIEW.y = gest.U0[1] - m[1] / VIEW.z;   /* the point under the fingers stays under them */
-    } else {
-      var sp = ts[0];
-      if (gest.mode === 'tap') {
-        if (Math.hypot(sp[0] - gest.s[0], sp[1] - gest.s[1]) <= 6) return;
-        popClose(); startPan(gest.s);
-      }
-      if (gest.mode !== 'pan') return;
-      VIEW.x = gest.v0.x - (sp[0] - gest.s[0]) / VIEW.z; VIEW.y = gest.v0.y - (sp[1] - gest.s[1]) / VIEW.z;
-    }
-    clampView(); applyView();
-  }, {passive:false});
-  function touchUp(e){
-    if (!gest) return;
-    var ts = tpts(e);
-    if (ts.length >= 2) { if (gest.mode === 'pinch') pinchFrom(ts[0], ts[1]); return; }   /* a third finger lifted: carry on with two */
-    if (ts.length === 1) { if (gest.mode === 'pinch') startPan(ts[0]); return; }          /* one finger lifts: the other pans on */
-    var g = gest; gest = null;
-    if (g.mode !== 'tap') { layout(); return; }   /* gesture end: place the labels for the new window */
-    if (e.type === 'touchend') { if (e.cancelable) e.preventDefault(); tap(g); }   /* no synthetic click after our own tap */
-  }
-  cardEl.addEventListener('touchend', touchUp, {passive:false});
-  cardEl.addEventListener('touchcancel', touchUp, {passive:false});
-  /* Safari's own pinch events: always cancelled. On iOS the finger pair above already drives the zoom; a macOS trackpad
-     pinch arrives only as these, so it zooms the map about the pointer. */
-  var gz = null;
-  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(type){
-    cardEl.addEventListener(type, function(e){
-      e.preventDefault();
-      if (gest && gest.mode === 'pinch') return;
-      if (type === 'gesturestart') { stopAnim(); popClose(); gz = {z0:VIEW.z, U0:toUser(local(e))}; return; }
-      if (!gz) return;
-      if (type === 'gestureend') { gz = null; layout(); return; }
-      var m = local(e);
-      VIEW.z = Math.max(1, Math.min(4, gz.z0 * e.scale));
-      VIEW.x = gz.U0[0] - m[0] / VIEW.z; VIEW.y = gz.U0[1] - m[1] / VIEW.z;
-      clampView(); applyView();
-    }, {passive:false});
-  });
-
-  svg.addEventListener('wheel', function(e){
-    e.preventDefault(); stopAnim(); popClose();
-    var m = local(e), U = toUser(m);
-    VIEW.z = Math.max(1, Math.min(4, VIEW.z * Math.exp(-e.deltaY * 0.0015)));
-    VIEW.x = U[0] - m[0] / VIEW.z; VIEW.y = U[1] - m[1] / VIEW.z;
-    clampView(); applyView();
-    clearTimeout(wheelT); wheelT = setTimeout(layout, 150);
-  }, {passive:false});
-
-  /* the map card is sized from the route at phone widths; any change of the card's size refits the map and re-places the labels */
-  var rsT = null, lastW = '';
-  function framePts(){ return PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK); }
-  function sizeCard(){   /* the route's own shape plus the card's border; CSS caps it at 75vh and ignores it from 768 up */
-    var la = framePts().map(function(c){ return c[0]; }), lo = framePts().map(function(c){ return c[1]; });
-    var aspect = (Math.max.apply(null, la) - Math.min.apply(null, la)) / ((Math.max.apply(null, lo) - Math.min.apply(null, lo)) * K);
-    cardEl.style.setProperty('--mapH', (cardEl.clientWidth * aspect + cardEl.offsetHeight - cardEl.clientHeight).toFixed(1) + 'px');
-  }
-  function resized(){
-    clearTimeout(rsT);
-    rsT = setTimeout(function(){
-      if (svg.clientWidth + 'x' + svg.clientHeight === lastW) return;
-      lastW = svg.clientWidth + 'x' + svg.clientHeight; popClose(); buildMap(); paint();
-    }, 150);
-  }
-  window.addEventListener('resize', function(){ sizeCard(); resized(); });
-  if (window.ResizeObserver) new ResizeObserver(resized).observe(svg);
-  sizeCard();
-  buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
-  /* switching mode: the travel steps' ticks go (they're different steps now); 4–11 keep theirs; the map refits */
+  buildMap();
+  /* switching mode: the travel steps' ticks go (they're different steps now); 4–12 keep theirs; the map refits */
   document.querySelector('.modes').addEventListener('click', function(e){
     var b = e.target.closest ? e.target.closest('.seg') : null;
     if (!b || b.getAttribute('data-mode') === mode()) return;
     state.mode = b.getAttribute('data-mode');
     MODE_STEPS.forEach(function(i){ delete state['p' + i]; rowEls[i].querySelector('.check').checked = false; });
-    save(); applyMode(); popClose();
-    VIEW = {x:0, y:0, z:1}; FIT = null;
-    sizeCard(); buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight; paint(); describe();
+    save(); applyMode(); popClose(); buildMap(); paint(); describe();
   });
   startWatch();
 
