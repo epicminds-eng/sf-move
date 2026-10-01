@@ -59,14 +59,11 @@
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
   .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none}
-  /* phone widths: header + map fill the first screen and the plan starts below the fold; 4:3 stays as the minimum */
+  /* phone widths: the card takes the route's own shape (--mapH, set from its width), capped at 75vh */
   @media (max-width:767px){
-    .mapcard{aspect-ratio:auto;max-height:none;min-height:calc((100vw - 2 * var(--s4)) * .75);
-      height:calc(100vh - var(--hdr, 0px) - env(safe-area-inset-top) - var(--s4));
-      height:calc(100dvh - var(--hdr, 0px) - env(safe-area-inset-top) - var(--s4))}
+    .mapcard{aspect-ratio:auto;max-height:none;height:min(var(--mapH, 75vw), 75vh);height:min(var(--mapH, 75vw), 75dvh)}
   }
   .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-  .mapchip{position:absolute;bottom:var(--s3);left:var(--s3);z-index:3;pointer-events:none}
   .gn-land{fill:#ece6d8}
   .gn-campus{fill:#dfe6d3}
   .gn-st-case{stroke:rgba(0,0,0,.10);stroke-width:3;stroke-linecap:round}
@@ -118,12 +115,12 @@
     <span class="chip">Doors <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
     <span class="chip">Julia's <b>5:00</b> ×2</span>
+    <span class="chip">BART from Civic Center <b>35 min</b></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
 </header>
 
 <div class="mapcard" id="mapcard">
-  <span class="chip mapchip">BART from Civic Center · 35 min</span>
   <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
   <div class="pinpop" id="pinpop" hidden></div>
 </div>
@@ -396,7 +393,6 @@
   var cardEl = document.getElementById('mapcard');
   var svg = document.getElementById('gnmap');
   var popEl = document.getElementById('pinpop');
-  var chipEl = cardEl.querySelector('.mapchip');
   var pinEls = [], linkedRows = [];
   /* plan rows with a pin take the pin's colour for their step number */
   PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
@@ -566,19 +562,12 @@
       var x = s.lng * K, y = -s.lat;
       minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
     });
-    var cr = chipEl.getBoundingClientRect(), sr = svg.getBoundingClientRect();
-    var chip = {x:cr.left - sr.left - 2, y:cr.top - sr.top - 2, w:cr.width + 4, h:cr.height + 4};
-    var sc, ox, oy;
-    function fit(fh){
-      sc = Math.min(w * 0.84 / (maxx - minx), fh * 0.84 / (maxy - miny));
-      ox = w / 2 - sc * (minx + maxx) / 2; oy = fh / 2 - sc * (miny + maxy) / 2;
-    }
+    /* 8% top and bottom; the sides may come in to 3%, since the phone card is a touch taller than the route (×1.1) */
+    var sc = Math.min(w * 0.94 / (maxx - minx), h * 0.84 / (maxy - miny));
+    var ox = w / 2 - sc * (minx + maxx) / 2, oy = h / 2 - sc * (miny + maxy) / 2;
     function P(lat, lng){ return [ox + sc * lng * K, oy - sc * lat]; }
-    /* no pin under the chip: if one lands there, fit the pins into the space above it instead */
-    fit(h);
-    if (PLACES.some(function(s){ var p = P(s.lat, s.lng); return p[0] > chip.x - 14 && p[0] < chip.x + chip.w + 14 && p[1] > chip.y - 14; })) fit(chip.y);
     if (!FIT || FIT.w !== w || FIT.h !== h) VIEW = {x:0, y:0, z:1};   /* a new size starts fitted; a rebuild (a skip) keeps the view */
-    FIT = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P, chip:chip, bottom:cr.top - sr.top - 10};   /* the edge arrow stays above the chip */
+    FIT = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P};
 
     svg.textContent = '';
     var defs = S('defs', {}, svg);
@@ -620,7 +609,7 @@
   /* the routes, pills, names and pins for the current view: placed in screen px, then anchored in user units */
   function layout(){
     if (!FIT) return;
-    var w = FIT.w, h = FIT.h, chip = FIT.chip;
+    var w = FIT.w, h = FIT.h;
     function Ps(lat, lng){ return toScreen(FIT.P(lat, lng)); }
     function onScreen(p, m){ return p[0] > -m && p[0] < w + m && p[1] > -m && p[1] < h + m; }
     gTop.textContent = '';
@@ -639,7 +628,6 @@
     var ob = {circles:[], segs:[], rects:[]};
     livePlaces().forEach(function(s){ var p = Ps(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
     LEGS.forEach(function(l){ for (var i = 1; i < l.draw.length; i++) ob.segs.push([l.draw[i - 1], l.draw[i]]); });
-    ob.rects.push(chip);
 
     var gp = S('g', {}, gTop);   /* pills: above both routes, under the names and pins */
     var gl = S('g', {}, gTop);
@@ -848,7 +836,7 @@
     /* off the window (still in SF, on BART, or zoomed away): an arrow on the edge pointing at the true position, with the distance to it */
     var cx = w / 2, cy = h / 2, dx = p[0] - cx, dy = p[1] - cy, t = Infinity;
     if (dx > 0) t = Math.min(t, (w - m - cx) / dx); else if (dx < 0) t = Math.min(t, (m - cx) / dx);
-    if (dy > 0) t = Math.min(t, (FIT.bottom - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
+    if (dy > 0) t = Math.min(t, (h - m - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
     var ex = cx + dx * t, ey = cy + dy * t, ang = Math.atan2(dy, dx) * 180 / Math.PI, eu = toUser([ex, ey]);
     var eLat = (FIT.oy - eu[1]) / FIT.sc, eLng = (eu[0] - FIT.ox) / (FIT.sc * K);
     var mi = metres([eLat, eLng], [fix.lat, fix.lng]) / 1609.344;
@@ -954,8 +942,12 @@
 
   /* the map card is sized from the header's height at phone widths; any change of the card's size refits the map
      and re-places the chip-aware labels */
-  var headerEl = document.querySelector('header'), rsT = null, lastW = '';
-  function sizeCard(){ document.documentElement.style.setProperty('--hdr', headerEl.offsetHeight + 'px'); }
+  var rsT = null, lastW = '';
+  function sizeCard(){   /* the route's shape, a tenth taller; CSS caps it at 75vh and ignores it from 768 up */
+    var la = PLACES.map(function(s){ return s.lat; }), lo = PLACES.map(function(s){ return s.lng; });
+    var aspect = (Math.max.apply(null, la) - Math.min.apply(null, la)) * 1.1 / ((Math.max.apply(null, lo) - Math.min.apply(null, lo)) * K);
+    cardEl.style.setProperty('--mapH', (cardEl.clientWidth * aspect).toFixed(1) + 'px');
+  }
   function resized(){
     clearTimeout(rsT);
     rsT = setTimeout(function(){
@@ -964,7 +956,7 @@
     }, 150);
   }
   window.addEventListener('resize', function(){ sizeCard(); resized(); });
-  if (window.ResizeObserver) { new ResizeObserver(sizeCard).observe(headerEl); new ResizeObserver(resized).observe(svg); }
+  if (window.ResizeObserver) new ResizeObserver(resized).observe(svg);
   sizeCard();
   buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
   startWatch();
