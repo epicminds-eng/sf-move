@@ -68,7 +68,7 @@
   @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:42vh;height:42dvh}}
   #gnmap{position:absolute;inset:0;background:#e9e5dc;font:inherit}
   .leaflet-container{font-family:inherit}
-  .leaflet-tile-pane{filter:grayscale(1) brightness(1.18) contrast(.72)}   /* a washed grey basemap; the route, pins and dot sit in sibling panes, unfiltered */
+  .leaflet-tile-pane{filter:saturate(.55) brightness(1.06)}   /* a light wash on the basemap; the route, pins and dot sit in sibling panes, unfiltered */
   .leaflet-control-attribution{font-size:9px;line-height:1.2;padding:1px 4px;background:rgba(255,255,255,.7);color:#6f6a5f}
   .leaflet-control-attribution a{color:#6f6a5f}
   /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
@@ -101,7 +101,7 @@
 <body>
 <header>
   <h1>Greek Night</h1>
-  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.03</p>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.04</p>
   <div class="meta">
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
     <span class="chip" id="next"></span>
@@ -126,7 +126,7 @@
   <button id="reset">Reset checks</button>
 </div>
 
-<footer>Greek Night · v1.03 · 614c886</footer>
+<footer>Greek Night · v1.04 · 238fa1e</footer>
 
 <script>
 (function(){
@@ -413,9 +413,9 @@
      pin list; Leaflet does the projection, the gestures, the labels and the popup. ---------- */
   var cardEl = document.getElementById('mapcard'), linkedRows = [], markers = [];
   var NOW = '#5aa9ff', ACCENT = '#f5b84a';   /* --now and --accent, for SVG paths that can't read CSS variables */
-  var map = L.map('gnmap', {zoomControl:false, minZoom:14, maxZoom:16, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
+  var map = L.map('gnmap', {zoomControl:false, minZoom:14, maxZoom:17, attributionControl:true, zoomSnap:0, doubleClickZoom:false});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
   map.attributionControl.setPrefix('');
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {minZoom:14, maxZoom:16, attribution:'© OpenStreetMap contributors'}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {subdomains:'abc', minZoom:14, maxZoom:17, attribution:'© OpenStreetMap contributors, Humanitarian OSM Team'}).addTo(map);
   var routeLayer = L.layerGroup().addTo(map), meLayer = L.layerGroup().addTo(map);
   var meDot = null, meRing = null;
   var hasOffset = !!(window.L && L.PolylineOffset);   /* leaflet-polylineoffset: a shared street draws its two legs ±4px apart */
@@ -511,7 +511,8 @@
   }
 
   function fitRoute(){ map.fitBounds(L.latLngBounds(PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK)), {padding:[24, 24]}); }
-  map.on('resize', fitRoute);   /* the card changed size: the route fills it again */
+  map.on('resize', function(){ map.invalidateSize(); });   /* the card changed size: re-measure, but keep whatever zoom the user set */
+  map.on('dblclick', fitRoute);   /* double-tap: back to the whole route */
 
   function buildMap(){
     routeData();
