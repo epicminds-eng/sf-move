@@ -22,19 +22,14 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   body{padding:max(var(--s4),env(safe-area-inset-top)) var(--s4) calc(var(--s6) + env(safe-area-inset-bottom))}
-  header{padding:var(--s3) 0 var(--s4)}
+  header{padding:0 0 var(--s3)}
   header h1{font-size:var(--t1);letter-spacing:-.02em;font-weight:700}
   header p{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
-  .meta{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s3)}
+  .meta{display:flex;gap:var(--s2);flex-wrap:nowrap;margin-top:var(--s2);min-width:0}
+  .meta .chip{flex:none;white-space:nowrap;padding:var(--s1) var(--s2)}
   .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:var(--s1) var(--s3);font-size:var(--t4);color:var(--ink2)}
   .chip b{color:var(--ink);font-weight:600}
   .chip.now{border-color:var(--now);color:var(--now)}
-  .modes{display:inline-flex}
-  .modes .seg{flex:none;padding:var(--s1) var(--s3);font-size:var(--t4);line-height:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .modes .seg:first-child{border-radius:999px 0 0 999px}
-  .modes .seg:last-child{border-radius:0 999px 999px 0;border-left:0}
-  .modes .seg.on{background:var(--now);border-color:var(--now);color:#fff}
-  .modes .seg.on b{color:#fff}
   section{margin-top:var(--s5)}
   section h2{font-size:var(--t4);text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:var(--s3);display:flex;justify-content:space-between;align-items:baseline}
   section h2 span{letter-spacing:0;text-transform:none;color:var(--ink3)}
@@ -79,6 +74,7 @@
   .pinm{width:28px;height:28px;border-radius:50%;background:var(--now);border:2px solid #fff;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:opacity .2s}
   .pinm.greek{background:var(--accent);color:#0b0d10}
   .pinm.start{width:24px;height:24px;background:var(--ink3);font-size:11px}
+  .item .pmark{width:1.6rem;height:1.6rem;border-radius:50%;background:var(--ink3);color:#fff;font-weight:700;font-size:var(--t4);display:grid;place-items:center;margin-top:.1rem;flex:none}
   .pinm.two{font-size:9px;letter-spacing:-.03em}
   .pinm.done{opacity:.45}
   .pinm.now::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--now);animation:gnPulse 2s ease-out infinite}
@@ -100,8 +96,8 @@
   .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
   .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
-  #clock{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1.3}
-  #clock .sub{color:var(--ink2);font-size:var(--t4)}
+  #clock{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* the one chip that gives way: a long "near …" ends in an ellipsis */
+  #clock .sub{color:var(--ink2)}
   #clock .sub[hidden]{display:none}
 </style>
 </head>
@@ -110,11 +106,8 @@
   <h1>Greek Night</h1>
   <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley</p>
   <div class="meta">
-    <span class="chip">Doors <b>5:00</b></span>
+    <span class="chip">Julia's <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
-    <span class="chip">Julia's <b>5:00</b> ×2</span>
-    <span class="chip">Leave Grove St <b>2:00</b></span>
-    <span class="modes" role="group" aria-label="Getting there"><button type="button" class="chip seg" data-mode="bart" aria-pressed="true">BART <b>35 min</b></button><button type="button" class="chip seg" data-mode="drive" aria-pressed="false">Drive <b>40 min</b></button></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
 </header>
@@ -155,14 +148,11 @@
     {t:'5:00', h:17, m:0, title:'Dinner — Julia’s', note:'Table for 2. Zero-proof cocktails. Niçoise w/ trout, ratatouille, beet salad. Ask for the check by 6:10.', map:M('Julia’s Restaurant 2315 Durant Ave Berkeley')},
     {t:'6:15', h:18, m:15, title:'Walk to the Greek', note:'Durant east → College Ave north → Gayley Rd. 15 min, uphill at the end.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
     {t:'6:35', h:18, m:35, title:'In the gate', note:'G. Love on. Jack ~8:00. Done ~10:15. GA pit — standing, front of stage. Water refill on the middle concourse.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
-    null
+    {t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 20 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}
   ];
-  /* the way home depends on the travel mode; so do the start pin and the walk back, below */
-  var MODE_ROWS = {
-    bart: {9:{t:'10:15', h:22, m:15, title:'Uber from North Gate', note:'Out the north side: up Gayley to Hearst, west on Hearst to Euclid. 8 min downhill, clear of the Gayley crowd. If surge is bad keep going west to Shattuck (10 more min).', map:M('Hearst Ave & Euclid Ave Berkeley')}},
-    drive: {9:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 20 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}}
-  };
-  var MODE_STEPS = [9];
+  /* the garage: an unnumbered start pin (ord 0, lettered P) that the walk back also ends at */
+  var START = {n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[], ord:0, start:true, letter:'P', map:GARAGE_MAP,
+               t:'2:40', note:'2025 Center St, enter from Center. $25 for the day, exit by 1 am. 20 EV spots — plug in.'};
 
   var BRING = [
     'Hoodie / jacket — mid-50s after dark',
@@ -208,8 +198,12 @@
     return el;
   }
 
-  function mode(){ return state.mode === 'bart' ? 'bart' : 'drive'; }   /* Drive unless BART is picked */
-  MODE_STEPS.forEach(function(i){ PLAN[i] = MODE_ROWS[mode()][i]; });
+  /* the parking row: first, no number, no tick, never moves; its walk line and highlight come off the start pin */
+  var parkEl = row('garage', START.t, START.n, START.note, START.map);
+  var pm = document.createElement('span'); pm.className = 'pmark'; pm.textContent = START.letter;
+  parkEl.replaceChild(pm, parkEl.querySelector('.check'));
+  var pnx = document.createElement('div'); pnx.className = 'next'; parkEl.querySelector('.body').appendChild(pnx);
+  planEl.appendChild(parkEl);
   var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
@@ -259,7 +253,7 @@
     if (ps.cur >= 0) top.push(rowEls[ps.cur]);
     rowEls.forEach(function(r, i){ if (ps.st[i] === 'up') top.push(r); });
     rowEls.forEach(function(r, i){ if (ps.st[i] === 'past' || ps.st[i] === 'done') back.push(r); });
-    var seq = back.length ? top.concat([earlierEl], back) : top;
+    var seq = [parkEl].concat(back.length ? top.concat([earlierEl], back) : top);
     var have = Array.prototype.slice.call(planEl.children);
     if (have.length === seq.length && have.every(function(e, i){ return e === seq[i]; })) return;
     var was = have.map(function(e){ return e.getBoundingClientRect().top; });
@@ -296,13 +290,15 @@
       if (nx) { nx.textContent = wl ? wl.txt : ''; nx.style.color = wl ? wl.col : ''; }
       if (sk) skipped++; else if (checked) done++;
     });
+    var pl = LEGS.filter(function(l){ return l.a === START; })[0];
+    pnx.textContent = pl ? '→ ' + pl.b.n + ' · ' + pl.min + ' min walk' : ''; pnx.style.color = pl ? pl.col : '';
     reorder(ps);
     var brows = bringEl.children;
     for (var j = 0; j < brows.length; j++) brows[j].classList.toggle('done', !!state['b' + j]);
     progEl.textContent = done + ' / ' + (PLAN.length - skipped);
     var d = new Date();
     var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
-    clockTimeEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
+    clockTimeEl.textContent = hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
     paintMap(ps.cur);
   }
 
@@ -329,15 +325,8 @@
     {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[9], greek:true}
   ];
   SHARED.forEach(function(s){ s.ord = s.steps[0]; });
-  /* per mode: the unnumbered start pin (ord 0, a letter), the walk back, and for BART an unnumbered end pin instead of the start */
-  var MODES = {
-    bart: {start:{n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[], ord:0, start:true, letter:'B', map:M('Downtown Berkeley BART Station')},
-           end:{n:'North Gate', lat:37.8749, lng:-122.2604, steps:[], ord:99, end:true, map:M('Hearst Ave & Euclid Ave Berkeley')},
-           back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]]},   /* Greek → Gayley & Hearst → North Gate */
-    drive: {start:{n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[], ord:0, start:true, letter:'P', map:GARAGE_MAP}, end:null,
-            back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]]}   /* Greek → Hearst → Oxford → the garage */
-  };
-  var PLACES = [], BACK = [];
+  var PLACES = [START].concat(SHARED);
+  var BACK = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]];   /* Greek → Hearst → Oxford → the garage */
   /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
   var LEG_WP = {
     'S-1': [[37.8702, -122.2662], [37.8718, -122.2640]],
@@ -371,9 +360,9 @@
     var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ return Math.round(v * 0.8); });
     return '#' + c.map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
   }
-  /* a pin stays while any of its steps is live: skip 6 and City Club remains for dinner, reading 7. The start and end pins always stay. */
+  /* a pin stays while any of its steps is live: skip 6 and City Club remains for dinner, reading 7. The start pin always stays. */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
-  function livePlaces(){ return PLACES.filter(function(s){ return s.start || s.end || liveSteps(s).length > 0; }); }
+  function livePlaces(){ return PLACES.filter(function(s){ return s.start || liveSteps(s).length > 0; }); }
   /* walk time per leg: haversine along the waypoints, 3 mph (20 min/mile); the climb to the Greek at 2.5 mph */
   function metres(a, b){
     var R = 6371000, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dg = (b[1] - a[1]) * r;
@@ -381,7 +370,7 @@
     return 2 * R * Math.asin(Math.sqrt(x));
   }
   function walkLegs(){
-    var live = livePlaces().filter(function(s){ return !s.end; }), legs = [];   /* the walk out; an end pin (North Gate) is just the return's end */
+    var live = livePlaces(), legs = [];   /* the walk out */
     for (var i = 1; i < live.length; i++) {
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
       var key = kid(a) + '-' + kid(b);
@@ -399,9 +388,9 @@
       legs.push({pts:pts, mph:b.greek ? 2.5 : 3, a:a, b:b, col:legColour(kid(a)),
                  name:b.greek ? '8' : (a.start ? a.letter : liveSteps(a)[0]) + '→' + liveSteps(b)[0]});
     }
-    /* the walk back out: Greek → the car, or Greek → North Gate for the Uber */
-    var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.end; })[0] || PLACES[0];
-    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'9→' + (home.start ? home.letter : home.n)});
+    /* the walk back out: Greek → the car */
+    var greek = PLACES.filter(function(s){ return s.greek; })[0];
+    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:START, col:LEG_COLOURS.ret, name:'9→P'});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -412,24 +401,6 @@
   var LEGS = [];
   function routeData(){ LEGS = walkLegs(); }
   var K = Math.cos(37.87 * Math.PI / 180);
-  /* the active mode's step 10, pins and walk back */
-  function applyMode(){
-    var md = MODES[mode()];
-    MODE_STEPS.forEach(function(i){
-      var p = PLAN[i] = MODE_ROWS[mode()][i], r = rowEls[i];
-      r.querySelector('.time').textContent = p.t;
-      r.querySelector('.title').textContent = p.title;
-      r.querySelector('.map').href = p.map;
-    });
-    PLACES = [md.start].concat(SHARED, md.end ? [md.end] : []);
-    BACK = md.back;
-    var segs = document.querySelectorAll('.modes .seg');
-    for (var j = 0; j < segs.length; j++) {
-      var on = segs[j].getAttribute('data-mode') === mode();
-      segs[j].classList.toggle('on', on); segs[j].setAttribute('aria-pressed', on ? 'true' : 'false');
-    }
-  }
-  applyMode();
   /* plan rows with a pin take the pin's colour for their step number */
   PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
 
@@ -438,13 +409,13 @@
     return '<a class="pp" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="pp-t"><b>' + name + '</b>' +
       lines.map(function(l){ return '<span class="pp-m">' + l + '</span>'; }).join('') + '</span><span class="pp-c">›</span></a>';
   }
-  /* ---------- the map: Leaflet on CARTO Voyager tiles. Legs, pins and pills are a layer group rebuilt from the live
+  /* ---------- the map: Leaflet on OpenStreetMap tiles. Legs, pins and pills are a layer group rebuilt from the live
      pin list; Leaflet does the projection, the gestures, the labels and the popup. ---------- */
   var cardEl = document.getElementById('mapcard'), linkedRows = [], markers = [];
   var NOW = '#5aa9ff', ACCENT = '#f5b84a';   /* --now and --accent, for SVG paths that can't read CSS variables */
   var map = L.map('gnmap', {zoomControl:false, maxZoom:19, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
   map.attributionControl.setPrefix('');
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:19, attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(map);
   var routeLayer = L.layerGroup().addTo(map), meLayer = L.layerGroup().addTo(map);
   var meDot = null, meRing = null;
   var hasOffset = !!(window.L && L.PolylineOffset);   /* leaflet-polylineoffset: a shared street draws its two legs ±4px apart */
@@ -551,7 +522,7 @@
       L.marker(pillAt(l), {icon:L.divIcon({className:'walk' + (l.ret ? ' ret' : ''), html:html, iconSize:[0, 0]}), interactive:false, keyboard:false}).addTo(routeLayer);
     });
     PLACES.forEach(function(s, i){
-      var steps = liveSteps(s), plain = s.start || s.end;
+      var steps = liveSteps(s), plain = s.start;
       if (!steps.length && !plain) return;
       var cls = 'pinm' + (s.greek ? ' greek' : '') + (steps.length > 1 ? ' two' : '') + (plain ? ' start' : ''), sz = plain ? 24 : 28;
       var m = L.marker([s.lat, s.lng], {icon:L.divIcon({className:cls, html:'<span>' + (plain ? (s.letter || '') : steps.join('·')) + '</span>', iconSize:[sz, sz], iconAnchor:[sz / 2, sz / 2]}), keyboard:false, riseOnHover:true}).addTo(routeLayer);
@@ -583,7 +554,7 @@
     L.popup({className:'pinpop', closeButton:false, minWidth:168, maxWidth:250, offset:[0, -12], autoPanPadding:[12, 12]})
       .setLatLng(m.getLatLng()).setContent(popPill(steps.length ? PLAN[steps[0] - 1].map : s.map, esc(s.n), lines)).openOn(map);
     linkedRows.forEach(function(r){ r.classList.remove('linked'); });
-    linkedRows = steps.map(function(k){ return rowEls[k - 1]; });
+    linkedRows = s.start ? [parkEl] : steps.map(function(k){ return rowEls[k - 1]; });
     linkedRows.forEach(function(r){ r.classList.add('linked'); });
   }
   map.on('popupclose', function(){ linkedRows.forEach(function(r){ r.classList.remove('linked'); }); linkedRows = []; });
@@ -591,7 +562,7 @@
   /* ---------- live location: always on, foreground only; never re-fits the map, never checks a step.
      Denied or unavailable: nothing is said, the chip just never gets its second line. ---------- */
   var watchId = null, fix = null, geoDenied = false;
-  if ('track' in state) { delete state.track; save(); }   /* the old on/off toggle's setting */
+  if ('track' in state || 'mode' in state) { delete state.track; delete state.mode; save(); }   /* settings from earlier versions */
   function sub(txt){ clockSubEl.textContent = txt; clockSubEl.hidden = !txt; }
   function nearestPin(lat, lng){
     var pin = null, bd = Infinity;
@@ -601,8 +572,8 @@
   function describe(){
     if (!fix) { sub(''); return; }
     var n = nearestPin(fix.lat, fix.lng);
-    if (n.m <= 400) sub('near ' + n.pin.n + ' · ' + Math.round(n.m * 3.28084) + ' ft');
-    else sub((n.m / 1609.344).toFixed(1) + ' mi from Berkeley');
+    if (n.m <= 400) sub(' · near ' + n.pin.n);
+    else sub(' · ' + (n.m / 1609.344).toFixed(1) + ' mi');
   }
   function drawMe(){
     if (!fix) { meLayer.clearLayers(); meDot = meRing = null; return; }
@@ -631,20 +602,10 @@
   document.addEventListener('visibilitychange', function(){ if (document.hidden) stopWatch(); else startWatch(); });
 
   buildMap();
-  /* switching mode: step 10's tick goes (it's a different step now); the rest keep theirs; the map refits */
-  document.querySelector('.modes').addEventListener('click', function(e){
-    var b = e.target.closest ? e.target.closest('.seg') : null;
-    if (!b || b.getAttribute('data-mode') === mode()) return;
-    state.mode = b.getAttribute('data-mode');
-    MODE_STEPS.forEach(function(i){ delete state['p' + i]; rowEls[i].querySelector('.check').checked = false; });
-    save(); applyMode(); popClose(); buildMap(); paint(); describe();
-  });
   startWatch();
 
   document.getElementById('reset').addEventListener('click', function(){
-    var md = state.mode;
-    state = {}; if (md) state.mode = md;   /* the travel mode isn't a check */
-    save();
+    state = {}; save();
     var cbs = document.querySelectorAll('.check');
     for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
     popClose(); buildMap(); paint();
