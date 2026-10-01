@@ -58,12 +58,16 @@
   .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
-  .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none}
-  /* phone widths: the card takes the route's own shape (--mapH, set from its width), capped at 75vh */
+  .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  /* phone widths: the card takes the route's own shape (--mapH, set from its width), capped at 75vh, no floor */
   @media (max-width:767px){
     .mapcard{aspect-ratio:auto;max-height:none;height:min(var(--mapH, 75vw), 75vh);height:min(var(--mapH, 75vw), 75dvh)}
   }
-  .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+  /* one finger on the map pans it; on this strip it scrolls the page (touch-action narrows down the tree, so the map
+     surface, not the card, is the one set to none) */
+  .maphandle{position:absolute;left:0;right:0;bottom:0;height:var(--s3);z-index:3;display:grid;place-items:center;touch-action:pan-y}
+  .maphandle::after{content:"";width:2.25rem;height:.25rem;border-radius:999px;background:rgba(0,0,0,.18)}
   .gn-land{fill:#ece6d8}
   .gn-campus{fill:#dfe6d3}
   .gn-st-case{stroke:rgba(0,0,0,.10);stroke-width:3;stroke-linecap:round}
@@ -123,6 +127,7 @@
 <div class="mapcard" id="mapcard">
   <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
   <div class="pinpop" id="pinpop" hidden></div>
+  <div class="maphandle" id="maphandle" aria-hidden="true"></div>
 </div>
 
 <section>
@@ -393,6 +398,7 @@
   var cardEl = document.getElementById('mapcard');
   var svg = document.getElementById('gnmap');
   var popEl = document.getElementById('pinpop');
+  var handleEl = document.getElementById('maphandle');
   var pinEls = [], linkedRows = [];
   /* plan rows with a pin take the pin's colour for their step number */
   PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
@@ -562,8 +568,7 @@
       var x = s.lng * K, y = -s.lat;
       minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
     });
-    /* 8% top and bottom; the sides may come in to 3%, since the phone card is a touch taller than the route (×1.1) */
-    var sc = Math.min(w * 0.94 / (maxx - minx), h * 0.84 / (maxy - miny));
+    var sc = Math.min(w * 0.84 / (maxx - minx), h * 0.84 / (maxy - miny));   /* 8% all round */
     var ox = w / 2 - sc * (minx + maxx) / 2, oy = h / 2 - sc * (miny + maxy) / 2;
     function P(lat, lng){ return [ox + sc * lng * K, oy - sc * lat]; }
     if (!FIT || FIT.w !== w || FIT.h !== h) VIEW = {x:0, y:0, z:1};   /* a new size starts fitted; a rebuild (a skip) keeps the view */
@@ -628,6 +633,8 @@
     var ob = {circles:[], segs:[], rects:[]};
     livePlaces().forEach(function(s){ var p = Ps(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
     LEGS.forEach(function(l){ for (var i = 1; i < l.draw.length; i++) ob.segs.push([l.draw[i - 1], l.draw[i]]); });
+    var strip = handleEl.offsetHeight;
+    ob.rects.push({x:0, y:h - strip - 2, w:w, h:strip + 2});   /* the page-scroll strip */
 
     var gp = S('g', {}, gTop);   /* pills: above both routes, under the names and pins */
     var gl = S('g', {}, gTop);
@@ -657,8 +664,8 @@
       }
       function crowding(c){   /* the pin, earlier pill or card edge this spot is too close to, if any */
         var r = {x:c[0] - pw / 2, y:c[1] - ph / 2, w:pw, h:ph};
-        if (r.x < 3 || r.y < 3 || r.x + r.w > w - 3 || r.y + r.h > h - 3)
-          return [r.x < 3 ? -1e3 : r.x + r.w > w - 3 ? w + 1e3 : c[0], r.y < 3 ? -1e3 : r.y + r.h > h - 3 ? h + 1e3 : c[1]];
+        if (r.x < 3 || r.y < 3 || r.x + r.w > w - 3 || r.y + r.h > h - strip - 3)
+          return [r.x < 3 ? -1e3 : r.x + r.w > w - 3 ? w + 1e3 : c[0], r.y < 3 ? -1e3 : r.y + r.h > h - strip - 3 ? h + 1e3 : c[1]];
         for (var i = 0; i < pinPts.length; i++) {
           var q = pinPts[i];
           if (Math.hypot(q[0] - c[0], q[1] - c[1]) < 14) return q;
@@ -862,7 +869,8 @@
   document.addEventListener('visibilitychange', function(){ if (document.hidden) stopWatch(); else startWatch(); });
 
   /* ---------- pinch zoom and pan, no controls: two fingers zoom about their midpoint, one finger pans,
-     a still finger is a tap, a double tap goes back to the fitted view, the wheel zooms on desktop ---------- */
+     a still finger is a tap, a double tap goes back to the fitted view, the wheel zooms on desktop.
+     Mouse and pen come through pointer events; touch through touch events, below. ---------- */
   var ptrs = {}, gest = null, lastTap = null, wheelT = null, anim = null;
   function local(e){ var r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   function down(){ return Object.keys(ptrs); }
@@ -873,6 +881,7 @@
   }
   function stopAnim(){ if (anim) { cancelAnimationFrame(anim); anim = null; } }
   svg.addEventListener('pointerdown', function(e){
+    if (e.pointerType === 'touch') return;   /* touch is handled by the touch events */
     stopAnim();
     try { svg.setPointerCapture(e.pointerId); } catch (err) {}
     ptrs[e.pointerId] = local(e);
@@ -931,6 +940,66 @@
     }
     stopAnim(); anim = requestAnimationFrame(step);
   }
+  /* Touch. iOS Safari zooms the whole page on a two-finger pinch unless the touches themselves are cancelled, so the
+     card listens to touch events (not passive) and drives the zoom from the finger pair, live on every move.
+     The strip along the card's bottom and the open pill are left alone: there one finger scrolls the page or taps the link. */
+  function tpts(e){ var r = svg.getBoundingClientRect(); return Array.prototype.map.call(e.touches, function(t){ return [t.clientX - r.left, t.clientY - r.top]; }); }
+  function pinchFrom(a, b){ gest = {mode:'pinch', d0:Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z0:VIEW.z, U0:toUser([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])}; }
+  function onMap(e){ return !handleEl.contains(e.target) && !popEl.contains(e.target); }
+  cardEl.addEventListener('touchstart', function(e){
+    var ts = tpts(e);
+    if (ts.length >= 2) { e.preventDefault(); stopAnim(); popClose(); pinchFrom(ts[0], ts[1]); return; }
+    if (!onMap(e)) { gest = null; return; }
+    stopAnim(); gest = {mode:'tap', s:ts[0], target:e.target};
+  }, {passive:false});
+  cardEl.addEventListener('touchmove', function(e){
+    if (!gest) return;
+    e.preventDefault();
+    var ts = tpts(e);
+    if (ts.length >= 2) {
+      if (gest.mode !== 'pinch') { popClose(); pinchFrom(ts[0], ts[1]); }
+      var a = ts[0], b = ts[1], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      VIEW.z = Math.max(1, Math.min(4, gest.z0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gest.d0));
+      VIEW.x = gest.U0[0] - m[0] / VIEW.z; VIEW.y = gest.U0[1] - m[1] / VIEW.z;   /* the point under the fingers stays under them */
+    } else {
+      var sp = ts[0];
+      if (gest.mode === 'tap') {
+        if (Math.hypot(sp[0] - gest.s[0], sp[1] - gest.s[1]) <= 6) return;
+        popClose(); startPan(gest.s);
+      }
+      if (gest.mode !== 'pan') return;
+      VIEW.x = gest.v0.x - (sp[0] - gest.s[0]) / VIEW.z; VIEW.y = gest.v0.y - (sp[1] - gest.s[1]) / VIEW.z;
+    }
+    clampView(); applyView();
+  }, {passive:false});
+  function touchUp(e){
+    if (!gest) return;
+    var ts = tpts(e);
+    if (ts.length >= 2) { if (gest.mode === 'pinch') pinchFrom(ts[0], ts[1]); return; }   /* a third finger lifted: carry on with two */
+    if (ts.length === 1) { if (gest.mode === 'pinch') startPan(ts[0]); return; }          /* one finger lifts: the other pans on */
+    var g = gest; gest = null;
+    if (g.mode !== 'tap') { layout(); return; }   /* gesture end: place the labels for the new window */
+    if (e.type === 'touchend') { if (e.cancelable) e.preventDefault(); tap(g); }   /* no synthetic click after our own tap */
+  }
+  cardEl.addEventListener('touchend', touchUp, {passive:false});
+  cardEl.addEventListener('touchcancel', touchUp, {passive:false});
+  /* Safari's own pinch events: always cancelled. On iOS the finger pair above already drives the zoom; a macOS trackpad
+     pinch arrives only as these, so it zooms the map about the pointer. */
+  var gz = null;
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(type){
+    cardEl.addEventListener(type, function(e){
+      e.preventDefault();
+      if (gest && gest.mode === 'pinch') return;
+      if (type === 'gesturestart') { stopAnim(); popClose(); gz = {z0:VIEW.z, U0:toUser(local(e))}; return; }
+      if (!gz) return;
+      if (type === 'gestureend') { gz = null; layout(); return; }
+      var m = local(e);
+      VIEW.z = Math.max(1, Math.min(4, gz.z0 * e.scale));
+      VIEW.x = gz.U0[0] - m[0] / VIEW.z; VIEW.y = gz.U0[1] - m[1] / VIEW.z;
+      clampView(); applyView();
+    }, {passive:false});
+  });
+
   svg.addEventListener('wheel', function(e){
     e.preventDefault(); stopAnim(); popClose();
     var m = local(e), U = toUser(m);
@@ -940,13 +1009,12 @@
     clearTimeout(wheelT); wheelT = setTimeout(layout, 150);
   }, {passive:false});
 
-  /* the map card is sized from the header's height at phone widths; any change of the card's size refits the map
-     and re-places the chip-aware labels */
+  /* the map card is sized from the route at phone widths; any change of the card's size refits the map and re-places the labels */
   var rsT = null, lastW = '';
-  function sizeCard(){   /* the route's shape, a tenth taller; CSS caps it at 75vh and ignores it from 768 up */
+  function sizeCard(){   /* the route's own shape plus the card's border; CSS caps it at 75vh and ignores it from 768 up */
     var la = PLACES.map(function(s){ return s.lat; }), lo = PLACES.map(function(s){ return s.lng; });
-    var aspect = (Math.max.apply(null, la) - Math.min.apply(null, la)) * 1.1 / ((Math.max.apply(null, lo) - Math.min.apply(null, lo)) * K);
-    cardEl.style.setProperty('--mapH', (cardEl.clientWidth * aspect).toFixed(1) + 'px');
+    var aspect = (Math.max.apply(null, la) - Math.min.apply(null, la)) / ((Math.max.apply(null, lo) - Math.min.apply(null, lo)) * K);
+    cardEl.style.setProperty('--mapH', (cardEl.clientWidth * aspect + cardEl.offsetHeight - cardEl.clientHeight).toFixed(1) + 'px');
   }
   function resized(){
     clearTimeout(rsT);
