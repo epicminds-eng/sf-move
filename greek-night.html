@@ -68,6 +68,7 @@
   @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:60vh;height:60dvh}}
   #gnmap{position:absolute;inset:0;background:#e9e5dc;font:inherit}
   .leaflet-container{font-family:inherit}
+  .leaflet-tile-pane{filter:grayscale(1) brightness(1.12) contrast(.85)}   /* a light grey basemap; the route, pins and dot sit in sibling panes, unfiltered */
   .leaflet-control-attribution{font-size:9px;line-height:1.2;padding:1px 4px;background:rgba(255,255,255,.7);color:#6f6a5f}
   .leaflet-control-attribution a{color:#6f6a5f}
   /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
@@ -80,12 +81,8 @@
   .pinm.now::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--now);animation:gnPulse 2s ease-out infinite}
   @keyframes gnPulse{from{transform:scale(1);opacity:.9}to{transform:scale(2.4);opacity:0}}
   @media (prefers-reduced-motion:reduce){.pinm.now::after{animation:none;transform:scale(1.5);opacity:.6}}
-  .pinlbl{background:none;border:0;box-shadow:none;padding:0 4px;font-size:9pt;font-weight:600;color:#6f6a5f;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+  .pinlbl{background:none;border:0;box-shadow:none;padding:0 4px;font-size:8pt;font-weight:600;color:#6f6a5f;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff,0 0 2px #fff;white-space:nowrap}
   .pinlbl::before{display:none}
-  /* walk-time pills, centred on the leg; the icon itself is a point and the pill hangs off it */
-  .walk{width:0;height:0;overflow:visible}
-  .walk span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;background:#fff;border:1.5px solid;border-radius:999px;padding:1px 7px;font-size:9px;font-weight:700;line-height:1.3}
-  .walk.ret span{opacity:.7}
   .pp-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.35rem;vertical-align:.05em}
   /* the pin popup: the page's dark pill; the whole card is the Apple Maps link */
   .pinpop .leaflet-popup-content-wrapper{background:var(--card2);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 26px rgba(0,0,0,.45);color:var(--ink);padding:0}
@@ -356,10 +353,6 @@
     for (var k in LEG_COLOURS) if (k.split('-')[0] === fromKey) return LEG_COLOURS[k];
     return LEG_COLOURS.ret;
   }
-  function darker(hex){   /* 20% darker, for pill text */
-    var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ return Math.round(v * 0.8); });
-    return '#' + c.map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
-  }
   /* a pin stays while any of its steps is live: skip 6 and City Club remains for dinner, reading 7. The start pin always stays. */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return s.start || liveSteps(s).length > 0; }); }
@@ -500,8 +493,8 @@
     });
   }
 
-  /* a pill at the leg's midpoint by path length; none for a walk under 3 min */
-  function pillAt(l){
+  /* the leg's midpoint by path length (kept for use by the rows' walk lines) */
+  function midpoint(l){
     var cum = [0];
     for (var j = 1; j < l.pts.length; j++) cum.push(cum[j - 1] + metres(l.pts[j - 1], l.pts[j]));
     var d = cum[cum.length - 1] / 2, j = 1;
@@ -515,12 +508,6 @@
     routeLayer.clearLayers(); markers = [];
     legParts(LEGS);
     LEGS.filter(function(l){ return l.ret; }).concat(LEGS.filter(function(l){ return !l.ret; })).forEach(legDraw);
-    LEGS.forEach(function(l){
-      if (l.min < 3) return;
-      var txt = l.name + ' · ' + l.min + ' min' + (l.ret ? ' ⇣' : '');
-      var html = '<span style="border-color:' + l.col + ';color:' + darker(l.col) + (l.ret ? ';border-style:dashed' : '') + '">' + esc(txt) + '</span>';
-      L.marker(pillAt(l), {icon:L.divIcon({className:'walk' + (l.ret ? ' ret' : ''), html:html, iconSize:[0, 0]}), interactive:false, keyboard:false}).addTo(routeLayer);
-    });
     PLACES.forEach(function(s, i){
       var steps = liveSteps(s), plain = s.start;
       if (!steps.length && !plain) return;
