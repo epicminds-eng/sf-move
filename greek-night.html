@@ -48,6 +48,10 @@
   .note{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
   .map{flex:none;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:var(--r2);background:var(--card2);border:1px solid var(--line);text-decoration:none;font-size:1.1rem;margin-top:.05rem;color:var(--ink2)}
   .map:active{background:var(--line)}
+  .side{display:flex;flex-direction:column;align-items:center;gap:var(--s2)}
+  .skipbtn{flex:none;padding:var(--s1) var(--s2);font-size:var(--t4);border-radius:999px;line-height:1.2;cursor:pointer}
+  .item.skipped{opacity:.42}
+  .item.skipped .title{text-decoration:line-through}
   .bring .item{grid-template-columns:auto 1fr}
   .bring .title{font-size:var(--t3);font-weight:500;margin-top:.15rem}
   .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
@@ -199,6 +203,24 @@
   PLAN.forEach(function(p, i){ planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
+  /* steps 4–8 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
+  function isSkipped(step){ return !!(state.skip && state.skip['p' + (step - 1)]); }
+  function skipGain(i){ return (PLAN[i + 1].h * 60 + PLAN[i + 1].m) - (PLAN[i].h * 60 + PLAN[i].m); }
+  [4, 5, 6, 7, 8].forEach(function(step){
+    var r = planEl.children[step - 1], a = r.querySelector('.map');
+    var side = document.createElement('div'); side.className = 'side';
+    r.replaceChild(side, a); side.appendChild(a);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip skipbtn'; b.textContent = 'Skip';
+    b.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      var id = 'p' + (step - 1);
+      state.skip = state.skip || {};
+      if (state.skip[id]) delete state.skip[id]; else state.skip[id] = true;
+      save(); popClose(); buildMap(); paint();
+    });
+    side.appendChild(b);
+  });
+
   function nowIndex(){
     var d = new Date();
     if (d.getMonth() !== 9 || d.getDate() !== 1) return -1;
@@ -209,19 +231,23 @@
   }
 
   function paint(){
-    var done = 0;
+    var done = 0, skipped = 0;
     var ni = nowIndex();
     var rows = planEl.children;
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
-      var checked = !!state['p' + i];
+      var checked = !!state['p' + i], sk = isSkipped(i + 1);
       r.classList.toggle('done', checked);
-      r.classList.toggle('now', i === ni && !checked);
-      if (checked) done++;
+      r.classList.toggle('skipped', sk);
+      r.classList.toggle('now', i === ni && !checked && !sk);
+      var note = r.querySelector('.note'), btn = r.querySelector('.skipbtn');
+      if (note) note.textContent = sk ? 'Skipped · +' + skipGain(i) + ' min' : PLAN[i].note;
+      if (btn) btn.textContent = sk ? 'Restore' : 'Skip';
+      if (sk) skipped++; else if (checked) done++;
     }
     var brows = bringEl.children;
     for (var j = 0; j < brows.length; j++) brows[j].classList.toggle('done', !!state['b' + j]);
-    progEl.textContent = done + ' / ' + PLAN.length;
+    progEl.textContent = done + ' / ' + (PLAN.length - skipped);
     var d = new Date();
     var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
     clockTimeEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
@@ -238,13 +264,24 @@
     {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, step:8},
     {n:'Greek Theatre', lat:37.8737, lng:-122.2543, step:11, greek:true}
   ];
-  /* walk out: BART → campus → Strada → Telegraph → City Club → Greek; the Bancroft & College retrace is the same sidewalk */
-  var OUT = [
-    [37.8699, -122.2681], [37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592],
-    [37.8721, -122.2578], [37.8700, -122.2555], [37.8687, -122.2535], [37.8688, -122.2533],
-    [37.8687, -122.2588], [37.8657, -122.2587], [37.8677, -122.2588], [37.8678, -122.2612],
-    [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545], [37.8737, -122.2543]
-  ];
+  /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
+  var LEG_WP = {
+    '3-4': [[37.8702, -122.2662], [37.8718, -122.2640]],
+    '4-5': [],
+    '5-6': [[37.8700, -122.2555], [37.8687, -122.2535]],
+    '6-7': [[37.8687, -122.2588]],
+    '7-8': [[37.8677, -122.2588]],
+    '8-11': [[37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+  };
+  /* a skipped pin's two legs splice into one: the waypoints from the previous live pin to the next; adjacent skips chain in order */
+  var BYPASS = {
+    4: [[37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592]],
+    5: [[37.8700, -122.2555], [37.8687, -122.2535]],
+    6: [[37.8703, -122.2595], [37.8687, -122.2588]],
+    7: [[37.8687, -122.2588], [37.8687, -122.2612]],
+    8: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+  };
+  function livePlaces(){ return PLACES.filter(function(s){ return !isSkipped(s.step); }); }
   var BACK = [[37.8737, -122.2543], [37.8723, -122.2592], [37.8718, -122.2640], [37.8702, -122.2662], [37.8699, -122.2681]];
   /* [name, N–S?, fixed coord, from, to (null = full fitted width), labelled] */
   var STREETS = [
@@ -266,14 +303,17 @@
     return 2 * R * Math.asin(Math.sqrt(x));
   }
   function walkLegs(){
-    var legs = [], k = 0, prev = 0;
-    PLACES.forEach(function(pl, i){
-      while (k < OUT.length && !(OUT[k][0] === pl.lat && OUT[k][1] === pl.lng)) k++;
-      if (i > 0) legs.push({pts:OUT.slice(prev, k + 1), mph:pl.greek ? 2.5 : 3});
-      prev = k;
-    });
-    /* the return's pill sits on its visible dashed stretch (Greek → Doe), on the side away from the Campanile */
-    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2), away:PLACES.filter(function(pl){ return pl.step === 5; })[0]});
+    var live = livePlaces(), legs = [];
+    for (var i = 1; i < live.length; i++) {
+      var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
+      var gap = PLACES.filter(function(s){ return s.step > a.step && s.step < b.step; });   /* the skipped pins between them, in order */
+      if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.step]); });
+      else pts = pts.concat(LEG_WP[a.step + '-' + b.step] || []);
+      pts.push([b.lat, b.lng]);
+      legs.push({pts:pts, mph:b.greek ? 2.5 : 3});
+    }
+    /* the return's pill sits on its visible dashed stretch (Greek → Doe), on the side away from the Campanile (when it is live) */
+    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2), away:live.filter(function(pl){ return pl.step === 5; })[0]});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -281,7 +321,11 @@
     });
     return legs;
   }
-  var LEGS = walkLegs();
+  var LEGS = [], OUT = [];
+  function routeData(){
+    LEGS = walkLegs(); OUT = [];
+    LEGS.forEach(function(l){ if (l.ret) return; l.pts.forEach(function(c, j){ if (j === 0 && OUT.length) return; OUT.push(c); }); });
+  }
   var CAMPUS = [[37.8687, -122.2662], [37.8687, -122.2545], [37.8755, -122.2545], [37.8755, -122.2662]];
   var K = Math.cos(37.87 * Math.PI / 180);
   var NS = 'http://www.w3.org/2000/svg';
@@ -334,6 +378,7 @@
   function buildMap(){
     var w = svg.clientWidth, h = svg.clientHeight;
     if (!w || !h) return;
+    routeData();
     var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
     PLACES.forEach(function(s){
       var x = s.lng * K, y = -s.lat;
@@ -382,11 +427,12 @@
 
     /* obstacles for label placement */
     var ob = {circles:[], segs:[], rects:[]};
-    PLACES.forEach(function(s){ var p = P(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
+    livePlaces().forEach(function(s){ var p = P(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
     [OUT, BACK].forEach(function(pts){
       for (var i = 1; i < pts.length; i++) ob.segs.push([P(pts[i - 1][0], pts[i - 1][1]), P(pts[i][0], pts[i][1])]);
     });
     ob.rects.push(chip);
+    ob.rects.push({x:br.left - sr.left - 2, y:br.top - sr.top - 2, w:br.width + 4, h:br.height + 4});   /* the location button */
 
     var gl = S('g', {}, svg);
     function measure(cls, txt){
@@ -450,7 +496,7 @@
       ob.rects.push(c.r);
     }
     /* pin names: right of the pin (left in the right third), then the other side, then above / below */
-    PLACES.forEach(function(s){
+    livePlaces().forEach(function(s){
       var p = P(s.lat, s.lng), len = measure('pin-l', s.n), H = 10;
       var R = {r:{x:p[0] + 13, y:p[1] - 5, w:len, h:H}, anchor:'start', x:p[0] + 13};
       var L = {r:{x:p[0] - 13 - len, y:p[1] - 5, w:len, h:H}, anchor:'end', x:p[0] - 13};
@@ -511,6 +557,7 @@
     });
 
     pinEls = PLACES.map(function(s, i){
+      if (isSkipped(s.step)) return null;
       var p = P(s.lat, s.lng);
       var g = S('g', {'class':'pin' + (s.greek ? ' greek' : ''), 'data-i':i, transform:'translate(' + f(p[0]) + ' ' + f(p[1]) + ')'}, svg);
       S('circle', {'class':'pin-hit', r:20}, g);
@@ -525,6 +572,7 @@
 
   function paintMap(ni){
     pinEls.forEach(function(g, i){
+      if (!g) return;
       var k = PLACES[i].step - 1;
       g.classList.toggle('done', !!state['p' + k]);
       g.classList.toggle('now', k === ni && !state['p' + k]);
@@ -559,7 +607,7 @@
   function syncTrack(){ trackBtn.classList.toggle('on', !!state.track); trackBtn.setAttribute('aria-pressed', state.track ? 'true' : 'false'); }
   function nearestPin(lat, lng){
     var pin = null, bd = Infinity;
-    PLACES.forEach(function(s){ var d = metres([lat, lng], [s.lat, s.lng]); if (d < bd) { bd = d; pin = s; } });
+    livePlaces().forEach(function(s){ var d = metres([lat, lng], [s.lat, s.lng]); if (d < bd) { bd = d; pin = s; } });
     return {pin:pin, m:bd};
   }
   function describe(){
@@ -639,7 +687,7 @@
     state = {}; if (tr) state.track = true; save();
     var cbs = document.querySelectorAll('.check');
     for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
-    paint();
+    popClose(); buildMap(); paint();
   });
 
   paint();
