@@ -32,7 +32,8 @@
   .list{display:flex;flex-direction:column;gap:var(--s2)}
   .item{display:grid;grid-template-columns:auto 1fr auto;gap:var(--s3);align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s3) var(--s3) var(--s3) var(--s3);position:relative;transition:opacity .2s}
   .item.now,.item.linked{border-color:var(--now);box-shadow:0 0 0 1px var(--now) inset}
-  .item.done{opacity:.42}
+  .item.done,.item.past{opacity:.42}
+  .earlier{font-size:var(--t4);font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-top:var(--s3)}
   .item.done .title{text-decoration:line-through}
   .check{appearance:none;-webkit-appearance:none;width:1.6rem;height:1.6rem;border-radius:50%;border:2px solid var(--ink3);margin-top:.1rem;flex:none;display:grid;place-items:center;cursor:pointer}
   .check:checked{background:var(--ok);border-color:var(--ok)}
@@ -58,6 +59,12 @@
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
   .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none}
+  /* phone widths: header + map fill the first screen and the plan starts below the fold; 4:3 stays as the minimum */
+  @media (max-width:767px){
+    .mapcard{aspect-ratio:auto;max-height:none;min-height:calc((100vw - 2 * var(--s4)) * .75);
+      height:calc(100vh - var(--hdr, 0px) - env(safe-area-inset-top) - var(--s4));
+      height:calc(100dvh - var(--hdr, 0px) - env(safe-area-inset-top) - var(--s4))}
+  }
   .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
   .mapchip{position:absolute;bottom:var(--s3);left:var(--s3);z-index:3;pointer-events:none}
   .gn-land{fill:#ece6d8}
@@ -200,14 +207,14 @@
     return el;
   }
 
-  PLAN.forEach(function(p, i){ planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });
+  var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
   /* steps 4–8 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
   function isSkipped(step){ return !!(state.skip && state.skip['p' + (step - 1)]); }
   function skipGain(i){ return (PLAN[i + 1].h * 60 + PLAN[i + 1].m) - (PLAN[i].h * 60 + PLAN[i].m); }
   [4, 5, 6, 7, 8].forEach(function(step){
-    var r = planEl.children[step - 1], a = r.querySelector('.map');
+    var r = rowEls[step - 1], a = r.querySelector('.map');
     var side = document.createElement('div'); side.className = 'side';
     r.replaceChild(side, a); side.appendChild(a);
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip skipbtn'; b.textContent = 'Skip';
@@ -221,37 +228,77 @@
     side.appendChild(b);
   });
 
-  function nowIndex(){
+  /* Each step's place in the evening (on Oct 1; any other day nothing is under way):
+     done = ticked or skipped; past = its next step started more than 15 min ago (the last step: an hour after its own time);
+     current = the first step that has started and is neither; everything else is still to come. */
+  function minsNow(){
     var d = new Date();
-    if (d.getMonth() !== 9 || d.getDate() !== 1) return -1;
-    var mins = d.getHours() * 60 + d.getMinutes();
-    var idx = -1;
-    PLAN.forEach(function(p, i){ if (mins >= p.h * 60 + p.m) idx = i; });
-    return idx;
+    return d.getMonth() === 9 && d.getDate() === 1 ? d.getHours() * 60 + d.getMinutes() : -1;
+  }
+  function planStates(){
+    var now = minsNow(), cur = -1;
+    var st = PLAN.map(function(p, i){
+      if (state['p' + i] || isSkipped(i + 1)) return 'done';
+      if (now < 0) return 'up';
+      var start = p.h * 60 + p.m, nx = PLAN[i + 1], end = nx ? nx.h * 60 + nx.m + 15 : start + 60;
+      if (now > end) return 'past';
+      if (now >= start && cur < 0) { cur = i; return 'cur'; }
+      return 'up';
+    });
+    return {st:st, cur:cur};
+  }
+  /* current first, then what's still to come in time order; under "Earlier", what's behind you in plan order.
+     A row that moves slides to its new place (FLIP, 250 ms) rather than jumping; the first paint just sets the order. */
+  var earlierEl = document.createElement('div'), firstOrder = true;
+  earlierEl.className = 'earlier'; earlierEl.textContent = 'Earlier';
+  function reorder(ps){
+    var top = [], back = [];
+    if (ps.cur >= 0) top.push(rowEls[ps.cur]);
+    rowEls.forEach(function(r, i){ if (ps.st[i] === 'up') top.push(r); });
+    rowEls.forEach(function(r, i){ if (ps.st[i] === 'past' || ps.st[i] === 'done') back.push(r); });
+    var seq = back.length ? top.concat([earlierEl], back) : top;
+    var have = Array.prototype.slice.call(planEl.children);
+    if (have.length === seq.length && have.every(function(e, i){ return e === seq[i]; })) return;
+    var was = have.map(function(e){ return e.getBoundingClientRect().top; });
+    seq.forEach(function(e){ planEl.appendChild(e); });
+    if (!back.length && earlierEl.parentNode) planEl.removeChild(earlierEl);
+    var animate = !firstOrder && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    firstOrder = false;
+    if (!animate) return;
+    var moved = [];
+    have.forEach(function(e, k){
+      if (!e.parentNode) return;
+      var d = was[k] - e.getBoundingClientRect().top;
+      if (Math.abs(d) < 1) return;
+      e.style.transition = 'none'; e.style.transform = 'translateY(' + d + 'px)'; moved.push(e);
+    });
+    if (!moved.length) return;
+    void planEl.offsetHeight;   /* commit the old positions before playing to the new ones */
+    moved.forEach(function(e){ e.style.transition = 'transform .25s ease'; e.style.transform = ''; });
+    setTimeout(function(){ moved.forEach(function(e){ e.style.transition = ''; }); }, 300);
   }
 
   function paint(){
-    var done = 0, skipped = 0;
-    var ni = nowIndex();
-    var rows = planEl.children;
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
+    var done = 0, skipped = 0, ps = planStates();
+    rowEls.forEach(function(r, i){
       var checked = !!state['p' + i], sk = isSkipped(i + 1);
       r.classList.toggle('done', checked);
       r.classList.toggle('skipped', sk);
-      r.classList.toggle('now', i === ni && !checked && !sk);
+      r.classList.toggle('past', ps.st[i] === 'past');
+      r.classList.toggle('now', i === ps.cur);
       var note = r.querySelector('.note'), btn = r.querySelector('.skipbtn');
       if (note) note.textContent = sk ? 'Skipped · +' + skipGain(i) + ' min' : PLAN[i].note;
       if (btn) btn.textContent = sk ? 'Restore' : 'Skip';
       if (sk) skipped++; else if (checked) done++;
-    }
+    });
+    reorder(ps);
     var brows = bringEl.children;
     for (var j = 0; j < brows.length; j++) brows[j].classList.toggle('done', !!state['b' + j]);
     progEl.textContent = done + ' / ' + (PLAN.length - skipped);
     var d = new Date();
     var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
     clockTimeEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
-    paintMap(ni);
+    paintMap(ps.cur);
   }
 
   /* ---------- map hero: offline SVG, projected from the data ---------- */
@@ -298,12 +345,12 @@
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
   var BACK = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]];   /* Greek → Gayley & Hearst → North Gate */
-  /* [name, N–S?, fixed coord, from, to (null = full fitted width), labelled] */
+  /* [name, N–S?, fixed coord, from, to, labelled]; a null end runs to the frame's edge (south / west for from, north / east for to) */
   var STREETS = [
-    ['Shattuck Ave', true, -122.2682, 37.863, 37.878, true],
+    ['Shattuck Ave', true, -122.2682, null, null, true],
     ['Oxford St', true, -122.2662, 37.866, 37.876, true],
-    ['Telegraph Ave', true, -122.2588, 37.860, 37.8687, true],
-    ['College Ave', true, -122.2535, 37.860, 37.8745, true],
+    ['Telegraph Ave', true, -122.2588, null, 37.8687, true],
+    ['College Ave', true, -122.2535, null, 37.8745, true],
     ['Durant Ave', false, 37.8677, null, null, true],
     ['Bancroft Way', false, 37.8687, null, null, false],
     ['Haste St', false, 37.8658, -122.270, -122.250, false],
@@ -352,7 +399,7 @@
   var chipEl = cardEl.querySelector('.mapchip');
   var pinEls = [], linkedRows = [];
   /* plan rows with a pin take the pin's colour for their step number */
-  PLACES.forEach(function(s){ s.steps.forEach(function(k){ planEl.children[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
+  PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
 
   function S(tag, attrs, parent){
     var e = document.createElementNS(NS, tag);
@@ -542,9 +589,8 @@
     var gs = S('g', {}, svg);
     FIT.streets = STREETS.map(function(st){
       var a, b;
-      if (st[1]) { a = P(st[3], st[2]); b = P(st[4], st[2]); }
-      else if (st[3] === null) { var y = P(st[2], 0)[1]; a = [0, y]; b = [w, y]; }
-      else { a = P(st[2], st[3]); b = P(st[2], st[4]); }
+      if (st[1]) { var x = P(0, st[2])[0]; a = st[3] === null ? [x, h] : P(st[3], st[2]); b = st[4] === null ? [x, 0] : P(st[4], st[2]); }
+      else { var y = P(st[2], 0)[1]; a = st[3] === null ? [0, y] : P(st[2], st[3]); b = st[4] === null ? [w, y] : P(st[2], st[4]); }
       var ln = {x1:f(a[0]), y1:f(a[1]), x2:f(b[0]), y2:f(b[1])};
       ln['class'] = 'gn-st-case'; S('line', ln, gs);
       ln['class'] = 'gn-st'; S('line', ln, gs);
@@ -621,8 +667,10 @@
         var a = pts[j - 1], b = pts[j], t = (d - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
         return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
       }
-      function crowding(c){   /* the pin or earlier pill this spot is too close to, if any */
+      function crowding(c){   /* the pin, earlier pill or card edge this spot is too close to, if any */
         var r = {x:c[0] - pw / 2, y:c[1] - ph / 2, w:pw, h:ph};
+        if (r.x < 3 || r.y < 3 || r.x + r.w > w - 3 || r.y + r.h > h - 3)
+          return [r.x < 3 ? -1e3 : r.x + r.w > w - 3 ? w + 1e3 : c[0], r.y < 3 ? -1e3 : r.y + r.h > h - 3 ? h + 1e3 : c[1]];
         for (var i = 0; i < pinPts.length; i++) {
           var q = pinPts[i];
           if (Math.hypot(q[0] - c[0], q[1] - c[1]) < 14) return q;
@@ -733,7 +781,7 @@
       n.textContent = steps.join('·');
       return g;
     });
-    paintMap(nowIndex());
+    paintMap(planStates().cur);
     drawMe();
   }
 
@@ -759,7 +807,7 @@
     popEl.innerHTML = popPill(PLAN[steps[0] - 1].map, esc(s.n), lines);
     popEl.hidden = false;
     linkedRows.forEach(function(r){ r.classList.remove('linked'); });
-    linkedRows = steps.map(function(k){ return planEl.children[k - 1]; });
+    linkedRows = steps.map(function(k){ return rowEls[k - 1]; });
     linkedRows.forEach(function(r){ r.classList.add('linked'); });
     var c = pinEls[i].querySelector('.pin-c').getBoundingClientRect(), r = cardEl.getBoundingClientRect();
     var cx = c.left + c.width / 2 - r.left, top = c.top - r.top, bot = c.bottom - r.top;
@@ -904,14 +952,20 @@
     clearTimeout(wheelT); wheelT = setTimeout(layout, 150);
   }, {passive:false});
 
-  var rsT = null, lastW = 0;
-  window.addEventListener('resize', function(){
+  /* the map card is sized from the header's height at phone widths; any change of the card's size refits the map
+     and re-places the chip-aware labels */
+  var headerEl = document.querySelector('header'), rsT = null, lastW = '';
+  function sizeCard(){ document.documentElement.style.setProperty('--hdr', headerEl.offsetHeight + 'px'); }
+  function resized(){
     clearTimeout(rsT);
     rsT = setTimeout(function(){
       if (svg.clientWidth + 'x' + svg.clientHeight === lastW) return;
       lastW = svg.clientWidth + 'x' + svg.clientHeight; popClose(); buildMap(); paint();
     }, 150);
-  });
+  }
+  window.addEventListener('resize', function(){ sizeCard(); resized(); });
+  if (window.ResizeObserver) { new ResizeObserver(sizeCard).observe(headerEl); new ResizeObserver(resized).observe(svg); }
+  sizeCard();
   buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
   startWatch();
 
