@@ -101,7 +101,7 @@
 <body>
 <header>
   <h1>Greek Night</h1>
-  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.04</p>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.05</p>
   <div class="meta">
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
     <span class="chip" id="next"></span>
@@ -126,7 +126,7 @@
   <button id="reset">Reset checks</button>
 </div>
 
-<footer>Greek Night · v1.04 · 238fa1e</footer>
+<footer>Greek Night · v1.05 · d4e8741</footer>
 
 <script>
 (function(){
@@ -490,15 +490,36 @@
     });
   }
 
-  function legDraw(l){
+  /* two passes: every white casing first, then every coloured line, so a later leg's casing never covers an earlier leg's
+     offset line where they share a street. Only the shared stretch of a leg is offset; the plain parts keep their corners. */
+  function legDraw(l, pass){
     var dash = l.ret ? '8 6' : null;
     l.parts.forEach(function(pt, n){
       var off = hasOffset ? pt.off * 4 : 0, thin = !hasOffset && pt.off > 0;
-      var cls = 'leg' + (l.ret ? ' ret' : '') + ' l' + l.name.replace(/[^0-9A-Za-z]+/g, '-');
-      if (!thin) L.polyline(pt.ll, {color:'#fff', weight:9, opacity:1, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:'legcase'}).addTo(routeLayer);
-      L.polyline(pt.ll, {color:l.col, weight:thin ? 3 : 5, opacity:l.ret ? .7 : 1, dashArray:dash, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:cls}).addTo(routeLayer);
+      var cls = 'leg' + (l.ret ? ' ret' : '') + ' l' + l.name.replace(/[^0-9A-Za-z]+/g, '-'), line;
+      if (!pass) { if (!thin) line = L.polyline(pt.ll, {color:'#fff', weight:9, opacity:1, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:'legcase'}).addTo(routeLayer); }
+      else line = L.polyline(pt.ll, {color:l.col, weight:thin ? 3 : 5, opacity:l.ret ? .7 : 1, dashArray:dash, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:cls}).addTo(routeLayer);
+      if (!line || !hasOffset || off) return;
+      var prev = n ? l.parts[n - 1] : null, next = l.parts[n + 1] || null;
+      if ((prev && prev.off) || (next && next.off)) joins.push({ll:pt.ll, prev:prev && prev.off ? prev : null, next:next && next.off ? next : null, line:line});
     });
   }
+  /* where a plain part meets an offset one, the plain part's end vertex slides over to where the offset part actually starts,
+     so the join is a short diagonal rather than a 4px step. Pixel offsets move with the zoom, so this re-runs on every zoomend. */
+  var joins = [];
+  function offsetPt(v, w, off){   /* v shifted by off px to the right of travel v→w, the plugin's convention */
+    var a = map.latLngToLayerPoint(v), b = map.latLngToLayerPoint(w), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+    return map.layerPointToLatLng(L.point(a.x - dy / d * off, a.y + dx / d * off));
+  }
+  function joinParts(){
+    joins.forEach(function(j){
+      var ll = j.ll.slice(), n = j.next && j.next.ll, pv = j.prev && j.prev.ll;
+      if (n) ll[ll.length - 1] = offsetPt(n[0], n[1], j.next.off * 4);
+      if (pv) ll[0] = offsetPt(pv[pv.length - 1], pv[pv.length - 2], -j.prev.off * 4);
+      j.line.setLatLngs(ll);
+    });
+  }
+  map.on('zoomend', joinParts);
 
   /* the leg's midpoint by path length (kept for use by the rows' walk lines) */
   function midpoint(l){
@@ -518,7 +539,9 @@
     routeData();
     routeLayer.clearLayers(); markers = [];
     legParts(LEGS);
-    LEGS.filter(function(l){ return l.ret; }).concat(LEGS.filter(function(l){ return !l.ret; })).forEach(legDraw);
+    joins = [];
+    var order = LEGS.filter(function(l){ return l.ret; }).concat(LEGS.filter(function(l){ return !l.ret; }));
+    order.forEach(function(l){ legDraw(l, 0); }); order.forEach(function(l){ legDraw(l, 1); });
     PLACES.forEach(function(s, i){
       var steps = liveSteps(s), plain = s.start;
       if (!steps.length && !plain) return;
@@ -529,6 +552,7 @@
       m.place = s; markers.push(m);
     });
     fitRoute();
+    joinParts();   /* needs a view: after the fit */
     paintMap(planStates().cur);
   }
 
