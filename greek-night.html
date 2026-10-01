@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d10">
+<title>Greek Night</title>
+<style>
+  :root{
+    --bg:#0b0d10; --card:#14181d; --card2:#1b2127; --line:#262d35;
+    --ink:#f2f4f6; --ink2:#a9b2bc; --ink3:#6b7682;
+    --accent:#f5b84a; --ok:#4fd18b; --now:#5aa9ff;
+    --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s5:1.5rem; --s6:2rem;
+    --r:1rem; --r2:.6rem;
+    --t1:1.6rem; --t2:1.05rem; --t3:.92rem; --t4:.78rem;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{padding:max(var(--s4),env(safe-area-inset-top)) var(--s4) calc(var(--s6) + env(safe-area-inset-bottom))}
+  header{padding:var(--s3) 0 var(--s4)}
+  header h1{font-size:var(--t1);letter-spacing:-.02em;font-weight:700}
+  header p{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
+  .meta{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s3)}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:var(--s1) var(--s3);font-size:var(--t4);color:var(--ink2)}
+  .chip b{color:var(--ink);font-weight:600}
+  .chip.now{border-color:var(--now);color:var(--now)}
+  section{margin-top:var(--s5)}
+  section h2{font-size:var(--t4);text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:var(--s3);display:flex;justify-content:space-between;align-items:baseline}
+  section h2 span{letter-spacing:0;text-transform:none;color:var(--ink3)}
+  .list{display:flex;flex-direction:column;gap:var(--s2)}
+  .item{display:grid;grid-template-columns:auto 1fr auto;gap:var(--s3);align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s3) var(--s3) var(--s3) var(--s3);position:relative;transition:opacity .2s}
+  .item.now{border-color:var(--now);box-shadow:0 0 0 1px var(--now) inset}
+  .item.done{opacity:.42}
+  .item.done .title{text-decoration:line-through}
+  .check{appearance:none;-webkit-appearance:none;width:1.6rem;height:1.6rem;border-radius:50%;border:2px solid var(--ink3);margin-top:.1rem;flex:none;display:grid;place-items:center;cursor:pointer}
+  .check:checked{background:var(--ok);border-color:var(--ok)}
+  .check:checked::after{content:"";width:.5rem;height:.85rem;border:solid #0b0d10;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-10%,-15%)}
+  .body{min-width:0}
+  .time{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700;font-size:var(--t4);letter-spacing:.04em}
+  .item.now .time{color:var(--now)}
+  .title{font-size:var(--t2);font-weight:600;margin-top:.1rem}
+  .note{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
+  .map{flex:none;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:var(--r2);background:var(--card2);border:1px solid var(--line);text-decoration:none;font-size:1.1rem;margin-top:.05rem}
+  .map:active{background:var(--line)}
+  .bring .item{grid-template-columns:auto 1fr}
+  .bring .title{font-size:var(--t3);font-weight:500;margin-top:.15rem}
+  .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
+  button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
+  footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Greek Night</h1>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley</p>
+  <div class="meta">
+    <span class="chip">Doors <b>5:00</b></span>
+    <span class="chip">Show <b>6:30</b></span>
+    <span class="chip">Julia's <b>5:00</b> ×2</span>
+    <span class="chip now" id="clock">—</span>
+  </div>
+</header>
+
+<section>
+  <h2>Plan <span id="progress"></span></h2>
+  <div class="list" id="plan"></div>
+</section>
+
+<section class="bring">
+  <h2>Bring</h2>
+  <div class="list" id="bring"></div>
+</section>
+
+<div class="actions">
+  <button id="reset">Reset checks</button>
+</div>
+
+<footer>Greek Night · v1</footer>
+
+<script>
+(function(){
+  'use strict';
+  var M = function(q){ return 'https://maps.apple.com/?q=' + encodeURIComponent(q); };
+
+  var PLAN = [
+    {t:'2:30', h:14, m:30, title:'Leave Grove St', note:'Uber to Civic Center BART (bus is fine, Uber buys you the Campanile).', map:M('Civic Center BART Station San Francisco')},
+    {t:'2:50', h:14, m:50, title:'Red line → Richmond', note:'Sit on the right side for the bay coming out of the tube. ~35 min.', map:M('Civic Center BART Station San Francisco')},
+    {t:'3:25', h:15, m:25, title:'Downtown Berkeley BART', note:'Exit to Shattuck, east on Center St two blocks to campus.', map:M('Downtown Berkeley BART Station')},
+    {t:'3:30', h:15, m:30, title:'Doe Library → Memorial Glade', note:'The big lawn with the Campanile view.', map:M('Memorial Glade UC Berkeley')},
+    {t:'3:40', h:15, m:40, title:'Campanile', note:'Last elevator up 3:45, $5. Miss it → lawn at the base for 10 min.', map:M('Sather Tower UC Berkeley')},
+    {t:'4:00', h:16, m:0, title:'Sather Gate → Sproul → Telegraph', note:'Amoeba (Haste & Telegraph) and Moe’s Books next door. 20 min.', map:M('Amoeba Music 2455 Telegraph Ave Berkeley')},
+    {t:'4:25', h:16, m:25, title:'Caffe Strada', note:'College & Bancroft, the patio under the trees. Tea or espresso.', map:M('Caffe Strada 2300 College Ave Berkeley')},
+    {t:'4:55', h:16, m:55, title:'Berkeley City Club', note:'Julia Morgan, 1929. Courtyard and the indoor pool through the back. Julia’s is 2nd floor.', map:M('Berkeley City Club 2315 Durant Ave Berkeley')},
+    {t:'5:00', h:17, m:0, title:'Dinner — Julia’s', note:'Table for 2. Zero-proof cocktails. Niçoise w/ trout, ratatouille, beet salad. Ask for the check by 6:10.', map:M('Julia’s Restaurant 2315 Durant Ave Berkeley')},
+    {t:'6:15', h:18, m:15, title:'Walk to the Greek', note:'Durant east → College Ave north → Gayley Rd. 15 min, uphill at the end.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
+    {t:'6:35', h:18, m:35, title:'In the gate', note:'G. Love on. Jack ~8:00. Done ~10:15. Water refill on the middle concourse.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
+    {t:'10:15', h:22, m:15, title:'Home', note:'Walk down to Downtown Berkeley BART (15 min). Red line → Civic Center → Uber.', map:M('Downtown Berkeley BART Station')}
+  ];
+
+  var BRING = [
+    'Hoodie / jacket — mid-50s after dark',
+    'Small blanket (under 40×60) if lawn',
+    'Empty water bottle',
+    'Small bag only — no bag check, everything searched',
+    'Sunscreen for 5–7pm, bowl faces west',
+    'Phone charged · Clipper in Wallet · tickets in Wallet'
+  ];
+
+  var KEY = 'greek-night-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var planEl = document.getElementById('plan');
+  var bringEl = document.getElementById('bring');
+  var progEl = document.getElementById('progress');
+  var clockEl = document.getElementById('clock');
+
+  function row(id, time, title, note, map){
+    var el = document.createElement('label');
+    el.className = 'item';
+    el.dataset.id = id;
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.className = 'check'; cb.checked = !!state[id];
+    cb.addEventListener('change', function(){ state[id] = cb.checked; save(); paint(); });
+    var body = document.createElement('div'); body.className = 'body';
+    if (time) { var tt = document.createElement('div'); tt.className = 'time'; tt.textContent = time; body.appendChild(tt); }
+    var ti = document.createElement('div'); ti.className = 'title'; ti.textContent = title; body.appendChild(ti);
+    if (note) { var nn = document.createElement('div'); nn.className = 'note'; nn.textContent = note; body.appendChild(nn); }
+    el.appendChild(cb); el.appendChild(body);
+    if (map) {
+      var a = document.createElement('a'); a.className = 'map'; a.href = map; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = '↗'; a.setAttribute('aria-label', 'Open in Apple Maps');
+      a.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      el.appendChild(a);
+    }
+    return el;
+  }
+
+  PLAN.forEach(function(p, i){ planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });
+  BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
+
+  function nowIndex(){
+    var d = new Date();
+    if (d.getMonth() !== 9 || d.getDate() !== 1) return -1;
+    var mins = d.getHours() * 60 + d.getMinutes();
+    var idx = -1;
+    PLAN.forEach(function(p, i){ if (mins >= p.h * 60 + p.m) idx = i; });
+    return idx;
+  }
+
+  function paint(){
+    var done = 0;
+    var ni = nowIndex();
+    var rows = planEl.children;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var checked = !!state['p' + i];
+      r.classList.toggle('done', checked);
+      r.classList.toggle('now', i === ni && !checked);
+      if (checked) done++;
+    }
+    var brows = bringEl.children;
+    for (var j = 0; j < brows.length; j++) brows[j].classList.toggle('done', !!state['b' + j]);
+    progEl.textContent = done + ' / ' + PLAN.length;
+    var d = new Date();
+    var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
+    clockEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
+  }
+
+  document.getElementById('reset').addEventListener('click', function(){
+    state = {}; save();
+    var cbs = document.querySelectorAll('.check');
+    for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
+    paint();
+  });
+
+  paint();
+  setInterval(paint, 30000);
+})();
+</script>
+</body>
+</html>
