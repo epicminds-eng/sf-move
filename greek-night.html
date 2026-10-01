@@ -68,11 +68,12 @@
   .gn-route-case{fill:none;stroke:#fff;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
   .gn-route{fill:none;stroke:var(--now);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
   .gn-route.ret{stroke-dasharray:8 6;opacity:.7}
+  .pp-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.35rem;vertical-align:.05em}
   .pin-l{font-size:9px;fill:#6f6a5f;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:600}
-  .walk-b{fill:#fff;stroke:var(--now);stroke-width:1.5}
-  .walk-t{font-size:9px;font-weight:700;fill:#0b0d10}
+  .walk-b{fill:#fff;stroke-width:1.5}
+  .walk-t{font-size:9px;font-weight:700}
   .walk.ret{opacity:.7}
-  .walk.ret .walk-b{stroke:var(--ink3);stroke-dasharray:3 2}
+  .walk.ret .walk-b{stroke-dasharray:3 2}
   .pin{cursor:pointer;transition:opacity .2s}
   .pin.done{opacity:.45}
   .pin-c{fill:var(--now);stroke:#fff;stroke-width:2}
@@ -283,6 +284,18 @@
     7: [[37.8687, -122.2588], [37.8687, -122.2612]],
     8: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
+  /* a gap with a better walk than its chained bypasses: skip 5 and 6 → Doe, Sather Gate, Bancroft & Telegraph, Amoeba */
+  var GAP_OVERRIDE = {'4-7': BYPASS[6]};
+  /* one colour per leg; a leg spliced by a skip takes the colour of the leg it starts with */
+  var LEG_COLOURS = {'3-4':'#3b82f6', '4-5':'#a855f7', '5-6':'#14b8a6', '6-7':'#22c55e', '7-8':'#f59e0b', '8-11':'#ec4899', 'ret':'#6b7682'};
+  function legColour(fromStep){
+    for (var k in LEG_COLOURS) if (k.split('-')[0] === String(fromStep)) return LEG_COLOURS[k];
+    return LEG_COLOURS.ret;
+  }
+  function darker(hex){   /* 20% darker, for pill text */
+    var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ return Math.round(v * 0.8); });
+    return '#' + c.map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
+  }
   /* a pin stays while any of its steps is live: skip 8 and City Club remains for dinner, reading 9 */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
@@ -310,14 +323,19 @@
     var live = livePlaces(), legs = [];
     for (var i = 1; i < live.length; i++) {
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
+      var key = a.steps[0] + '-' + b.steps[0];
       var gap = PLACES.filter(function(s){ return s.steps[0] > a.steps[0] && s.steps[0] < b.steps[0]; });   /* the skipped pins between them, in order */
-      if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.steps[0]]); });
-      else pts = pts.concat(LEG_WP[a.steps[0] + '-' + b.steps[0]] || []);
+      if (gap.length && GAP_OVERRIDE[key]) pts = pts.concat(GAP_OVERRIDE[key]);
+      else if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.steps[0]]); });
+      else pts = pts.concat(LEG_WP[key] || []);
       pts.push([b.lat, b.lng]);
-      legs.push({pts:pts, mph:b.greek ? 2.5 : 3, label:b.greek ? '10 · ' : ''});   /* the climb to the Greek is step 10 */
+      /* named by the steps at each end; the climb to the Greek is step 10 */
+      legs.push({pts:pts, mph:b.greek ? 2.5 : 3, a:a, b:b, col:legColour(a.steps[0]),
+                 name:liveSteps(a)[0] + '→' + (b.greek ? 10 : liveSteps(b)[0])});
     }
     /* the return's pill sits on its visible dashed stretch (Greek → Doe) */
-    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2)});
+    var greek = PLACES[PLACES.length - 1], bart = PLACES[0];
+    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2), a:greek, b:bart, col:LEG_COLOURS.ret, name:'11→12'});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -325,11 +343,8 @@
     });
     return legs;
   }
-  var LEGS = [], OUT = [];
-  function routeData(){
-    LEGS = walkLegs(); OUT = [];
-    LEGS.forEach(function(l){ if (l.ret) return; l.pts.forEach(function(c, j){ if (j === 0 && OUT.length) return; OUT.push(c); }); });
-  }
+  var LEGS = [];
+  function routeData(){ LEGS = walkLegs(); }
   var CAMPUS = [[37.8687, -122.2662], [37.8687, -122.2545], [37.8755, -122.2545], [37.8755, -122.2662]];
   var K = Math.cos(37.87 * Math.PI / 180);
   var NS = 'http://www.w3.org/2000/svg';
@@ -348,8 +363,9 @@
     return e;
   }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function popPill(href, name, meta){
-    return '<a class="pp" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="pp-t"><b>' + name + '</b><span class="pp-m">' + meta + '</span></span><span class="pp-c">›</span></a>';
+  function popPill(href, name, lines){
+    return '<a class="pp" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="pp-t"><b>' + name + '</b>' +
+      lines.map(function(l){ return '<span class="pp-m">' + l + '</span>'; }).join('') + '</span><span class="pp-c">›</span></a>';
   }
   function f(n){ return n.toFixed(1); }
 
@@ -377,6 +393,110 @@
     ob.segs.forEach(function(sg){ if (segHitsRect(sg[0], sg[1], R)) s += 10; });
     ob.rects.forEach(function(o){ if (rectsHit(r, o)) s += 10; });
     return s;
+  }
+
+  /* Shared streets: where two legs run along the same stretch, draw them side by side so both colours show.
+     1. split any segment where another leg's segment runs along it (under 8° apart, within 5 units), at the overlap's ends;
+     2. a split segment whose ends match another leg's segment that way, either direction, is shared;
+     3. every sharer snaps to one centreline and is offset 3.5 units off it, opposite sides; corners mitre, pin ends stay under the pin.
+     5 units, not 2: at wide sizes the City Club sits a few units off the Durant line, so its two legs fan out at slightly
+     different slopes while their 4-unit strokes still overlap. */
+  function parallelLegs(legs, P){
+    var TOL = 5, PAR = 0.14, GAP = 7, polys = legs.map(function(l){ return l.pts.map(function(c){ return P(c[0], c[1]); }); });
+    function sub(a, b){ return [a[0] - b[0], a[1] - b[1]]; }
+    function dot(a, b){ return a[0] * b[0] + a[1] * b[1]; }
+    function unit(a, b){ var d = sub(b, a), L = Math.hypot(d[0], d[1]) || 1; return [d[0] / L, d[1] / L]; }
+    function along(a0, a1, b0, b1){   /* b runs along a: parallel and both ends close to a's line */
+      var u = unit(a0, a1), v = unit(b0, b1);
+      if (Math.abs(u[0] * v[1] - u[1] * v[0]) > PAR) return false;
+      var t0 = sub(b0, a0), t1 = sub(b1, a0);
+      return Math.abs(u[0] * t0[1] - u[1] * t0[0]) <= TOL && Math.abs(u[0] * t1[1] - u[1] * t1[0]) <= TOL;
+    }
+    var cuts = polys.map(function(pl){ return pl.slice(1).map(function(){ return []; }); });
+    polys.forEach(function(A, i){ polys.forEach(function(B, j){
+      if (j === i) return;
+      for (var k = 0; k < A.length - 1; k++) {
+        var s0 = A[k], L = Math.hypot(A[k + 1][0] - s0[0], A[k + 1][1] - s0[1]);
+        if (L < 1) continue;
+        var u = unit(s0, A[k + 1]);
+        for (var m = 0; m < B.length - 1; m++) {
+          if (!along(s0, A[k + 1], B[m], B[m + 1])) continue;
+          var a = dot(u, sub(B[m], s0)), b = dot(u, sub(B[m + 1], s0));
+          var lo = Math.max(0, Math.min(a, b)), hi = Math.min(L, Math.max(a, b));
+          if (hi - lo < 3) continue;
+          [lo, hi].forEach(function(q){ if (q > 0.5 && q < L - 0.5) cuts[i][k].push(q); });
+        }
+      }
+    }); });
+    polys = polys.map(function(pl, i){
+      var out = [pl[0]];
+      for (var k = 0; k < pl.length - 1; k++) {
+        var d = sub(pl[k + 1], pl[k]), L = Math.hypot(d[0], d[1]);
+        cuts[i][k].sort(function(x, y){ return x - y; }).forEach(function(q, n, arr){
+          if (n && q - arr[n - 1] < 0.5) return;
+          out.push([pl[k][0] + d[0] * q / L, pl[k][1] + d[1] * q / L]);
+        });
+        out.push(pl[k + 1]);
+      }
+      return out;
+    });
+    function near(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]) <= TOL; }
+    var off = polys.map(function(pl, i){
+      return pl.slice(1).map(function(_, k){
+        var a = pl[k], b = pl[k + 1], who = [{i:i, a:a, b:b}];
+        polys.forEach(function(Q, j){
+          if (j === i) return;
+          for (var m = 0; m < Q.length - 1; m++) {
+            if (near(a, Q[m]) && near(b, Q[m + 1]) && along(a, b, Q[m], Q[m + 1])) { who.push({i:j, a:Q[m], b:Q[m + 1]}); break; }
+            if (near(a, Q[m + 1]) && near(b, Q[m]) && along(a, b, Q[m + 1], Q[m])) { who.push({i:j, a:Q[m + 1], b:Q[m]}); break; }
+          }
+        });
+        if (who.length < 2) return {o:0, a:a, b:b};
+        who.sort(function(x, y){ return x.i - y.i; });
+        var ref = who[0], r0 = near(a, ref.a) ? ref.a : ref.b, r1 = r0 === ref.a ? ref.b : ref.a;   /* the shared centreline, in this leg's direction */
+        var c0 = (r0[0] < r1[0] || (r0[0] === r1[0] && r0[1] < r1[1])) ? r0 : r1, c1 = c0 === r0 ? r1 : r0;   /* the same normal for every sharer */
+        var n = unit(c0, c1);
+        var rank = who.map(function(x){ return x.i; }).indexOf(i);
+        return {o:(rank - (who.length - 1) / 2) * GAP, n:[-n[1], n[0]], a:r0, b:r1};
+      });
+    });
+    /* a leg keeps its offset along a straight continuation of a shared run, instead of jogging back to the centreline
+       right where another leg turns the corner */
+    off.forEach(function(sgs, i){
+      var pl = polys[i], changed = true;
+      while (changed) {
+        changed = false;
+        sgs.forEach(function(sg, k){
+          if (sg.o) return;
+          [k - 1, k + 1].forEach(function(nb){
+            if (sg.o || nb < 0 || nb >= sgs.length || !sgs[nb].o) return;
+            var u = unit(pl[k], pl[k + 1]), v = unit(pl[nb], pl[nb + 1]);
+            if (Math.abs(u[0] * v[1] - u[1] * v[0]) > PAR || dot(u, v) < 0) return;
+            sg.o = sgs[nb].o; sg.n = sgs[nb].n; changed = true;
+            if (nb === k - 1) sg.a = sgs[nb].b; else sg.b = sgs[nb].a;   /* start exactly where the snapped shared run ends */
+          });
+        });
+      }
+    });
+    polys.forEach(function(pl, i){
+      var seg = off[i].map(function(sg){
+        var n = sg.n || [0, 0];
+        return {o:sg.o, A:[sg.a[0] + n[0] * sg.o, sg.a[1] + n[1] * sg.o], B:[sg.b[0] + n[0] * sg.o, sg.b[1] + n[1] * sg.o]};
+      });
+      var draw = [seg[0].A];
+      for (var k = 1; k < seg.length; k++) {
+        var p = seg[k - 1], q = seg[k], v = pl[k];
+        if (!p.o && !q.o) { draw.push(v); continue; }
+        var r = sub(p.B, p.A), t = sub(q.B, q.A), den = r[0] * t[1] - r[1] * t[0];
+        if (Math.abs(den) > 1e-6) {
+          var w0 = sub(q.A, p.A), x = (w0[0] * t[1] - w0[1] * t[0]) / den, X = [p.A[0] + r[0] * x, p.A[1] + r[1] * x];
+          if (Math.hypot(X[0] - v[0], X[1] - v[1]) < 12) { draw.push(X); continue; }
+        }
+        draw.push(p.B); if (Math.hypot(p.B[0] - q.A[0], p.B[1] - q.A[1]) > 0.3) draw.push(q.A);
+      }
+      draw.push(seg[seg.length - 1].B);
+      legs[i].draw = draw;
+    });
   }
 
   function buildMap(){
@@ -422,19 +542,19 @@
       return [a, b];
     });
 
-    function routeD(pts){ return pts.map(function(c, k){ var p = P(c[0], c[1]); return (k ? 'L' : 'M') + f(p[0]) + ' ' + f(p[1]); }).join(''); }
-    var dOut = routeD(OUT), dBack = routeD(BACK);
-    S('path', {'class':'gn-route-case', d:dBack}, svg);
-    S('path', {'class':'gn-route ret', d:dBack}, svg);
-    S('path', {'class':'gn-route-case', d:dOut}, svg);
-    S('path', {'class':'gn-route', d:dOut}, svg);
+    parallelLegs(LEGS, P);
+    function routeD(pts){ return pts.map(function(p, k){ return (k ? 'L' : 'M') + f(p[0]) + ' ' + f(p[1]); }).join(''); }
+    var gr = S('g', {}, svg), outs = LEGS.filter(function(l){ return !l.ret; }), ret = LEGS.filter(function(l){ return l.ret; });
+    /* all casings first so no casing covers a neighbouring line; the return under the outbound legs */
+    ret.concat(outs).forEach(function(l){ S('path', {'class':'gn-route-case', d:routeD(l.draw)}, gr); });
+    ret.concat(outs).forEach(function(l){
+      S('path', {'class':'gn-route' + (l.ret ? ' ret' : ''), d:routeD(l.draw), style:'stroke:' + l.col, 'data-leg':l.name}, gr);
+    });
 
     /* obstacles for label placement */
     var ob = {circles:[], segs:[], rects:[]};
     livePlaces().forEach(function(s){ var p = P(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
-    [OUT, BACK].forEach(function(pts){
-      for (var i = 1; i < pts.length; i++) ob.segs.push([P(pts[i - 1][0], pts[i - 1][1]), P(pts[i][0], pts[i][1])]);
-    });
+    LEGS.forEach(function(l){ for (var i = 1; i < l.draw.length; i++) ob.segs.push([l.draw[i - 1], l.draw[i]]); });
     ob.rects.push(chip);
     ob.rects.push({x:br.left - sr.left - 2, y:br.top - sr.top - 2, w:br.width + 4, h:br.height + 4});   /* the location button */
 
@@ -452,11 +572,11 @@
 
     /* walk-time pills: centred on the leg at its midpoint by path length, like a route bubble, so the line passes under them.
        One that lands within 14 units of a pin slides along the leg away from it. A leg under 3 min gets none. */
-    var pinPts = livePlaces().map(function(s){ return P(s.lat, s.lng); });
+    var pinPts = livePlaces().map(function(s){ return P(s.lat, s.lng); }), pillBoxes = [];
     LEGS.forEach(function(l){
       if (l.min < 3) return;
-      var txt = (l.label || '') + l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 12, ph = 14;
-      var pts = (l.place || l.pts).map(function(c){ return P(c[0], c[1]); }), cum = [0];
+      var txt = l.name + ' · ' + l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 12, ph = 14;
+      var pts = l.draw, cum = [0];
       for (var j = 1; j < pts.length; j++) cum.push(cum[j - 1] + Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1]));
       function at(fr){
         var d = cum[cum.length - 1] * fr, j = 1;
@@ -464,7 +584,7 @@
         var a = pts[j - 1], b = pts[j], t = (d - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
         return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
       }
-      function crowding(c){   /* the pin this spot is too close to, if any */
+      function crowding(c){   /* the pin or earlier pill this spot is too close to, if any */
         var r = {x:c[0] - pw / 2, y:c[1] - ph / 2, w:pw, h:ph};
         for (var i = 0; i < pinPts.length; i++) {
           var q = pinPts[i];
@@ -472,17 +592,29 @@
           var nx = Math.max(r.x, Math.min(q[0], r.x + r.w)), ny = Math.max(r.y, Math.min(q[1], r.y + r.h));
           if ((nx - q[0]) * (nx - q[0]) + (ny - q[1]) * (ny - q[1]) < 12 * 12) return q;
         }
+        for (var j = 0; j < pillBoxes.length; j++) if (rectsHit(r, pillBoxes[j])) return [pillBoxes[j].x + pillBoxes[j].w / 2, pillBoxes[j].y + pillBoxes[j].h / 2];
         return null;
       }
-      var fr = 0.5, c = at(fr), q, n = 0;
-      while ((q = crowding(c)) && n++ < 40) {
-        var lo = Math.max(0.04, fr - 0.025), hi = Math.min(0.96, fr + 0.025), a = at(lo), b = at(hi);
-        fr = Math.hypot(b[0] - q[0], b[1] - q[1]) > Math.hypot(a[0] - q[0], a[1] - q[1]) ? hi : lo;
-        c = at(fr);
+      var fr0 = 0.5;
+      if (l.place) {   /* the return: the midpoint of its dashed Greek → Doe stretch, as a fraction of the whole drawn return */
+        var doe = P(l.place[1][0], l.place[1][1]), bi = 0, bd = Infinity;
+        pts.forEach(function(q, k){ var d = Math.hypot(q[0] - doe[0], q[1] - doe[1]); if (d < bd) { bd = d; bi = k; } });
+        fr0 = cum[bi] / 2 / cum[cum.length - 1];
       }
-      var g = S('g', {'class':'walk' + (l.ret ? ' ret' : '')}, gp);
-      S('rect', {'class':'walk-b', x:f(c[0] - pw / 2), y:f(c[1] - ph / 2), width:f(pw), height:ph, rx:ph / 2}, g);
-      S('text', {'class':'walk-t', x:f(c[0]), y:f(c[1] + 3.2), 'text-anchor':'middle'}, g).textContent = txt;
+      var c = at(fr0), q = crowding(c);
+      if (q) {
+        var step = 1.5 / cum[cum.length - 1], a0 = at(Math.max(0, fr0 - step)), b0 = at(Math.min(1, fr0 + step));
+        var dirs = Math.hypot(b0[0] - q[0], b0[1] - q[1]) > Math.hypot(a0[0] - q[0], a0[1] - q[1]) ? [1, -1] : [-1, 1], found = null;
+        dirs.some(function(dir){
+          for (var fr = fr0 + dir * step; fr > 0.04 && fr < 0.96; fr += dir * step) { var cc = at(fr); if (!crowding(cc)) { found = cc; return true; } }
+          return false;
+        });
+        if (found) c = found;
+      }
+      var g = S('g', {'class':'walk' + (l.ret ? ' ret' : ''), 'data-leg':l.name}, gp);
+      S('rect', {'class':'walk-b', x:f(c[0] - pw / 2), y:f(c[1] - ph / 2), width:f(pw), height:ph, rx:ph / 2, style:'stroke:' + l.col}, g);
+      S('text', {'class':'walk-t', x:f(c[0]), y:f(c[1] + 3.2), 'text-anchor':'middle', style:'fill:' + darker(l.col)}, g).textContent = txt;
+      pillBoxes.push({x:c[0] - pw / 2 - 1, y:c[1] - ph / 2 - 1, w:pw + 2, h:ph + 2});
       ob.rects.push({x:c[0] - pw / 2 - 2, y:c[1] - ph / 2 - 2, w:pw + 4, h:ph + 4});
     });
 
@@ -526,8 +658,9 @@
         if (st[1]) {
           var y0 = Math.min(h - 6, Math.max(a[1], b[1])), y1 = Math.max(6, Math.min(a[1], b[1]));
           var ly = y0 - (y0 - y1) * fr, x = a[0];
-          cands.push({r:{x:x + 6, y:ly - len / 2, w:10, h:len}, x:x, y:ly, dy:'15', rot:true});
-          cands.push({r:{x:x - 16, y:ly - len / 2, w:10, h:len}, x:x, y:ly, dy:'-7', rot:true});
+          /* a rotated label renders about a unit wider than its nominal 10: allow for it */
+          cands.push({r:{x:x + 5, y:ly - len / 2, w:12, h:len}, x:x, y:ly, dy:'15', rot:true});
+          cands.push({r:{x:x - 17, y:ly - len / 2, w:12, h:len}, x:x, y:ly, dy:'-7', rot:true});
         } else {
           var x0 = Math.max(6, Math.min(a[0], b[0])), x1 = Math.min(w - 6, Math.max(a[0], b[0]));
           var lx = x0 + (x1 - x0) * fr - len / 2, yy = a[1];
@@ -573,7 +706,11 @@
   }
   function popOpen(i){
     var s = PLACES[i], steps = liveSteps(s);
-    popEl.innerHTML = popPill(PLAN[steps[0] - 1].map, esc(s.n), steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / '));
+    var lines = [steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / ')];
+    LEGS.forEach(function(l){
+      if (l.a === s || l.b === s) lines.push('<i class="pp-dot" style="background:' + l.col + '"></i>' + l.name + ' · ' + l.min + ' min');
+    });
+    popEl.innerHTML = popPill(PLAN[steps[0] - 1].map, esc(s.n), lines);
     popEl.hidden = false;
     linkedRows.forEach(function(r){ r.classList.remove('linked'); });
     linkedRows = steps.map(function(k){ return planEl.children[k - 1]; });
