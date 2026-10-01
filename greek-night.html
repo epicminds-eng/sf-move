@@ -61,6 +61,8 @@
   .item.skipped .title{text-decoration:line-through}
   .bring .item{grid-template-columns:auto 1fr}
   .bring .title{font-size:var(--t3);font-weight:500;margin-top:.15rem}
+  .extras .item{grid-template-columns:1fr auto}
+  .extras .title{font-size:var(--t3);font-weight:500;margin-top:.15rem}
   .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
@@ -75,6 +77,7 @@
   .pinm{width:28px;height:28px;border-radius:50%;background:var(--now);border:2px solid #fff;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:opacity .2s}
   .pinm.greek{background:var(--accent);color:#0b0d10}
   .pinm.start{width:24px;height:24px;background:var(--ink3);font-size:11px}
+  .pinm.extra{width:18px;height:18px;background:var(--ink3);font-size:10px;border-width:1.5px}   /* grocery stops: off the route, never fitted or walked to */
   .item .pmark{width:1.6rem;height:1.6rem;border-radius:50%;background:var(--ink3);color:#fff;font-weight:700;font-size:var(--t4);display:grid;place-items:center;margin-top:.1rem;flex:none}
   .pinm.two{font-size:9px;letter-spacing:-.03em}
   .pinm.done{opacity:.45}
@@ -101,7 +104,7 @@
 <body>
 <header>
   <h1>Greek Night</h1>
-  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.05</p>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.06</p>
   <div class="meta">
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
     <span class="chip" id="next"></span>
@@ -122,11 +125,16 @@
   <div class="list" id="bring"></div>
 </section>
 
+<section class="extras">
+  <h2>Extras</h2>
+  <div class="list" id="extras"></div>
+</section>
+
 <div class="actions">
   <button id="reset">Reset checks</button>
 </div>
 
-<footer>Greek Night · v1.05 · d4e8741</footer>
+<footer>Greek Night · v1.06 · 89385ba</footer>
 
 <script>
 (function(){
@@ -167,6 +175,7 @@
 
   var planEl = document.getElementById('plan');
   var bringEl = document.getElementById('bring');
+  var extrasEl = document.getElementById('extras');
   var progEl = document.getElementById('progress');
   var clockTimeEl = document.getElementById('clocktime');
   var clockSubEl = document.getElementById('clocksub');
@@ -202,6 +211,16 @@
   planEl.appendChild(parkEl);
   var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
+  /* grocery stops: not steps, not on the route; a row with no tick and a small pin on the map */
+  var EXTRAS = [
+    {n:'Berkeley Bowl', lat:37.8571, lng:-122.2672, note:'2020 Oregon St · on the drive in, 5 min before the garage. Produce, chocolate aisle, bulk nuts.', map:M('Berkeley Bowl 2020 Oregon St Berkeley')},
+    {n:'Andronico’s', lat:37.8795, lng:-122.2691, note:'1550 Shattuck · Gourmet Ghetto, 10-min walk north of the garage.', map:M('Andronico\'s 1550 Shattuck Ave Berkeley')}
+  ];
+  var extraEls = EXTRAS.map(function(e, i){
+    var el = row('x' + i, '', e.n, e.note, e.map);
+    el.removeChild(el.querySelector('.check'));
+    return extrasEl.appendChild(el);
+  });
 
   /* steps 1–6 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
   function isSkipped(step){ return !!(state.skip && state.skip['p' + (step - 1)]); }
@@ -580,6 +599,19 @@
     linkedRows.forEach(function(r){ r.classList.add('linked'); });
   }
   map.on('popupclose', function(){ linkedRows.forEach(function(r){ r.classList.remove('linked'); }); linkedRows = []; });
+
+  /* the extras' pins: their own layer, built once; no legs, no part in the fit, no part in "near" */
+  var extraLayer = L.layerGroup().addTo(map);
+  EXTRAS.forEach(function(e, i){
+    var m = L.marker([e.lat, e.lng], {icon:L.divIcon({className:'pinm extra', html:'<span>🛒</span>', iconSize:[18, 18], iconAnchor:[9, 9]}), keyboard:false}).addTo(extraLayer);
+    m.bindTooltip(esc(e.n), {permanent:true, direction:'auto', className:'pinlbl', offset:[0, 0], interactive:false});
+    m.on('click', function(){
+      L.popup({className:'pinpop', closeButton:false, minWidth:168, maxWidth:250, offset:[0, -10], autoPanPadding:[12, 12]})
+        .setLatLng(m.getLatLng()).setContent(popPill(e.map, esc(e.n), [esc(e.note.split(' · ')[0])])).openOn(map);
+      linkedRows.forEach(function(r){ r.classList.remove('linked'); });
+      linkedRows = [extraEls[i]]; extraEls[i].classList.add('linked');
+    });
+  });
 
   /* ---------- live location: always on, foreground only; never re-fits the map, never checks a step.
      Denied or unavailable: nothing is said, the chip just never gets its second line. ---------- */
