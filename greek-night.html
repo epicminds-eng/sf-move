@@ -26,6 +26,12 @@
   .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:var(--s1) var(--s3);font-size:var(--t4);color:var(--ink2)}
   .chip b{color:var(--ink);font-weight:600}
   .chip.now{border-color:var(--now);color:var(--now)}
+  .modes{display:inline-flex}
+  .modes .seg{flex:none;padding:var(--s1) var(--s3);font-size:var(--t4);line-height:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .modes .seg:first-child{border-radius:999px 0 0 999px}
+  .modes .seg:last-child{border-radius:0 999px 999px 0;border-left:0}
+  .modes .seg.on{background:var(--now);border-color:var(--now);color:#fff}
+  .modes .seg.on b{color:#fff}
   section{margin-top:var(--s5)}
   section h2{font-size:var(--t4);text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:var(--s3);display:flex;justify-content:space-between;align-items:baseline}
   section h2 span{letter-spacing:0;text-transform:none;color:var(--ink3)}
@@ -119,7 +125,7 @@
     <span class="chip">Doors <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
     <span class="chip">Julia's <b>5:00</b> ×2</span>
-    <span class="chip">BART from Civic Center <b>35 min</b></span>
+    <span class="modes" role="group" aria-label="Getting there"><button type="button" class="chip seg" data-mode="bart" aria-pressed="true">BART <b>35 min</b></button><button type="button" class="chip seg" data-mode="drive" aria-pressed="false">Drive <b>45 min</b></button></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
 </header>
@@ -209,6 +215,18 @@
     return el;
   }
 
+  /* Getting there and back depends on the travel mode; steps 4–11 are the same either way */
+  var GARAGE_MAP = M('Center Street Parking Garage 2025 Center St Berkeley');
+  var MODES = {
+    bart: {rows:{0:PLAN[0], 1:PLAN[1], 2:PLAN[2], 11:PLAN[11]}},
+    drive: {rows:{
+      0:{t:'2:30', h:14, m:30, title:'Leave Grove St', note:'Drive. Bay Bridge → I-80 → University Ave. ~45 min with afternoon traffic.', map:GARAGE_MAP},
+      1:{t:'3:15', h:15, m:15, title:'Park · Center St Garage', note:'2025 Center St, enter from Center. $25 for the day, exit by 1 am. 20 EV spots — plug in.', map:GARAGE_MAP},
+      2:{t:'3:25', h:15, m:25, title:'Walk from the garage', note:'Out onto Center St, east two blocks to campus.', map:GARAGE_MAP},
+      11:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 15 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}
+    }}
+  };
+  function mode(){ return state.mode === 'drive' ? 'drive' : 'bart'; }
   var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
@@ -304,16 +322,22 @@
   }
 
   /* ---------- map hero: offline SVG, projected from the data ---------- */
-  var PLACES = [
-    {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3]},
+  var SHARED = [
     {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[4]},
     {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
     {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[6]},
     {n:'Amoeba / Moe’s', lat:37.8657, lng:-122.2587, steps:[7]},
     {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[8, 9]},
-    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[11], greek:true},
-    {n:'North Gate', lat:37.8749, lng:-122.2604, steps:[12], home:true}   /* the Uber home: end of the return, not on the walk out */
+    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[11], greek:true}
   ];
+  /* per mode: the pin step 3 starts from, the pin step 12 ends at (when it's not the same one) and the walk back */
+  MODES.bart.start = {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3]};
+  MODES.bart.home = {n:'North Gate', lat:37.8749, lng:-122.2604, steps:[12], home:true};   /* the Uber home: end of the return, not on the walk out */
+  MODES.bart.back = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]];   /* Greek → Gayley & Hearst → North Gate */
+  MODES.drive.start = {n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[3, 12]};
+  MODES.drive.home = null;
+  MODES.drive.back = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]];   /* Greek → Hearst → Oxford → the garage */
+  var PLACES = [], BACK = [];
   /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
   var LEG_WP = {
     '3-4': [[37.8702, -122.2662], [37.8718, -122.2640]],
@@ -346,7 +370,6 @@
   /* a pin stays while any of its steps is live: skip 8 and City Club remains for dinner, reading 9 */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
-  var BACK = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]];   /* Greek → Gayley & Hearst → North Gate */
   /* [name, N–S?, fixed coord, from, to, labelled]; a null end runs to the frame's edge (south / west for from, north / east for to) */
   var STREETS = [
     ['Shattuck Ave', true, -122.2682, null, null, true],
@@ -367,7 +390,7 @@
     return 2 * R * Math.asin(Math.sqrt(x));
   }
   function walkLegs(){
-    var live = livePlaces().filter(function(s){ return !s.home; }), legs = [];   /* the walk out; North Gate is only the return's end */
+    var live = livePlaces().filter(function(s){ return !s.home; }), legs = [];   /* the walk out; a home-only pin (North Gate) is just the return's end */
     for (var i = 1; i < live.length; i++) {
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
       var key = a.steps[0] + '-' + b.steps[0];
@@ -381,7 +404,7 @@
                  name:liveSteps(a)[0] + '→' + (b.greek ? 10 : liveSteps(b)[0])});
     }
     /* the walk back out: Greek → North Gate for the Uber */
-    var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.home; })[0];
+    var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.steps.indexOf(12) >= 0; })[0];
     legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'11→12'});
     legs.forEach(function(l){
       var m = 0;
@@ -400,6 +423,24 @@
   var popEl = document.getElementById('pinpop');
   var handleEl = document.getElementById('maphandle');
   var pinEls = [], linkedRows = [];
+  /* the active mode's steps 1–3 and 12, pins and walk back */
+  function applyMode(){
+    var md = MODES[mode()];
+    [0, 1, 2, 11].forEach(function(i){
+      var p = PLAN[i] = md.rows[i], r = rowEls[i];
+      r.querySelector('.time').textContent = p.t;
+      r.querySelector('.title').textContent = p.title;
+      r.querySelector('.map').href = p.map;
+    });
+    PLACES = [md.start].concat(SHARED, md.home ? [md.home] : []);
+    BACK = md.back;
+    var segs = document.querySelectorAll('.modes .seg');
+    for (var j = 0; j < segs.length; j++) {
+      var on = segs[j].getAttribute('data-mode') === mode();
+      segs[j].classList.toggle('on', on); segs[j].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  }
+  applyMode();
   /* plan rows with a pin take the pin's colour for their step number */
   PLACES.forEach(function(s){ s.steps.forEach(function(k){ rowEls[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
 
@@ -564,8 +605,8 @@
     if (!w || !h) return;
     routeData();
     var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
-    PLACES.forEach(function(s){
-      var x = s.lng * K, y = -s.lat;
+    framePts().forEach(function(c){
+      var x = c[1] * K, y = -c[0];
       minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
     });
     var sc = Math.min(w * 0.84 / (maxx - minx), h * 0.84 / (maxy - miny));   /* 8% all round */
@@ -1011,8 +1052,9 @@
 
   /* the map card is sized from the route at phone widths; any change of the card's size refits the map and re-places the labels */
   var rsT = null, lastW = '';
+  function framePts(){ return PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK); }
   function sizeCard(){   /* the route's own shape plus the card's border; CSS caps it at 75vh and ignores it from 768 up */
-    var la = PLACES.map(function(s){ return s.lat; }), lo = PLACES.map(function(s){ return s.lng; });
+    var la = framePts().map(function(c){ return c[0]; }), lo = framePts().map(function(c){ return c[1]; });
     var aspect = (Math.max.apply(null, la) - Math.min.apply(null, la)) / ((Math.max.apply(null, lo) - Math.min.apply(null, lo)) * K);
     cardEl.style.setProperty('--mapH', (cardEl.clientWidth * aspect + cardEl.offsetHeight - cardEl.clientHeight).toFixed(1) + 'px');
   }
@@ -1027,10 +1069,22 @@
   if (window.ResizeObserver) new ResizeObserver(resized).observe(svg);
   sizeCard();
   buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
+  /* switching mode: the travel steps' ticks go (they're different steps now); 4–11 keep theirs; the map refits */
+  document.querySelector('.modes').addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.seg') : null;
+    if (!b || b.getAttribute('data-mode') === mode()) return;
+    state.mode = b.getAttribute('data-mode');
+    [0, 1, 2, 11].forEach(function(i){ delete state['p' + i]; rowEls[i].querySelector('.check').checked = false; });
+    save(); applyMode(); popClose();
+    VIEW = {x:0, y:0, z:1}; FIT = null;
+    sizeCard(); buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight; paint(); describe();
+  });
   startWatch();
 
   document.getElementById('reset').addEventListener('click', function(){
-    state = {}; save();
+    var md = state.mode;
+    state = {}; if (md) state.mode = md;   /* the travel mode isn't a check */
+    save();
     var cbs = document.querySelectorAll('.check');
     for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
     popClose(); buildMap(); paint();
