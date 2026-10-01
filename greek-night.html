@@ -68,7 +68,7 @@
   @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:60vh;height:60dvh}}
   #gnmap{position:absolute;inset:0;background:#e9e5dc;font:inherit}
   .leaflet-container{font-family:inherit}
-  .leaflet-tile-pane{filter:grayscale(1) brightness(1.12) contrast(.85)}   /* a light grey basemap; the route, pins and dot sit in sibling panes, unfiltered */
+  .fallback .leaflet-tile-pane{filter:grayscale(1) brightness(1.12) contrast(.85)}   /* the OSM fallback in light grey; the route, pins and dot sit in sibling panes, unfiltered */
   .leaflet-control-attribution{font-size:9px;line-height:1.2;padding:1px 4px;background:rgba(255,255,255,.7);color:#6f6a5f}
   .leaflet-control-attribution a{color:#6f6a5f}
   /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
@@ -93,7 +93,7 @@
   .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
   .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
-  #clock{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* the one chip that gives way: a long "near …" ends in an ellipsis */
+  #next{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* the one chip that gives way */
   #clock .sub{color:var(--ink2)}
   #clock .sub[hidden]{display:none}
 </style>
@@ -101,11 +101,10 @@
 <body>
 <header>
   <h1>Greek Night</h1>
-  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.01</p>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.02</p>
   <div class="meta">
-    <span class="chip">Julia's <b>5:00</b></span>
-    <span class="chip">Show <b>6:30</b></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
+    <span class="chip" id="next"></span>
   </div>
 </header>
 
@@ -127,7 +126,7 @@
   <button id="reset">Reset checks</button>
 </div>
 
-<footer>Greek Night · v1.01 · 2e6c52e</footer>
+<footer>Greek Night · v1.02 · a3406aa</footer>
 
 <script>
 (function(){
@@ -290,6 +289,14 @@
     var pl = LEGS.filter(function(l){ return l.a === START; })[0];
     pnx.textContent = pl ? '→ ' + pl.b.n + ' · ' + pl.min + ' min walk' : ''; pnx.style.color = pl ? pl.col : '';
     reorder(ps);
+    /* now / next: the current step, else the first still to come; before the garage, the garage */
+    var now = minsNow(), nextEl = document.getElementById('next');
+    if (ps.cur >= 0) nextEl.textContent = 'Now · ' + PLAN[ps.cur].title;
+    else if (now < 0 || now < 14 * 60 + 40) nextEl.textContent = 'Next · ' + START.n + ' · ' + START.t;
+    else {
+      var up = ps.st.indexOf('up');
+      nextEl.textContent = up >= 0 ? 'Next · ' + PLAN[up].title + ' · ' + PLAN[up].t : 'Done';
+    }
     var brows = bringEl.children;
     for (var j = 0; j < brows.length; j++) brows[j].classList.toggle('done', !!state['b' + j]);
     progEl.textContent = done + ' / ' + (PLAN.length - skipped);
@@ -408,7 +415,13 @@
   var NOW = '#5aa9ff', ACCENT = '#f5b84a';   /* --now and --accent, for SVG paths that can't read CSS variables */
   var map = L.map('gnmap', {zoomControl:false, maxZoom:19, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
   map.attributionControl.setPrefix('');
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(map);
+  /* Stadia Alidade Smooth; if its first tile fails (no key for this domain, or it's down) the map swaps to OpenStreetMap in grey rather than going blank */
+  var tiles = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {maxZoom:19, attribution:'© Stadia Maps © OpenMapTiles © OpenStreetMap contributors'}).addTo(map);
+  tiles.once('tileerror', function(){
+    map.removeLayer(tiles);
+    L.DomUtil.addClass(map.getContainer(), 'fallback');
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(map);
+  });
   var routeLayer = L.layerGroup().addTo(map), meLayer = L.layerGroup().addTo(map);
   var meDot = null, meRing = null;
   var hasOffset = !!(window.L && L.PolylineOffset);   /* leaflet-polylineoffset: a shared street draws its two legs ±4px apart */
