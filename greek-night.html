@@ -57,13 +57,14 @@
   .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
-  .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none}
   .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
   .mapchip{position:absolute;bottom:var(--s3);left:var(--s3);z-index:3;pointer-events:none}
   .gn-land{fill:#ece6d8}
   .gn-campus{fill:#dfe6d3}
   .gn-st-case{stroke:rgba(0,0,0,.10);stroke-width:3;stroke-linecap:round}
   .gn-st{stroke:#fff;stroke-width:1.5;stroke-linecap:round}
+  .gn-st-case,.gn-st,.gn-route-case,.gn-route{vector-effect:non-scaling-stroke}
   .gn-st-l{font-size:9px;fill:#8b8578;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:500}
   .gn-route-case{fill:none;stroke:#fff;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
   .gn-route{fill:none;stroke:var(--now);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
@@ -93,9 +94,6 @@
   .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
   .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
-  .trackbtn{position:absolute;right:var(--s3);bottom:var(--s3);z-index:3;flex:none;width:2.4rem;height:2.4rem;padding:0;display:grid;place-items:center;border-radius:50%;color:var(--ink2);cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .trackbtn svg{width:1rem;height:1rem;fill:currentColor;display:block}
-  .trackbtn.on{background:var(--now);border-color:var(--now);color:#fff}
   .me-ring{fill:var(--now);opacity:.12}
   .me-dot{fill:var(--now);stroke:#fff;stroke-width:2}
   .me-arrow{fill:var(--now);stroke:#fff;stroke-width:1.5;stroke-linejoin:round}
@@ -121,7 +119,6 @@
   <span class="chip mapchip">BART from Civic Center · 35 min</span>
   <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
   <div class="pinpop" id="pinpop" hidden></div>
-  <button class="chip trackbtn" id="track" type="button" aria-label="Live location" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></button>
 </div>
 
 <section>
@@ -499,6 +496,19 @@
     });
   }
 
+  /* ---------- the map: a fitted frame (user units = card px at 1×), a view onto it (pinch / pan / wheel),
+     and a layout placed in screen px for that view. Pins, names, pills and the me-dot are anchored groups
+     scaled by 1/zoom, so they keep their size; lines keep their width (non-scaling stroke). ---------- */
+  var FIT = null, VIEW = {x:0, y:0, z:1}, gTop = null;
+  function toScreen(u){ return [(u[0] - VIEW.x) * VIEW.z, (u[1] - VIEW.y) * VIEW.z]; }
+  function toUser(sp){ return [VIEW.x + sp[0] / VIEW.z, VIEW.y + sp[1] / VIEW.z]; }
+  function kT(a){ return 'translate(' + a[0].toFixed(2) + ' ' + a[1].toFixed(2) + ') scale(' + (1 / VIEW.z).toFixed(4) + ')'; }
+  function kGroup(cls, a, parent, extra){   /* a group drawn in screen px around an anchor in user units */
+    var attrs = {'class':cls + ' k', 'data-ax':a[0].toFixed(2), 'data-ay':a[1].toFixed(2), transform:kT(a)};
+    for (var x in extra) attrs[x] = extra[x];
+    return S('g', attrs, parent);
+  }
+
   function buildMap(){
     var w = svg.clientWidth, h = svg.clientHeight;
     if (!w || !h) return;
@@ -519,19 +529,17 @@
     /* no pin under the chip: if one lands there, fit the pins into the space above it instead */
     fit(h);
     if (PLACES.some(function(s){ var p = P(s.lat, s.lng); return p[0] > chip.x - 14 && p[0] < chip.x + chip.w + 14 && p[1] > chip.y - 14; })) fit(chip.y);
-    var br = document.getElementById('track').getBoundingClientRect();
-    MV = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P, bottom:Math.min(cr.top, br.top) - sr.top - 10};   /* the edge arrow stays above the chip and the button */
+    if (!FIT || FIT.w !== w || FIT.h !== h) VIEW = {x:0, y:0, z:1};   /* a new size starts fitted; a rebuild (a skip) keeps the view */
+    FIT = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P, chip:chip, bottom:cr.top - sr.top - 10};   /* the edge arrow stays above the chip */
 
     svg.textContent = '';
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     var defs = S('defs', {}, svg);
     var flt = S('filter', {id:'gn-soft', x:'-10%', y:'-10%', width:'120%', height:'120%'}, defs);
     S('feGaussianBlur', {stdDeviation:'3'}, flt);
     S('rect', {'class':'gn-land', x:0, y:0, width:w, height:h}, svg);
     S('polygon', {'class':'gn-campus', filter:'url(#gn-soft)', points:CAMPUS.map(function(c){ var p = P(c[0], c[1]); return f(p[0]) + ',' + f(p[1]); }).join(' ')}, svg);
-
     var gs = S('g', {}, svg);
-    var lines = STREETS.map(function(st){
+    FIT.streets = STREETS.map(function(st){
       var a, b;
       if (st[1]) { a = P(st[3], st[2]); b = P(st[4], st[2]); }
       else if (st[3] === null) { var y = P(st[2], 0)[1]; a = [0, y]; b = [w, y]; }
@@ -541,25 +549,53 @@
       ln['class'] = 'gn-st'; S('line', ln, gs);
       return [a, b];
     });
+    gTop = S('g', {}, svg);
+    layout();
+  }
 
-    parallelLegs(LEGS, P);
-    function routeD(pts){ return pts.map(function(p, k){ return (k ? 'L' : 'M') + f(p[0]) + ' ' + f(p[1]); }).join(''); }
-    var gr = S('g', {}, svg), outs = LEGS.filter(function(l){ return !l.ret; }), ret = LEGS.filter(function(l){ return l.ret; });
+  function applyViewBox(){
+    svg.setAttribute('viewBox', [VIEW.x, VIEW.y, FIT.w / VIEW.z, FIT.h / VIEW.z].map(function(v){ return v.toFixed(2); }).join(' '));
+  }
+  /* per gesture frame: move the window and keep the anchored groups their size; nothing is re-placed */
+  function applyView(){
+    if (!FIT) return;
+    applyViewBox();
+    var ks = gTop.querySelectorAll('.k');
+    for (var i = 0; i < ks.length; i++) ks[i].setAttribute('transform', kT([+ks[i].getAttribute('data-ax'), +ks[i].getAttribute('data-ay')]));
+    drawMe();
+  }
+  function clampView(){   /* 1×–4×, and the fitted frame never leaves the card */
+    VIEW.z = Math.max(1, Math.min(4, VIEW.z));
+    VIEW.x = Math.max(0, Math.min(FIT.w - FIT.w / VIEW.z, VIEW.x));
+    VIEW.y = Math.max(0, Math.min(FIT.h - FIT.h / VIEW.z, VIEW.y));
+  }
+
+  /* the routes, pills, names and pins for the current view: placed in screen px, then anchored in user units */
+  function layout(){
+    if (!FIT) return;
+    var w = FIT.w, h = FIT.h, chip = FIT.chip;
+    function Ps(lat, lng){ return toScreen(FIT.P(lat, lng)); }
+    function onScreen(p, m){ return p[0] > -m && p[0] < w + m && p[1] > -m && p[1] < h + m; }
+    gTop.textContent = '';
+    applyViewBox();
+
+    parallelLegs(LEGS, Ps);
+    function routeD(pts){ return pts.map(function(p, k){ var u = toUser(p); return (k ? 'L' : 'M') + u[0].toFixed(2) + ' ' + u[1].toFixed(2); }).join(''); }
+    var gr = S('g', {}, gTop), outs = LEGS.filter(function(l){ return !l.ret; }), ret = LEGS.filter(function(l){ return l.ret; });
     /* all casings first so no casing covers a neighbouring line; the return under the outbound legs */
     ret.concat(outs).forEach(function(l){ S('path', {'class':'gn-route-case', d:routeD(l.draw)}, gr); });
     ret.concat(outs).forEach(function(l){
       S('path', {'class':'gn-route' + (l.ret ? ' ret' : ''), d:routeD(l.draw), style:'stroke:' + l.col, 'data-leg':l.name}, gr);
     });
 
-    /* obstacles for label placement */
+    /* obstacles for label placement, in screen px */
     var ob = {circles:[], segs:[], rects:[]};
-    livePlaces().forEach(function(s){ var p = P(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
+    livePlaces().forEach(function(s){ var p = Ps(s.lat, s.lng); ob.circles.push([p[0], p[1], 12]); });
     LEGS.forEach(function(l){ for (var i = 1; i < l.draw.length; i++) ob.segs.push([l.draw[i - 1], l.draw[i]]); });
     ob.rects.push(chip);
-    ob.rects.push({x:br.left - sr.left - 2, y:br.top - sr.top - 2, w:br.width + 4, h:br.height + 4});   /* the location button */
 
-    var gp = S('g', {}, svg);   /* pills: above both routes, under the names and pins */
-    var gl = S('g', {}, svg);
+    var gp = S('g', {}, gTop);   /* pills: above both routes, under the names and pins */
+    var gl = S('g', {}, gTop);
     function measure(cls, txt){
       var t = S('text', {'class':cls, x:-999, y:-999}, gl); t.textContent = txt;
       var len = t.getComputedTextLength(); gl.removeChild(t); return len;
@@ -572,7 +608,7 @@
 
     /* walk-time pills: centred on the leg at its midpoint by path length, like a route bubble, so the line passes under them.
        One that lands within 14 units of a pin slides along the leg away from it. A leg under 3 min gets none. */
-    var pinPts = livePlaces().map(function(s){ return P(s.lat, s.lng); }), pillBoxes = [];
+    var pinPts = livePlaces().map(function(s){ return Ps(s.lat, s.lng); }), pillBoxes = [];
     LEGS.forEach(function(l){
       if (l.min < 3) return;
       var txt = l.name + ' · ' + l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 12, ph = 14;
@@ -597,7 +633,7 @@
       }
       var fr0 = 0.5;
       if (l.place) {   /* the return: the midpoint of its dashed Greek → Doe stretch, as a fraction of the whole drawn return */
-        var doe = P(l.place[1][0], l.place[1][1]), bi = 0, bd = Infinity;
+        var doe = Ps(l.place[1][0], l.place[1][1]), bi = 0, bd = Infinity;
         pts.forEach(function(q, k){ var d = Math.hypot(q[0] - doe[0], q[1] - doe[1]); if (d < bd) { bd = d; bi = k; } });
         fr0 = cum[bi] / 2 / cum[cum.length - 1];
       }
@@ -611,16 +647,18 @@
         });
         if (found) c = found;
       }
-      var g = S('g', {'class':'walk' + (l.ret ? ' ret' : ''), 'data-leg':l.name}, gp);
-      S('rect', {'class':'walk-b', x:f(c[0] - pw / 2), y:f(c[1] - ph / 2), width:f(pw), height:ph, rx:ph / 2, style:'stroke:' + l.col}, g);
-      S('text', {'class':'walk-t', x:f(c[0]), y:f(c[1] + 3.2), 'text-anchor':'middle', style:'fill:' + darker(l.col)}, g).textContent = txt;
+      var g = kGroup('walk' + (l.ret ? ' ret' : ''), toUser(c), gp, {'data-leg':l.name});
+      S('rect', {'class':'walk-b', x:f(-pw / 2), y:f(-ph / 2), width:f(pw), height:ph, rx:ph / 2, style:'stroke:' + l.col}, g);
+      S('text', {'class':'walk-t', x:0, y:3.2, 'text-anchor':'middle', style:'fill:' + darker(l.col)}, g).textContent = txt;
       pillBoxes.push({x:c[0] - pw / 2 - 1, y:c[1] - ph / 2 - 1, w:pw + 2, h:ph + 2});
       ob.rects.push({x:c[0] - pw / 2 - 2, y:c[1] - ph / 2 - 2, w:pw + 4, h:ph + 4});
     });
 
     /* pin names: right of the pin (left in the right third), then the other side, then above / below */
     livePlaces().forEach(function(s){
-      var p = P(s.lat, s.lng), len = measure('pin-l', s.n), H = 10;
+      var p = Ps(s.lat, s.lng);
+      if (!onScreen(p, 0)) return;   /* off the zoomed window: nothing to label */
+      var len = measure('pin-l', s.n), H = 10;
       var R = {r:{x:p[0] + 13, y:p[1] - 5, w:len, h:H}, anchor:'start', x:p[0] + 13};
       var L = {r:{x:p[0] - 13 - len, y:p[1] - 5, w:len, h:H}, anchor:'end', x:p[0] - 13};
       var cands = p[0] > w * 2 / 3 ? [L, R] : [R, L];
@@ -645,15 +683,15 @@
         }
         if (near) b = {r:near, anchor:'start', x:near.x};
       }
-      var t = S('text', {'class':'pin-l', x:f(b.x), y:f(b.r.y + 8), 'text-anchor':b.anchor}, gl);
-      t.textContent = s.n;
+      var g = kGroup('pin-lg', FIT.P(s.lat, s.lng), gl);
+      S('text', {'class':'pin-l', x:f(b.x - p[0]), y:f(b.r.y + 8 - p[1]), 'text-anchor':b.anchor}, g).textContent = s.n;
       ob.rects.push(b.r);
     });
 
     /* street names: beside the line on its visible part; a street with no clear spot goes unlabelled rather than under the route */
     STREETS.forEach(function(st, i){
       if (!st[5]) return;
-      var a = lines[i][0], b = lines[i][1], len = measure('gn-st-l', st[0]), cands = [];
+      var a = toScreen(FIT.streets[i][0]), b = toScreen(FIT.streets[i][1]), len = measure('gn-st-l', st[0]), cands = [];
       [0.7, 0.5, 0.85, 0.3, 0.15, 0.6, 0.4, 0.95, 0.05].forEach(function(fr){
         if (st[1]) {
           var y0 = Math.min(h - 6, Math.max(a[1], b[1])), y1 = Math.max(6, Math.min(a[1], b[1]));
@@ -670,17 +708,16 @@
       });
       var r = best(cands);
       if (r.s > 0) return;
-      var c = r.c, at = {'class':'gn-st-l', x:f(c.x), y:f(c.y), dy:c.dy};
-      if (c.rot) { at['text-anchor'] = 'middle'; at.transform = 'rotate(-90 ' + f(c.x) + ' ' + f(c.y) + ')'; }
-      S('text', at, gl).textContent = st[0];
+      var c = r.c, g = kGroup('st-lg', toUser([c.x, c.y]), gl), at = {'class':'gn-st-l', x:0, y:0, dy:c.dy};
+      if (c.rot) { at['text-anchor'] = 'middle'; at.transform = 'rotate(-90)'; }
+      S('text', at, g).textContent = st[0];
       ob.rects.push(c.r);
     });
 
     pinEls = PLACES.map(function(s, i){
       var steps = liveSteps(s);
       if (!steps.length) return null;
-      var p = P(s.lat, s.lng);
-      var g = S('g', {'class':'pin' + (s.greek ? ' greek' : ''), 'data-i':i, transform:'translate(' + f(p[0]) + ' ' + f(p[1]) + ')'}, svg);
+      var g = kGroup('pin' + (s.greek ? ' greek' : ''), FIT.P(s.lat, s.lng), gTop, {'data-i':i});
       S('circle', {'class':'pin-hit', r:20}, g);
       S('circle', {'class':'pulse', r:9}, g);
       S('circle', {'class':'pin-c', r:9}, g);
@@ -688,6 +725,7 @@
       n.textContent = steps.join('·');
       return g;
     });
+    paintMap(nowIndex());
     drawMe();
   }
 
@@ -724,79 +762,140 @@
     popEl.style.top = (below ? bot + 8 : top - 8) + 'px';
   }
 
-  /* ---------- live location: foreground only, never re-fits the map, never checks a step ---------- */
-  var trackBtn = document.getElementById('track');
-  var MV = null, watchId = null, fix = null, subT = null;
+  /* ---------- live location: always on, foreground only; never re-fits the map, never checks a step.
+     Denied or unavailable: nothing is said, the chip just never gets its second line. ---------- */
+  var watchId = null, fix = null, geoDenied = false;
+  if ('track' in state) { delete state.track; save(); }   /* the old on/off toggle's setting */
   function sub(txt){ clockSubEl.textContent = txt; clockSubEl.hidden = !txt; }
-  function flash(txt){ sub(txt); clearTimeout(subT); subT = setTimeout(function(){ if (!state.track) sub(''); }, 3000); }
-  function syncTrack(){ trackBtn.classList.toggle('on', !!state.track); trackBtn.setAttribute('aria-pressed', state.track ? 'true' : 'false'); }
   function nearestPin(lat, lng){
     var pin = null, bd = Infinity;
     livePlaces().forEach(function(s){ var d = metres([lat, lng], [s.lat, s.lng]); if (d < bd) { bd = d; pin = s; } });
     return {pin:pin, m:bd};
   }
   function describe(){
-    if (!fix) { sub('Locating…'); return; }
+    if (!fix) { sub(''); return; }
     var n = nearestPin(fix.lat, fix.lng);
     if (n.m <= 400) sub('near ' + n.pin.n + ' · ' + Math.round(n.m * 3.28084) + ' ft');
     else sub((n.m / 1609.344).toFixed(1) + ' mi from Berkeley');
   }
   function drawMe(){
     var old = svg.querySelector('.me'); if (old) svg.removeChild(old);
-    if (!state.track || !fix || !MV) return;
-    var g = S('g', {'class':'me'}, svg);
-    var p = MV.P(fix.lat, fix.lng), w = MV.w, h = MV.h, m = 16;
+    if (!fix || !FIT) return;
+    var w = FIT.w, h = FIT.h, m = 16, u = FIT.P(fix.lat, fix.lng), p = toScreen(u);
     if (p[0] >= m && p[0] <= w - m && p[1] >= m && p[1] <= h - m) {
-      var rpx = Math.min(60, (fix.acc || 0) * MV.sc / 111320);   /* accuracy metres → map units, via the latitude scale */
-      if (rpx > 6) S('circle', {'class':'me-ring', cx:f(p[0]), cy:f(p[1]), r:f(rpx)}, g);
-      S('circle', {'class':'me-dot', cx:f(p[0]), cy:f(p[1]), r:6}, g);
+      var g = S('g', {'class':'me', transform:kT(u)}, svg);
+      var rpx = Math.min(60, (fix.acc || 0) * FIT.sc / 111320);   /* accuracy metres → px at the fitted scale */
+      if (rpx > 6) S('circle', {'class':'me-ring', r:f(rpx)}, g);
+      S('circle', {'class':'me-dot', r:6}, g);
       return;
     }
-    /* off the map (still in SF, on BART): an arrow on the edge pointing at the true position, with the distance to it */
+    /* off the window (still in SF, on BART, or zoomed away): an arrow on the edge pointing at the true position, with the distance to it */
     var cx = w / 2, cy = h / 2, dx = p[0] - cx, dy = p[1] - cy, t = Infinity;
     if (dx > 0) t = Math.min(t, (w - m - cx) / dx); else if (dx < 0) t = Math.min(t, (m - cx) / dx);
-    if (dy > 0) t = Math.min(t, (MV.bottom - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
-    var ex = cx + dx * t, ey = cy + dy * t, ang = Math.atan2(dy, dx) * 180 / Math.PI;
-    var eLat = (MV.oy - ey) / MV.sc, eLng = (ex - MV.ox) / (MV.sc * K);
+    if (dy > 0) t = Math.min(t, (FIT.bottom - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
+    var ex = cx + dx * t, ey = cy + dy * t, ang = Math.atan2(dy, dx) * 180 / Math.PI, eu = toUser([ex, ey]);
+    var eLat = (FIT.oy - eu[1]) / FIT.sc, eLng = (eu[0] - FIT.ox) / (FIT.sc * K);
     var mi = metres([eLat, eLng], [fix.lat, fix.lng]) / 1609.344;
-    S('path', {'class':'me-arrow', d:'M8 0L-6 6L-3 0L-6 -6Z', transform:'translate(' + f(ex) + ' ' + f(ey) + ') rotate(' + f(ang) + ')'}, g);
+    var ge = S('g', {'class':'me', transform:kT(eu)}, svg);
+    S('path', {'class':'me-arrow', d:'M8 0L-6 6L-3 0L-6 -6Z', transform:'rotate(' + f(ang) + ')'}, ge);
     var len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, off = 12 + Math.abs(ux) * 16 + Math.abs(uy) * 6;
-    S('text', {'class':'me-l', x:f(ex - ux * off), y:f(ey - uy * off), dy:'3.5', 'text-anchor':'middle'}, g).textContent = mi.toFixed(1) + ' mi';
+    S('text', {'class':'me-l', x:f(-ux * off), y:f(-uy * off), dy:'3.5', 'text-anchor':'middle'}, ge).textContent = mi.toFixed(1) + ' mi';
   }
   function onFix(pos){
     fix = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy || 0};
     describe(); drawMe();
   }
-  function onErr(e){
-    if (e && e.code === 1) { trackOff('Location off'); return; }
-    if (!fix) sub('Locating…');   /* no fix yet or a timeout: keep watching */
-  }
+  function onErr(e){ if (e && e.code === 1) { geoDenied = true; stopWatch(); } }   /* a timeout just keeps watching */
   function startWatch(){
-    if (watchId !== null) return;
-    if (!navigator.geolocation) { trackOff('Location off'); return; }
+    if (watchId !== null || geoDenied || !navigator.geolocation) return;
     try { watchId = navigator.geolocation.watchPosition(onFix, onErr, {enableHighAccuracy:true, maximumAge:5000, timeout:15000}); }
-    catch (e) { watchId = null; trackOff('Location off'); }
+    catch (e) { watchId = null; }
   }
   function stopWatch(){
     if (watchId !== null && navigator.geolocation) { try { navigator.geolocation.clearWatch(watchId); } catch (e) {} }
     watchId = null;
   }
-  function trackOff(msg){
-    state.track = false; save(); syncTrack(); stopWatch(); fix = null; drawMe();
-    if (msg) flash(msg); else sub('');
-  }
-  function trackOn(){ state.track = true; save(); syncTrack(); sub('Locating…'); startWatch(); }
-  trackBtn.addEventListener('click', function(){ if (state.track) trackOff(''); else trackOn(); });
-  document.addEventListener('visibilitychange', function(){
-    if (document.hidden) stopWatch(); else if (state.track) startWatch();
-  });
-  syncTrack();
-  if (state.track) { sub('Locating…'); startWatch(); }
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) stopWatch(); else startWatch(); });
 
-  svg.addEventListener('click', function(ev){
-    var g = ev.target.closest ? ev.target.closest('.pin') : null;
-    if (g) popOpen(+g.getAttribute('data-i')); else popClose();
+  /* ---------- pinch zoom and pan, no controls: two fingers zoom about their midpoint, one finger pans,
+     a still finger is a tap, a double tap goes back to the fitted view, the wheel zooms on desktop ---------- */
+  var ptrs = {}, gest = null, lastTap = null, wheelT = null, anim = null;
+  function local(e){ var r = svg.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  function down(){ return Object.keys(ptrs); }
+  function startPan(sp){ gest = {mode:'pan', s:sp, v0:{x:VIEW.x, y:VIEW.y}}; }
+  function startPinch(){
+    var k = down(), a = ptrs[k[0]], b = ptrs[k[1]];
+    gest = {mode:'pinch', d0:Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z0:VIEW.z, U0:toUser([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])};
+  }
+  function stopAnim(){ if (anim) { cancelAnimationFrame(anim); anim = null; } }
+  svg.addEventListener('pointerdown', function(e){
+    stopAnim();
+    try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+    ptrs[e.pointerId] = local(e);
+    var n = down().length;
+    if (n === 1) gest = {mode:'tap', s:ptrs[e.pointerId], target:e.target};
+    else if (n === 2) { popClose(); startPinch(); }
+    e.preventDefault();
   });
+  svg.addEventListener('pointermove', function(e){
+    if (!(e.pointerId in ptrs) || !gest) return;
+    var sp = ptrs[e.pointerId] = local(e);
+    if (gest.mode === 'tap') {
+      if (Math.hypot(sp[0] - gest.s[0], sp[1] - gest.s[1]) <= 6) return;
+      popClose(); startPan(gest.s);
+    }
+    if (gest.mode === 'pan') {
+      VIEW.x = gest.v0.x - (sp[0] - gest.s[0]) / VIEW.z; VIEW.y = gest.v0.y - (sp[1] - gest.s[1]) / VIEW.z;
+    } else if (gest.mode === 'pinch' && down().length === 2) {
+      var k = down(), a = ptrs[k[0]], b = ptrs[k[1]], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      VIEW.z = Math.max(1, Math.min(4, gest.z0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gest.d0));
+      VIEW.x = gest.U0[0] - m[0] / VIEW.z; VIEW.y = gest.U0[1] - m[1] / VIEW.z;   /* the point under the fingers stays under them */
+    }
+    clampView(); applyView();
+  });
+  function lift(e){
+    if (!(e.pointerId in ptrs)) return;
+    delete ptrs[e.pointerId];
+    if (!gest) return;
+    var left = down();
+    if (left.length === 1 && gest.mode === 'pinch') { startPan(ptrs[left[0]]); return; }   /* one finger lifts: the other pans on */
+    if (left.length) return;
+    var g = gest; gest = null;
+    if (g.mode === 'tap') { if (e.type === 'pointerup') tap(g); }
+    else layout();   /* zoom / pan end: place the labels for the new window */
+  }
+  svg.addEventListener('pointerup', lift);
+  svg.addEventListener('pointercancel', lift);
+  function tap(g){
+    var now = Date.now();
+    if (lastTap && now - lastTap.t < 300 && Math.hypot(g.s[0] - lastTap.s[0], g.s[1] - lastTap.s[1]) < 10) {
+      lastTap = null; popClose(); fitView(); return;
+    }
+    lastTap = {t:now, s:g.s};
+    var pin = g.target && g.target.closest ? g.target.closest('.pin') : null;
+    if (pin) popOpen(+pin.getAttribute('data-i')); else popClose();
+  }
+  function fitView(){
+    if (VIEW.z === 1 && !VIEW.x && !VIEW.y) return;
+    var from = {x:VIEW.x, y:VIEW.y, z:VIEW.z}, t0 = null;
+    function step(t){
+      if (t0 === null) t0 = t;
+      var k = Math.min(1, (t - t0) / 200), e = 1 - Math.pow(1 - k, 3);
+      VIEW = {x:from.x * (1 - e), y:from.y * (1 - e), z:from.z + (1 - from.z) * e};
+      applyView();
+      if (k < 1) anim = requestAnimationFrame(step); else { anim = null; VIEW = {x:0, y:0, z:1}; layout(); }
+    }
+    stopAnim(); anim = requestAnimationFrame(step);
+  }
+  svg.addEventListener('wheel', function(e){
+    e.preventDefault(); stopAnim(); popClose();
+    var m = local(e), U = toUser(m);
+    VIEW.z = Math.max(1, Math.min(4, VIEW.z * Math.exp(-e.deltaY * 0.0015)));
+    VIEW.x = U[0] - m[0] / VIEW.z; VIEW.y = U[1] - m[1] / VIEW.z;
+    clampView(); applyView();
+    clearTimeout(wheelT); wheelT = setTimeout(layout, 150);
+  }, {passive:false});
+
   var rsT = null, lastW = 0;
   window.addEventListener('resize', function(){
     clearTimeout(rsT);
@@ -806,10 +905,10 @@
     }, 150);
   });
   buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
+  startWatch();
 
   document.getElementById('reset').addEventListener('click', function(){
-    var tr = !!state.track;
-    state = {}; if (tr) state.track = true; save();
+    state = {}; save();
     var cbs = document.querySelectorAll('.check');
     for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
     popClose(); buildMap(); paint();
