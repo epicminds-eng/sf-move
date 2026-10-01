@@ -65,10 +65,10 @@
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
   .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-  @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:60vh;height:60dvh}}
+  @media (max-width:767px){.mapcard{aspect-ratio:auto;max-height:none;height:42vh;height:42dvh}}
   #gnmap{position:absolute;inset:0;background:#e9e5dc;font:inherit}
   .leaflet-container{font-family:inherit}
-  .fallback .leaflet-tile-pane{filter:grayscale(1) brightness(1.12) contrast(.85)}   /* the OSM fallback in light grey; the route, pins and dot sit in sibling panes, unfiltered */
+  .leaflet-tile-pane{filter:grayscale(1) brightness(1.18) contrast(.72)}   /* a washed grey basemap; the route, pins and dot sit in sibling panes, unfiltered */
   .leaflet-control-attribution{font-size:9px;line-height:1.2;padding:1px 4px;background:rgba(255,255,255,.7);color:#6f6a5f}
   .leaflet-control-attribution a{color:#6f6a5f}
   /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
@@ -101,7 +101,7 @@
 <body>
 <header>
   <h1>Greek Night</h1>
-  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.02</p>
+  <p>Jack Johnson + G. Love · Thu Oct 1 2026 · Berkeley · v1.03</p>
   <div class="meta">
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
     <span class="chip" id="next"></span>
@@ -126,7 +126,7 @@
   <button id="reset">Reset checks</button>
 </div>
 
-<footer>Greek Night · v1.02 · a3406aa</footer>
+<footer>Greek Night · v1.03 · 614c886</footer>
 
 <script>
 (function(){
@@ -413,15 +413,9 @@
      pin list; Leaflet does the projection, the gestures, the labels and the popup. ---------- */
   var cardEl = document.getElementById('mapcard'), linkedRows = [], markers = [];
   var NOW = '#5aa9ff', ACCENT = '#f5b84a';   /* --now and --accent, for SVG paths that can't read CSS variables */
-  var map = L.map('gnmap', {zoomControl:false, maxZoom:19, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
+  var map = L.map('gnmap', {zoomControl:false, minZoom:14, maxZoom:16, attributionControl:true, zoomSnap:0});   /* zoomSnap 0: the fit lands on the route exactly, not the next whole level out */
   map.attributionControl.setPrefix('');
-  /* Stadia Alidade Smooth; if its first tile fails (no key for this domain, or it's down) the map swaps to OpenStreetMap in grey rather than going blank */
-  var tiles = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {maxZoom:19, attribution:'© Stadia Maps © OpenMapTiles © OpenStreetMap contributors'}).addTo(map);
-  tiles.once('tileerror', function(){
-    map.removeLayer(tiles);
-    L.DomUtil.addClass(map.getContainer(), 'fallback');
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(map);
-  });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {minZoom:14, maxZoom:16, attribution:'© OpenStreetMap contributors'}).addTo(map);
   var routeLayer = L.layerGroup().addTo(map), meLayer = L.layerGroup().addTo(map);
   var meDot = null, meRing = null;
   var hasOffset = !!(window.L && L.PolylineOffset);   /* leaflet-polylineoffset: a shared street draws its two legs ±4px apart */
@@ -516,6 +510,9 @@
     return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
   }
 
+  function fitRoute(){ map.fitBounds(L.latLngBounds(PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK)), {padding:[24, 24]}); }
+  map.on('resize', fitRoute);   /* the card changed size: the route fills it again */
+
   function buildMap(){
     routeData();
     routeLayer.clearLayers(); markers = [];
@@ -530,7 +527,7 @@
       m.on('click', function(){ popOpen(i, m); });
       m.place = s; markers.push(m);
     });
-    map.fitBounds(L.latLngBounds(PLACES.map(function(s){ return [s.lat, s.lng]; }).concat(BACK)), {padding:[24, 24]});
+    fitRoute();
     paintMap(planStates().cur);
   }
 
