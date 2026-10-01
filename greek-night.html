@@ -129,7 +129,7 @@
     {t:'2:50', h:14, m:50, title:'Red line → Richmond', note:'Sit on the right side for the bay coming out of the tube. ~35 min.', map:M('Civic Center BART Station San Francisco')},
     {t:'3:25', h:15, m:25, title:'Downtown Berkeley BART', note:'Exit to Shattuck, east on Center St two blocks to campus.', map:M('Downtown Berkeley BART Station')},
     {t:'3:30', h:15, m:30, title:'Doe Library', note:'Through the west gate, straight ahead. No ID needed. North Reading Room (the vaulted one, green lamps) and Morrison Library (wood-panelled, couches, records) — both just inside the entrance. Whisper.', map:M('Doe Memorial Library UC Berkeley')},
-    {t:'3:55', h:15, m:55, title:'Campanile', note:'Elevator’s likely closed by now — the lawn at the base is the view. Miss it → lawn at the base for 10 min.', map:M('Sather Tower UC Berkeley')},
+    {t:'3:55', h:15, m:55, title:'Campanile', note:'Elevator’s likely closed by now — the lawn at the base is the view. 10 min.', map:M('Sather Tower UC Berkeley')},
     {t:'4:10', h:16, m:10, title:'Caffe Strada', note:'Exit campus at the SE corner (Bancroft & College). The patio under the trees. Tea or espresso.', map:M('Caffe Strada 2300 College Ave Berkeley')},
     {t:'4:30', h:16, m:30, title:'Telegraph Ave', note:'West on Bancroft, south on Telegraph. Amoeba and Moe’s. 15 min.', map:M('Amoeba Music 2455 Telegraph Ave Berkeley')},
     {t:'4:50', h:16, m:50, title:'Berkeley City Club', note:'North to Durant, two blocks west. Julia Morgan, 1929 — courtyard and indoor pool through the back. Julia’s is 2nd floor.', map:M('Berkeley City Club 2315 Durant Ave Berkeley')},
@@ -224,12 +224,12 @@
   ];
   /* walk out: BART → campus → Strada → Telegraph → City Club → Greek; the Bancroft & College retrace is the same sidewalk */
   var OUT = [
-    [37.8699, -122.2681], [37.8702, -122.2662], [37.8718, -122.2640], [37.8730, -122.2593],
+    [37.8699, -122.2681], [37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592],
     [37.8721, -122.2578], [37.8700, -122.2555], [37.8687, -122.2535], [37.8688, -122.2533],
     [37.8687, -122.2588], [37.8657, -122.2587], [37.8677, -122.2588], [37.8678, -122.2612],
     [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545], [37.8737, -122.2543]
   ];
-  var BACK = [[37.8737, -122.2543], [37.8725, -122.2578], [37.8718, -122.2640], [37.8702, -122.2662], [37.8699, -122.2681]];
+  var BACK = [[37.8737, -122.2543], [37.8723, -122.2592], [37.8718, -122.2640], [37.8702, -122.2662], [37.8699, -122.2681]];
   /* [name, N–S?, fixed coord, from, to (null = full fitted width), labelled] */
   var STREETS = [
     ['Shattuck Ave', true, -122.2682, 37.863, 37.878, true],
@@ -439,7 +439,6 @@
     if (linkedRow) linkedRow.classList.remove('linked');
     linkedRow = planEl.children[s.step - 1];
     linkedRow.classList.add('linked');
-    linkedRow.scrollIntoView({block:'nearest', behavior:'smooth'});
     var c = pinEls[i].querySelector('.pin-c').getBoundingClientRect(), r = cardEl.getBoundingClientRect();
     var cx = c.left + c.width / 2 - r.left, top = c.top - r.top, bot = c.bottom - r.top;
     var pw = popEl.offsetWidth, ph = popEl.offsetHeight;
