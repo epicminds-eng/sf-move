@@ -42,7 +42,7 @@
   .item.now .time{color:var(--now)}
   .title{font-size:var(--t2);font-weight:600;margin-top:.1rem}
   .note{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
-  .map{flex:none;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:var(--r2);background:var(--card2);border:1px solid var(--line);text-decoration:none;font-size:1.1rem;margin-top:.05rem}
+  .map{flex:none;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:var(--r2);background:var(--card2);border:1px solid var(--line);text-decoration:none;font-size:1.1rem;margin-top:.05rem;color:var(--ink2)}
   .map:active{background:var(--line)}
   .bring .item{grid-template-columns:auto 1fr}
   .bring .title{font-size:var(--t3);font-weight:500;margin-top:.15rem}
@@ -132,7 +132,7 @@
     el.appendChild(cb); el.appendChild(body);
     if (map) {
       var a = document.createElement('a'); a.className = 'map'; a.href = map; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = '↗'; a.setAttribute('aria-label', 'Open in Apple Maps');
+      a.textContent = '↗'; a.setAttribute('aria-label', 'Apple Maps');
       a.addEventListener('click', function(ev){ ev.stopPropagation(); });
       el.appendChild(a);
     }
