@@ -86,6 +86,16 @@
   .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
   .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
+  .trackbtn{position:absolute;right:var(--s3);bottom:var(--s3);z-index:3;flex:none;width:2.4rem;height:2.4rem;padding:0;display:grid;place-items:center;border-radius:50%;color:var(--ink2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .trackbtn svg{width:1rem;height:1rem;fill:currentColor;display:block}
+  .trackbtn.on{background:var(--now);border-color:var(--now);color:#fff}
+  .me-ring{fill:var(--now);opacity:.12}
+  .me-dot{fill:var(--now);stroke:#fff;stroke-width:2}
+  .me-arrow{fill:var(--now);stroke:#fff;stroke-width:1.5;stroke-linejoin:round}
+  .me-l{font-size:9px;font-weight:700;fill:var(--now);stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round}
+  #clock{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1.3}
+  #clock .sub{color:var(--ink2);font-size:var(--t4)}
+  #clock .sub[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -96,7 +106,7 @@
     <span class="chip">Doors <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
     <span class="chip">Julia's <b>5:00</b> ×2</span>
-    <span class="chip now" id="clock">—</span>
+    <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
 </header>
 
@@ -104,6 +114,7 @@
   <span class="chip mapchip">BART from Civic Center · 35 min</span>
   <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
   <div class="pinpop" id="pinpop" hidden></div>
+  <button class="chip trackbtn" id="track" type="button" aria-label="Live location" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></button>
 </div>
 
 <section>
@@ -160,7 +171,8 @@
   var planEl = document.getElementById('plan');
   var bringEl = document.getElementById('bring');
   var progEl = document.getElementById('progress');
-  var clockEl = document.getElementById('clock');
+  var clockTimeEl = document.getElementById('clocktime');
+  var clockSubEl = document.getElementById('clocksub');
 
   function row(id, time, title, note, map){
     var el = document.createElement('label');
@@ -212,7 +224,7 @@
     progEl.textContent = done + ' / ' + PLAN.length;
     var d = new Date();
     var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
-    clockEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
+    clockTimeEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
     paintMap(ni);
   }
 
@@ -338,6 +350,8 @@
     /* no pin under the chip: if one lands there, fit the pins into the space above it instead */
     fit(h);
     if (PLACES.some(function(s){ var p = P(s.lat, s.lng); return p[0] > chip.x - 14 && p[0] < chip.x + chip.w + 14 && p[1] > chip.y - 14; })) fit(chip.y);
+    var br = document.getElementById('track').getBoundingClientRect();
+    MV = {w:w, h:h, sc:sc, ox:ox, oy:oy, P:P, bottom:Math.min(cr.top, br.top) - sr.top - 10};   /* the edge arrow stays above the chip and the button */
 
     svg.textContent = '';
     svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
@@ -506,6 +520,7 @@
       n.textContent = s.step;
       return g;
     });
+    drawMe();
   }
 
   function paintMap(ni){
@@ -536,6 +551,75 @@
     popEl.style.top = (below ? bot + 8 : top - 8) + 'px';
   }
 
+  /* ---------- live location: foreground only, never re-fits the map, never checks a step ---------- */
+  var trackBtn = document.getElementById('track');
+  var MV = null, watchId = null, fix = null, subT = null;
+  function sub(txt){ clockSubEl.textContent = txt; clockSubEl.hidden = !txt; }
+  function flash(txt){ sub(txt); clearTimeout(subT); subT = setTimeout(function(){ if (!state.track) sub(''); }, 3000); }
+  function syncTrack(){ trackBtn.classList.toggle('on', !!state.track); trackBtn.setAttribute('aria-pressed', state.track ? 'true' : 'false'); }
+  function nearestPin(lat, lng){
+    var pin = null, bd = Infinity;
+    PLACES.forEach(function(s){ var d = metres([lat, lng], [s.lat, s.lng]); if (d < bd) { bd = d; pin = s; } });
+    return {pin:pin, m:bd};
+  }
+  function describe(){
+    if (!fix) { sub('Locating…'); return; }
+    var n = nearestPin(fix.lat, fix.lng);
+    if (n.m <= 400) sub('near ' + n.pin.n + ' · ' + Math.round(n.m * 3.28084) + ' ft');
+    else sub((n.m / 1609.344).toFixed(1) + ' mi from Berkeley');
+  }
+  function drawMe(){
+    var old = svg.querySelector('.me'); if (old) svg.removeChild(old);
+    if (!state.track || !fix || !MV) return;
+    var g = S('g', {'class':'me'}, svg);
+    var p = MV.P(fix.lat, fix.lng), w = MV.w, h = MV.h, m = 16;
+    if (p[0] >= m && p[0] <= w - m && p[1] >= m && p[1] <= h - m) {
+      var rpx = Math.min(60, (fix.acc || 0) * MV.sc / 111320);   /* accuracy metres → map units, via the latitude scale */
+      if (rpx > 6) S('circle', {'class':'me-ring', cx:f(p[0]), cy:f(p[1]), r:f(rpx)}, g);
+      S('circle', {'class':'me-dot', cx:f(p[0]), cy:f(p[1]), r:6}, g);
+      return;
+    }
+    /* off the map (still in SF, on BART): an arrow on the edge pointing at the true position, with the distance to it */
+    var cx = w / 2, cy = h / 2, dx = p[0] - cx, dy = p[1] - cy, t = Infinity;
+    if (dx > 0) t = Math.min(t, (w - m - cx) / dx); else if (dx < 0) t = Math.min(t, (m - cx) / dx);
+    if (dy > 0) t = Math.min(t, (MV.bottom - cy) / dy); else if (dy < 0) t = Math.min(t, (m - cy) / dy);
+    var ex = cx + dx * t, ey = cy + dy * t, ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    var eLat = (MV.oy - ey) / MV.sc, eLng = (ex - MV.ox) / (MV.sc * K);
+    var mi = metres([eLat, eLng], [fix.lat, fix.lng]) / 1609.344;
+    S('path', {'class':'me-arrow', d:'M8 0L-6 6L-3 0L-6 -6Z', transform:'translate(' + f(ex) + ' ' + f(ey) + ') rotate(' + f(ang) + ')'}, g);
+    var len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, off = 12 + Math.abs(ux) * 16 + Math.abs(uy) * 6;
+    S('text', {'class':'me-l', x:f(ex - ux * off), y:f(ey - uy * off), dy:'3.5', 'text-anchor':'middle'}, g).textContent = mi.toFixed(1) + ' mi';
+  }
+  function onFix(pos){
+    fix = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy || 0};
+    describe(); drawMe();
+  }
+  function onErr(e){
+    if (e && e.code === 1) { trackOff('Location off'); return; }
+    if (!fix) sub('Locating…');   /* no fix yet or a timeout: keep watching */
+  }
+  function startWatch(){
+    if (watchId !== null) return;
+    if (!navigator.geolocation) { trackOff('Location off'); return; }
+    try { watchId = navigator.geolocation.watchPosition(onFix, onErr, {enableHighAccuracy:true, maximumAge:5000, timeout:15000}); }
+    catch (e) { watchId = null; trackOff('Location off'); }
+  }
+  function stopWatch(){
+    if (watchId !== null && navigator.geolocation) { try { navigator.geolocation.clearWatch(watchId); } catch (e) {} }
+    watchId = null;
+  }
+  function trackOff(msg){
+    state.track = false; save(); syncTrack(); stopWatch(); fix = null; drawMe();
+    if (msg) flash(msg); else sub('');
+  }
+  function trackOn(){ state.track = true; save(); syncTrack(); sub('Locating…'); startWatch(); }
+  trackBtn.addEventListener('click', function(){ if (state.track) trackOff(''); else trackOn(); });
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stopWatch(); else if (state.track) startWatch();
+  });
+  syncTrack();
+  if (state.track) { sub('Locating…'); startWatch(); }
+
   svg.addEventListener('click', function(ev){
     var g = ev.target.closest ? ev.target.closest('.pin') : null;
     if (g) popOpen(+g.getAttribute('data-i')); else popClose();
@@ -551,7 +635,8 @@
   buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
 
   document.getElementById('reset').addEventListener('click', function(){
-    state = {}; save();
+    var tr = !!state.track;
+    state = {}; if (tr) state.track = true; save();
     var cbs = document.querySelectorAll('.check');
     for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
     paint();
