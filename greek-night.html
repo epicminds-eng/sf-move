@@ -49,6 +49,34 @@
   .actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
   button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink2);border-radius:var(--r2);padding:var(--s3);font:inherit;font-size:var(--t3)}
   footer{margin-top:var(--s6);text-align:center;color:var(--ink3);font-size:var(--t4)}
+  .mapcard{position:relative;width:100%;aspect-ratio:4/3;max-height:60vh;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .mapcard svg{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  .mapchip{position:absolute;top:var(--s3);left:var(--s3);z-index:3;pointer-events:none}
+  .gn-land{fill:#ece6d8}
+  .gn-campus{fill:#dfe6d3}
+  .gn-st-case{stroke:rgba(0,0,0,.10);stroke-width:3;stroke-linecap:round}
+  .gn-st{stroke:#fff;stroke-width:1.5;stroke-linecap:round}
+  .gn-st-l{font-size:9px;fill:#8b8578;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:500}
+  .gn-route-case{fill:none;stroke:#fff;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
+  .gn-route{fill:none;stroke:var(--now);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+  .pin{cursor:pointer;transition:opacity .2s}
+  .pin.done{opacity:.45}
+  .pin-c{fill:var(--now);stroke:#fff;stroke-width:2}
+  .pin.greek .pin-c{fill:var(--accent)}
+  .pin-n{fill:#fff;font-size:10px;font-weight:700;pointer-events:none}
+  .pin.greek .pin-n{fill:#0b0d10}
+  .pin-hit{fill:transparent}
+  .pulse{display:none;fill:none;stroke:var(--now);stroke-width:2;transform-box:fill-box;transform-origin:center}
+  .pin.now .pulse{display:block;animation:gnPulse 2s ease-out infinite}
+  @keyframes gnPulse{from{transform:scale(1);opacity:.9}to{transform:scale(2.6);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.pin.now .pulse{animation:none;transform:scale(1.6);opacity:.6}}
+  .pinpop{position:absolute;z-index:4;min-width:168px;max-width:230px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r);padding:var(--s2) var(--s3);box-shadow:0 8px 26px rgba(0,0,0,.45);font-size:var(--t4);line-height:1.35;transform:translate(-50%,-100%)}
+  .pinpop.below{transform:translate(-50%,0)}
+  .pinpop .pp{display:flex;align-items:center;gap:var(--s2);color:inherit;text-decoration:none}
+  .pinpop .pp-t{flex:1;min-width:0}
+  .pinpop b{display:block;font-size:var(--t3);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pinpop .pp-m{display:block;margin-top:2px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+  .pinpop .pp-c{flex:none;font-size:1.4rem;line-height:1;color:var(--ink3)}
 </style>
 </head>
 <body>
@@ -62,6 +90,12 @@
     <span class="chip now" id="clock">—</span>
   </div>
 </header>
+
+<div class="mapcard" id="mapcard">
+  <span class="chip mapchip">BART from Civic Center · 35 min</span>
+  <svg id="gnmap" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Route map"></svg>
+  <div class="pinpop" id="pinpop" hidden></div>
+</div>
 
 <section>
   <h2>Plan <span id="progress"></span></h2>
@@ -168,7 +202,148 @@
     var d = new Date();
     var hh = d.getHours() % 12 || 12, mm = ('0' + d.getMinutes()).slice(-2);
     clockEl.textContent = 'Now ' + hh + ':' + mm + (d.getHours() < 12 ? ' am' : ' pm');
+    paintMap(ni);
   }
+
+  /* ---------- map hero: offline SVG, projected from the data ---------- */
+  var STOPS = [
+    {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3, 12]},
+    {n:'Memorial Glade', lat:37.8730, lng:-122.2593, steps:[4]},
+    {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
+    {n:'Sather Gate', lat:37.8703, lng:-122.2595, steps:[6]},
+    {n:'Amoeba / Moe’s', lat:37.8656, lng:-122.2587, steps:[6]},
+    {n:'Caffe Strada', lat:37.8686, lng:-122.2534, steps:[7]},
+    {n:'Berkeley City Club', lat:37.8676, lng:-122.2575, steps:[8]},
+    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[11], greek:true}
+  ];
+  var ROUTE = [0, 1, 2, 3, 4, 5, 6, 7, 0];
+  /* [name, N–S?, fixed coord, from, to, labelled] */
+  var STREETS = [
+    ['Shattuck Ave', true, -122.2682, 37.863, 37.878, true],
+    ['Oxford St', true, -122.2662, 37.866, 37.876, true],
+    ['Telegraph Ave', true, -122.2588, 37.860, 37.8687, true],
+    ['College Ave', true, -122.2535, 37.860, 37.8745, true],
+    ['Durant Ave', false, 37.8677, -122.270, -122.250, true],
+    ['Bancroft Way', false, 37.8687, -122.270, -122.250, false],
+    ['Hearst Ave', false, 37.8747, -122.270, -122.250, false],
+    ['Center St', false, 37.8702, -122.270, -122.2662, false],
+    ['Gayley Rd', true, -122.2545, 37.8705, 37.876, false]
+  ];
+  var CAMPUS = [[37.8687, -122.2662], [37.8687, -122.2545], [37.8755, -122.2545], [37.8755, -122.2662]];
+  var K = Math.cos(37.87 * Math.PI / 180);
+  var NS = 'http://www.w3.org/2000/svg';
+  var cardEl = document.getElementById('mapcard');
+  var svg = document.getElementById('gnmap');
+  var popEl = document.getElementById('pinpop');
+  var pinEls = [];
+
+  function S(tag, attrs, parent){
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function popPill(href, name, meta){
+    return '<a class="pp" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="pp-t"><b>' + name + '</b><span class="pp-m">' + meta + '</span></span><span class="pp-c">›</span></a>';
+  }
+  function f(n){ return n.toFixed(1); }
+
+  function buildMap(){
+    var w = svg.clientWidth, h = svg.clientHeight;
+    if (!w || !h) return;
+    var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+    STOPS.forEach(function(s){
+      var x = s.lng * K, y = -s.lat;
+      minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
+    });
+    var sc = Math.min(w * 0.84 / (maxx - minx), h * 0.84 / (maxy - miny));
+    var ox = w / 2 - sc * (minx + maxx) / 2, oy = h / 2 - sc * (miny + maxy) / 2;
+    function P(lat, lng){ return [ox + sc * lng * K, oy - sc * lat]; }
+
+    svg.textContent = '';
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    var defs = S('defs', {}, svg);
+    var flt = S('filter', {id:'gn-soft', x:'-10%', y:'-10%', width:'120%', height:'120%'}, defs);
+    S('feGaussianBlur', {stdDeviation:'3'}, flt);
+    S('rect', {'class':'gn-land', x:0, y:0, width:w, height:h}, svg);
+    S('polygon', {'class':'gn-campus', filter:'url(#gn-soft)', points:CAMPUS.map(function(c){ var p = P(c[0], c[1]); return f(p[0]) + ',' + f(p[1]); }).join(' ')}, svg);
+
+    var gs = S('g', {}, svg), gl = S('g', {}, svg);
+    STREETS.forEach(function(st){
+      var a = st[1] ? P(st[3], st[2]) : P(st[2], st[3]);
+      var b = st[1] ? P(st[4], st[2]) : P(st[2], st[4]);
+      var ln = {x1:f(a[0]), y1:f(a[1]), x2:f(b[0]), y2:f(b[1])};
+      ln['class'] = 'gn-st-case'; S('line', ln, gs);
+      ln['class'] = 'gn-st'; S('line', ln, gs);
+      if (!st[5]) return;
+      var t;
+      if (st[1]) {
+        /* label beside the street, right of the line, on the northern part of what is visible */
+        var y0 = Math.min(h - 6, Math.max(a[1], b[1])), y1 = Math.max(6, Math.min(a[1], b[1]));
+        var ly = y0 - (y0 - y1) * 0.7;
+        t = S('text', {'class':'gn-st-l', x:f(a[0]), y:f(ly), dy:'11', 'text-anchor':'middle', transform:'rotate(-90 ' + f(a[0]) + ' ' + f(ly) + ')'}, gl);
+      } else {
+        var x0 = Math.max(6, Math.min(a[0], b[0])), x1 = Math.min(w - 6, Math.max(a[0], b[0]));
+        var lx = x0 + (x1 - x0) * 0.3;
+        t = S('text', {'class':'gn-st-l', x:f(lx), y:f(a[1]), dy:'-4', 'text-anchor':'start'}, gl);
+      }
+      t.textContent = st[0];
+    });
+
+    var d = ROUTE.map(function(i, k){ var p = P(STOPS[i].lat, STOPS[i].lng); return (k ? 'L' : 'M') + f(p[0]) + ' ' + f(p[1]); }).join('');
+    S('path', {'class':'gn-route-case', d:d}, svg);
+    S('path', {'class':'gn-route', d:d}, svg);
+
+    pinEls = STOPS.map(function(s, i){
+      var p = P(s.lat, s.lng);
+      var g = S('g', {'class':'pin' + (s.greek ? ' greek' : ''), 'data-i':i, transform:'translate(' + f(p[0]) + ' ' + f(p[1]) + ')'}, svg);
+      S('circle', {'class':'pin-hit', r:20}, g);
+      S('circle', {'class':'pulse', r:9}, g);
+      S('circle', {'class':'pin-c', r:9}, g);
+      var n = S('text', {'class':'pin-n', 'text-anchor':'middle', dy:'3.5'}, g);
+      n.textContent = s.steps[0];
+      return g;
+    });
+  }
+
+  function paintMap(ni){
+    pinEls.forEach(function(g, i){
+      var steps = STOPS[i].steps;
+      g.classList.toggle('done', steps.every(function(k){ return !!state['p' + (k - 1)]; }));
+      g.classList.toggle('now', steps.some(function(k){ return k - 1 === ni && !state['p' + (k - 1)]; }));
+    });
+  }
+
+  function popClose(){ popEl.hidden = true; popEl.innerHTML = ''; }
+  function popOpen(i){
+    var s = STOPS[i];
+    var k = s.steps.filter(function(n){ return !state['p' + (n - 1)]; })[0] || s.steps[0];
+    var p = PLAN[k - 1];
+    popEl.innerHTML = popPill(p.map, esc(s.n), 'step ' + k + ' · ' + esc(p.t));
+    popEl.hidden = false;
+    var c = pinEls[i].querySelector('.pin-c').getBoundingClientRect(), r = cardEl.getBoundingClientRect();
+    var cx = c.left + c.width / 2 - r.left, top = c.top - r.top, bot = c.bottom - r.top;
+    var pw = popEl.offsetWidth, ph = popEl.offsetHeight;
+    var below = top - 8 - ph < 4;
+    popEl.classList.toggle('below', below);
+    popEl.style.left = Math.max(pw / 2 + 8, Math.min(r.width - pw / 2 - 8, cx)) + 'px';
+    popEl.style.top = (below ? bot + 8 : top - 8) + 'px';
+  }
+
+  svg.addEventListener('click', function(ev){
+    var g = ev.target.closest ? ev.target.closest('.pin') : null;
+    if (g) popOpen(+g.getAttribute('data-i')); else popClose();
+  });
+  var rsT = null, lastW = 0;
+  window.addEventListener('resize', function(){
+    clearTimeout(rsT);
+    rsT = setTimeout(function(){
+      if (svg.clientWidth + 'x' + svg.clientHeight === lastW) return;
+      lastW = svg.clientWidth + 'x' + svg.clientHeight; popClose(); buildMap(); paint();
+    }, 150);
+  });
+  buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight;
 
   document.getElementById('reset').addEventListener('click', function(){
     state = {}; save();
