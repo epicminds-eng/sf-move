@@ -69,15 +69,17 @@
   .gn-route{fill:none;stroke:var(--now);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
   .gn-route.ret{stroke-dasharray:8 6;opacity:.7}
   .pin-l{font-size:9px;fill:#6f6a5f;stroke:#ece6d8;stroke-width:3;paint-order:stroke;stroke-linejoin:round;font-weight:600}
-  .walk-b{fill:#fff;stroke:var(--line);stroke-width:1}
-  .walk-t{font-size:9px;font-weight:700;fill:var(--ink3)}
+  .walk-b{fill:#fff;stroke:var(--now);stroke-width:1.5}
+  .walk-t{font-size:9px;font-weight:700;fill:#0b0d10}
   .walk.ret{opacity:.7}
+  .walk.ret .walk-b{stroke:var(--ink3);stroke-dasharray:3 2}
   .pin{cursor:pointer;transition:opacity .2s}
   .pin.done{opacity:.45}
   .pin-c{fill:var(--now);stroke:#fff;stroke-width:2}
   .pin.greek .pin-c{fill:var(--accent)}
   .pin-n{fill:#fff;font-size:10px;font-weight:700;pointer-events:none}
   .pin.greek .pin-n{fill:#0b0d10}
+  .pin-n.two{font-size:7px;letter-spacing:-.03em}
   .pin-hit{fill:transparent}
   .pulse{display:none;fill:none;stroke:var(--now);stroke-width:2;transform-box:fill-box;transform-origin:center}
   .pin.now .pulse{display:block;animation:gnPulse 2s ease-out infinite}
@@ -256,13 +258,13 @@
 
   /* ---------- map hero: offline SVG, projected from the data ---------- */
   var PLACES = [
-    {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, step:3},
-    {n:'Doe Library', lat:37.8723, lng:-122.2592, step:4},
-    {n:'Campanile', lat:37.8721, lng:-122.2578, step:5},
-    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, step:6},
-    {n:'Amoeba / Moe’s', lat:37.8657, lng:-122.2587, step:7},
-    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, step:8},
-    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, step:11, greek:true}
+    {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3, 12]},
+    {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[4]},
+    {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
+    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[6]},
+    {n:'Amoeba / Moe’s', lat:37.8657, lng:-122.2587, steps:[7]},
+    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[8, 9]},
+    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[11], greek:true}
   ];
   /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
   var LEG_WP = {
@@ -281,7 +283,9 @@
     7: [[37.8687, -122.2588], [37.8687, -122.2612]],
     8: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
-  function livePlaces(){ return PLACES.filter(function(s){ return !isSkipped(s.step); }); }
+  /* a pin stays while any of its steps is live: skip 8 and City Club remains for dinner, reading 9 */
+  function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
+  function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
   var BACK = [[37.8737, -122.2543], [37.8723, -122.2592], [37.8718, -122.2640], [37.8702, -122.2662], [37.8699, -122.2681]];
   /* [name, N–S?, fixed coord, from, to (null = full fitted width), labelled] */
   var STREETS = [
@@ -306,14 +310,14 @@
     var live = livePlaces(), legs = [];
     for (var i = 1; i < live.length; i++) {
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
-      var gap = PLACES.filter(function(s){ return s.step > a.step && s.step < b.step; });   /* the skipped pins between them, in order */
-      if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.step]); });
-      else pts = pts.concat(LEG_WP[a.step + '-' + b.step] || []);
+      var gap = PLACES.filter(function(s){ return s.steps[0] > a.steps[0] && s.steps[0] < b.steps[0]; });   /* the skipped pins between them, in order */
+      if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.steps[0]]); });
+      else pts = pts.concat(LEG_WP[a.steps[0] + '-' + b.steps[0]] || []);
       pts.push([b.lat, b.lng]);
-      legs.push({pts:pts, mph:b.greek ? 2.5 : 3});
+      legs.push({pts:pts, mph:b.greek ? 2.5 : 3, label:b.greek ? '10 · ' : ''});   /* the climb to the Greek is step 10 */
     }
-    /* the return's pill sits on its visible dashed stretch (Greek → Doe), on the side away from the Campanile (when it is live) */
-    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2), away:live.filter(function(pl){ return pl.step === 5; })[0]});
+    /* the return's pill sits on its visible dashed stretch (Greek → Doe) */
+    legs.push({pts:BACK, mph:3, ret:true, place:BACK.slice(0, 2)});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -333,9 +337,9 @@
   var svg = document.getElementById('gnmap');
   var popEl = document.getElementById('pinpop');
   var chipEl = cardEl.querySelector('.mapchip');
-  var pinEls = [], linkedRow = null;
+  var pinEls = [], linkedRows = [];
   /* plan rows with a pin take the pin's colour for their step number */
-  PLACES.forEach(function(s){ planEl.children[s.step - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); });
+  PLACES.forEach(function(s){ s.steps.forEach(function(k){ planEl.children[k - 1].querySelector('.check').classList.add(s.greek ? 'key-acc' : 'key-now'); }); });
 
   function S(tag, attrs, parent){
     var e = document.createElementNS(NS, tag);
@@ -434,6 +438,7 @@
     ob.rects.push(chip);
     ob.rects.push({x:br.left - sr.left - 2, y:br.top - sr.top - 2, w:br.width + 4, h:br.height + 4});   /* the location button */
 
+    var gp = S('g', {}, svg);   /* pills: above both routes, under the names and pins */
     var gl = S('g', {}, svg);
     function measure(cls, txt){
       var t = S('text', {'class':cls, x:-999, y:-999}, gl); t.textContent = txt;
@@ -445,56 +450,42 @@
       return {c:pick, s:ps};
     }
 
-    /* walk-time pills: beside the leg at its midpoint along the line, either side, sliding along it if crowded */
-    function placePill(l){
-      var txt = l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 10, ph = 13;
+    /* walk-time pills: centred on the leg at its midpoint by path length, like a route bubble, so the line passes under them.
+       One that lands within 14 units of a pin slides along the leg away from it. A leg under 3 min gets none. */
+    var pinPts = livePlaces().map(function(s){ return P(s.lat, s.lng); });
+    LEGS.forEach(function(l){
+      if (l.min < 3) return;
+      var txt = (l.label || '') + l.min + ' min' + (l.ret ? ' ⇣' : ''), pw = measure('walk-t', txt) + 12, ph = 14;
       var pts = (l.place || l.pts).map(function(c){ return P(c[0], c[1]); }), cum = [0];
       for (var j = 1; j < pts.length; j++) cum.push(cum[j - 1] + Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1]));
       function at(fr){
         var d = cum[cum.length - 1] * fr, j = 1;
         while (j < pts.length - 1 && cum[j] < d) j++;
-        var a = pts[j - 1], b = pts[j], sl = (cum[j] - cum[j - 1]) || 1, t = (d - cum[j - 1]) / sl;
-        return {x:a[0] + (b[0] - a[0]) * t, y:a[1] + (b[1] - a[1]) * t, nx:-(b[1] - a[1]) / sl, ny:(b[0] - a[0]) / sl};
+        var a = pts[j - 1], b = pts[j], t = (d - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
       }
-      /* side +1 / -1 of the line; a leg with `away` prefers the side away from that pin */
-      var m = at(0.5), sides = [1, -1];
-      if (l.away) { var ap = P(l.away.lat, l.away.lng); var sa = (ap[0] - m.x) * m.nx + (ap[1] - m.y) * m.ny > 0 ? -1 : 1; sides = [sa, -sa]; }
-      function beside(sd){
-        var cands = [];
-        [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8].forEach(function(fr){
-          var q = at(fr), ext = Math.abs(q.nx) * pw / 2 + Math.abs(q.ny) * ph / 2;
-          [10, 16].forEach(function(off){
-            var cx = q.x + sd * q.nx * (off + ext), cy = q.y + sd * q.ny * (off + ext);
-            cands.push({r:{x:cx - pw / 2, y:cy - ph / 2, w:pw, h:ph}});
-          });
-        });
-        return cands;
-      }
-      /* crowded: nearest clear spot to the leg's midpoint, on side sd (0 = either) */
-      function nearest(sd){
-        var near = null, nd = Infinity;
-        for (var dy = -40; dy <= 40; dy++) for (var dx = -40; dx <= 40; dx++) {
-          if (sd && (dx * m.nx + dy * m.ny) * sd <= 0) continue;
-          var r = {x:m.x + dx - pw / 2, y:m.y + dy - ph / 2, w:pw, h:ph}, d = Math.hypot(dx, dy);
-          if (d < nd && scoreBox(r, ob, w, h) === 0) { nd = d; near = r; }
+      function crowding(c){   /* the pin this spot is too close to, if any */
+        var r = {x:c[0] - pw / 2, y:c[1] - ph / 2, w:pw, h:ph};
+        for (var i = 0; i < pinPts.length; i++) {
+          var q = pinPts[i];
+          if (Math.hypot(q[0] - c[0], q[1] - c[1]) < 14) return q;
+          var nx = Math.max(r.x, Math.min(q[0], r.x + r.w)), ny = Math.max(r.y, Math.min(q[1], r.y + r.h));
+          if ((nx - q[0]) * (nx - q[0]) + (ny - q[1]) * (ny - q[1]) < 12 * 12) return q;
         }
-        return near && {r:near};
+        return null;
       }
-      var c = null, all = [];
-      if (l.away) {
-        var bw = best(beside(sides[0]));
-        c = bw.s === 0 ? bw.c : nearest(sides[0]);
+      var fr = 0.5, c = at(fr), q, n = 0;
+      while ((q = crowding(c)) && n++ < 40) {
+        var lo = Math.max(0.04, fr - 0.025), hi = Math.min(0.96, fr + 0.025), a = at(lo), b = at(hi);
+        fr = Math.hypot(b[0] - q[0], b[1] - q[1]) > Math.hypot(a[0] - q[0], a[1] - q[1]) ? hi : lo;
+        c = at(fr);
       }
-      if (!c) {
-        sides.forEach(function(sd){ all = all.concat(beside(sd)); });
-        var ba = best(all);
-        c = ba.s === 0 ? ba.c : (nearest(0) || ba.c);
-      }
-      var g = S('g', {'class':'walk' + (l.ret ? ' ret' : '')}, gl);
-      S('rect', {'class':'walk-b', x:f(c.r.x), y:f(c.r.y), width:f(pw), height:ph, rx:ph / 2}, g);
-      S('text', {'class':'walk-t', x:f(c.r.x + pw / 2), y:f(c.r.y + 9.5), 'text-anchor':'middle'}, g).textContent = txt;
-      ob.rects.push(c.r);
-    }
+      var g = S('g', {'class':'walk' + (l.ret ? ' ret' : '')}, gp);
+      S('rect', {'class':'walk-b', x:f(c[0] - pw / 2), y:f(c[1] - ph / 2), width:f(pw), height:ph, rx:ph / 2}, g);
+      S('text', {'class':'walk-t', x:f(c[0]), y:f(c[1] + 3.2), 'text-anchor':'middle'}, g).textContent = txt;
+      ob.rects.push({x:c[0] - pw / 2 - 2, y:c[1] - ph / 2 - 2, w:pw + 4, h:ph + 4});
+    });
+
     /* pin names: right of the pin (left in the right third), then the other side, then above / below */
     livePlaces().forEach(function(s){
       var p = P(s.lat, s.lng), len = measure('pin-l', s.n), H = 10;
@@ -514,7 +505,7 @@
       if (bb.s > 0) {
         /* crowded corner: take the nearest clear spot close to the pin instead */
         var near = null, nd = Infinity;
-        for (var dy = -36; dy <= 26; dy++) for (var dx = -len - 36; dx <= 36; dx++) {
+        for (var dy = -44; dy <= 44; dy++) for (var dx = -len - 44; dx <= 44; dx++) {
           var r = {x:p[0] + dx, y:p[1] + dy, w:len, h:H};
           var qx = Math.max(r.x, Math.min(p[0], r.x + r.w)) - p[0], qy = Math.max(r.y, Math.min(p[1], r.y + r.h)) - p[1];
           var d = Math.sqrt(qx * qx + qy * qy);
@@ -526,10 +517,6 @@
       t.textContent = s.n;
       ob.rects.push(b.r);
     });
-
-    /* the return pill before the other pills: its dashed stretch is short and needs first pick of what the pin names leave */
-    LEGS.forEach(function(l){ if (l.ret) placePill(l); });
-    LEGS.forEach(function(l){ if (!l.ret) placePill(l); });
 
     /* street names: beside the line on its visible part; a street with no clear spot goes unlabelled rather than under the route */
     STREETS.forEach(function(st, i){
@@ -557,14 +544,15 @@
     });
 
     pinEls = PLACES.map(function(s, i){
-      if (isSkipped(s.step)) return null;
+      var steps = liveSteps(s);
+      if (!steps.length) return null;
       var p = P(s.lat, s.lng);
       var g = S('g', {'class':'pin' + (s.greek ? ' greek' : ''), 'data-i':i, transform:'translate(' + f(p[0]) + ' ' + f(p[1]) + ')'}, svg);
       S('circle', {'class':'pin-hit', r:20}, g);
       S('circle', {'class':'pulse', r:9}, g);
       S('circle', {'class':'pin-c', r:9}, g);
-      var n = S('text', {'class':'pin-n', 'text-anchor':'middle', dy:'3.5'}, g);
-      n.textContent = s.step;
+      var n = S('text', {'class':'pin-n' + (steps.length > 1 ? ' two' : ''), 'text-anchor':'middle', dy:steps.length > 1 ? '2.5' : '3.5'}, g);
+      n.textContent = steps.join('·');
       return g;
     });
     drawMe();
@@ -573,23 +561,23 @@
   function paintMap(ni){
     pinEls.forEach(function(g, i){
       if (!g) return;
-      var k = PLACES[i].step - 1;
-      g.classList.toggle('done', !!state['p' + k]);
-      g.classList.toggle('now', k === ni && !state['p' + k]);
+      var steps = liveSteps(PLACES[i]);
+      g.classList.toggle('done', steps.every(function(k){ return !!state['p' + (k - 1)]; }));
+      g.classList.toggle('now', steps.some(function(k){ return k - 1 === ni && !state['p' + (k - 1)]; }));
     });
   }
 
   function popClose(){
     popEl.hidden = true; popEl.innerHTML = '';
-    if (linkedRow) { linkedRow.classList.remove('linked'); linkedRow = null; }
+    linkedRows.forEach(function(r){ r.classList.remove('linked'); }); linkedRows = [];
   }
   function popOpen(i){
-    var s = PLACES[i], p = PLAN[s.step - 1];
-    popEl.innerHTML = popPill(p.map, esc(s.n), 'step ' + s.step + ' · ' + esc(p.t));
+    var s = PLACES[i], steps = liveSteps(s);
+    popEl.innerHTML = popPill(PLAN[steps[0] - 1].map, esc(s.n), steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / '));
     popEl.hidden = false;
-    if (linkedRow) linkedRow.classList.remove('linked');
-    linkedRow = planEl.children[s.step - 1];
-    linkedRow.classList.add('linked');
+    linkedRows.forEach(function(r){ r.classList.remove('linked'); });
+    linkedRows = steps.map(function(k){ return planEl.children[k - 1]; });
+    linkedRows.forEach(function(r){ r.classList.add('linked'); });
     var c = pinEls[i].querySelector('.pin-c').getBoundingClientRect(), r = cardEl.getBoundingClientRect();
     var cx = c.left + c.width / 2 - r.left, top = c.top - r.top, bot = c.bottom - r.top;
     var pw = popEl.offsetWidth, ph = popEl.offsetHeight;
