@@ -56,6 +56,8 @@
   .item.now .time,.item.linked .time{color:var(--now)}
   .title{font-size:var(--t2);font-weight:600;margin-top:.1rem}
   .note{color:var(--ink2);font-size:var(--t3);margin-top:var(--s1)}
+  .next{font-size:var(--t4);font-weight:600;margin-top:var(--s1)}
+  .next:empty{display:none}
   .map{flex:none;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:var(--r2);background:var(--card2);border:1px solid var(--line);text-decoration:none;font-size:1.1rem;margin-top:.05rem;color:var(--ink2)}
   .map:active{background:var(--line)}
   .side{display:flex;flex-direction:column;align-items:center;gap:var(--s2)}
@@ -76,6 +78,7 @@
   /* pins: a numbered circle; a ring pulses on the current step; done steps fade */
   .pinm{width:28px;height:28px;border-radius:50%;background:var(--now);border:2px solid #fff;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:opacity .2s}
   .pinm.greek{background:var(--accent);color:#0b0d10}
+  .pinm.start{width:24px;height:24px;background:var(--ink3);font-size:11px}
   .pinm.two{font-size:9px;letter-spacing:-.03em}
   .pinm.done{opacity:.45}
   .pinm.now::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--now);animation:gnPulse 2s ease-out infinite}
@@ -110,6 +113,7 @@
     <span class="chip">Doors <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
     <span class="chip">Julia's <b>5:00</b> ×2</span>
+    <span class="chip">Leave Grove St <b>2:00</b></span>
     <span class="modes" role="group" aria-label="Getting there"><button type="button" class="chip seg" data-mode="bart" aria-pressed="true">BART <b>35 min</b></button><button type="button" class="chip seg" data-mode="drive" aria-pressed="false">Drive <b>40 min</b></button></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
@@ -142,7 +146,6 @@
 
   var GARAGE_MAP = M('Center Street Parking Garage 2025 Center St Berkeley');
   var PLAN = [
-    null, null, null,
     {t:'2:55', h:14, m:55, title:'Doe Library', note:'Through the west gate, straight ahead. No ID needed. North Reading Room (the vaulted one, green lamps) and Morrison Library (wood-panelled, couches, records) — both just inside the entrance. 40 min, no clock.', map:M('Doe Memorial Library UC Berkeley')},
     {t:'3:35', h:15, m:35, title:'Campanile — up', note:'$6, card only, open till 5. Ride up, 15 min on the deck: the bay, both bridges, the Greek below you.', map:M('Sather Tower UC Berkeley')},
     {t:'3:55', h:15, m:55, title:'Faculty Glade', note:'Behind the tower toward College: quiet lawn under old oaks, redwoods, Strawberry Creek running through. Sit 15.', map:M('Faculty Glade UC Berkeley')},
@@ -154,22 +157,12 @@
     {t:'6:35', h:18, m:35, title:'In the gate', note:'G. Love on. Jack ~8:00. Done ~10:15. GA pit — standing, front of stage. Water refill on the middle concourse.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
     null
   ];
-  /* Getting there and back depends on the travel mode; steps 4–12 are the same either way */
+  /* the way home depends on the travel mode; so do the start pin and the walk back, below */
   var MODE_ROWS = {
-    bart: {
-      0:{t:'2:00', h:14, m:0, title:'Leave Grove St', note:'Uber to Civic Center BART.', map:M('Civic Center BART Station San Francisco')},
-      1:{t:'2:20', h:14, m:20, title:'Red line → Richmond', note:'Sit on the right side for the bay. ~35 min.', map:M('Civic Center BART Station San Francisco')},
-      2:{t:'2:55', h:14, m:55, title:'Downtown Berkeley BART', note:'Exit to Shattuck, east on Center St two blocks to campus.', map:M('Downtown Berkeley BART Station')},
-      12:{t:'10:15', h:22, m:15, title:'Uber from North Gate', note:'Out the north side: up Gayley to Hearst, west on Hearst to Euclid. 8 min downhill, clear of the Gayley crowd. If surge is bad keep going west to Shattuck (10 more min).', map:M('Hearst Ave & Euclid Ave Berkeley')}
-    },
-    drive: {
-      0:{t:'2:00', h:14, m:0, title:'Leave Grove St', note:'Bay Bridge → I-80 → University Ave, ~40 min.', map:GARAGE_MAP},
-      1:{t:'2:40', h:14, m:40, title:'Park · Center St Garage', note:'2025 Center St, enter from Center. $25 for the day, exit by 1 am. 20 EV spots — plug in.', map:GARAGE_MAP},
-      2:{t:'2:50', h:14, m:50, title:'Walk from the garage', note:'Out onto Center St, east two blocks to campus.', map:GARAGE_MAP},
-      12:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 15 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}
-    }
+    bart: {9:{t:'10:15', h:22, m:15, title:'Uber from North Gate', note:'Out the north side: up Gayley to Hearst, west on Hearst to Euclid. 8 min downhill, clear of the Gayley crowd. If surge is bad keep going west to Shattuck (10 more min).', map:M('Hearst Ave & Euclid Ave Berkeley')}},
+    drive: {9:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 20 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}}
   };
-  var MODE_STEPS = [0, 1, 2, 12];
+  var MODE_STEPS = [9];
 
   var BRING = [
     'Hoodie / jacket — mid-50s after dark',
@@ -181,7 +174,7 @@
     'Phone charged · Clipper in Wallet · tickets in Wallet'
   ];
 
-  var KEY = 'greek-night-v3';
+  var KEY = 'greek-night-v4';
   var state = {};
   try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -204,6 +197,7 @@
     if (time) { var tt = document.createElement('div'); tt.className = 'time'; tt.textContent = time; body.appendChild(tt); }
     var ti = document.createElement('div'); ti.className = 'title'; ti.textContent = title; body.appendChild(ti);
     if (note) { var nn = document.createElement('div'); nn.className = 'note'; nn.textContent = note; body.appendChild(nn); }
+    if (id.charAt(0) === 'p') { var nx = document.createElement('div'); nx.className = 'next'; body.appendChild(nx); }
     el.appendChild(cb); el.appendChild(body);
     if (map) {
       var a = document.createElement('a'); a.className = 'map'; a.href = map; a.target = '_blank'; a.rel = 'noopener';
@@ -219,10 +213,10 @@
   var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
-  /* steps 4–9 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
+  /* steps 1–6 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
   function isSkipped(step){ return !!(state.skip && state.skip['p' + (step - 1)]); }
   function skipGain(i){ return (PLAN[i + 1].h * 60 + PLAN[i + 1].m) - (PLAN[i].h * 60 + PLAN[i].m); }
-  [4, 5, 6, 7, 8, 9].forEach(function(step){
+  [1, 2, 3, 4, 5, 6].forEach(function(step){
     var r = rowEls[step - 1], a = r.querySelector('.map');
     var side = document.createElement('div'); side.className = 'side';
     r.replaceChild(side, a); side.appendChild(a);
@@ -298,6 +292,8 @@
       var note = r.querySelector('.note'), btn = r.querySelector('.skipbtn');
       if (note) note.textContent = sk ? 'Skipped · +' + skipGain(i) + ' min' : PLAN[i].note;
       if (btn) btn.textContent = sk ? 'Restore' : 'Skip';
+      var nx = r.querySelector('.next'), wl = sk ? null : walkNext(i + 1);
+      if (nx) { nx.textContent = wl ? wl.txt : ''; nx.style.color = wl ? wl.col : ''; }
       if (sk) skipped++; else if (checked) done++;
     });
     reorder(ps);
@@ -310,60 +306,74 @@
     paintMap(ps.cur);
   }
 
+  /* the walk on from a step's stop, off the live legs: the stop's last step gets its outbound leg (the Greek gets the walk
+     back); an earlier step at a shared stop just points at the next step there */
+  function walkNext(k){
+    var pin = PLACES.filter(function(s){ return s.steps.indexOf(k) >= 0; })[0];
+    if (!pin) return null;
+    var ls = liveSteps(pin);
+    if (k !== ls[ls.length - 1]) return {txt:'→ ' + PLAN[ls[ls.indexOf(k) + 1] - 1].title + ' · same building', col:''};
+    var l = LEGS.filter(function(l){ return l.a === pin; })[0];
+    if (!l) return null;
+    return {txt:'→ ' + l.b.n + ' · ' + l.min + ' min walk' + (l.b.greek ? ', uphill' : ''), col:l.col};
+  }
+
   /* ---------- the route: pins, legs, bypasses ---------- */
   var SHARED = [
-    {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[4]},
-    {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
-    {n:'Faculty Glade', lat:37.8711, lng:-122.2562, steps:[6]},
-    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[7]},
-    {n:'Moe’s / Amoeba', lat:37.8657, lng:-122.2587, steps:[8]},
-    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[9, 10]},
-    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[12], greek:true}
+    {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[1]},
+    {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[2]},
+    {n:'Faculty Glade', lat:37.8711, lng:-122.2562, steps:[3]},
+    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[4]},
+    {n:'Moe’s / Amoeba', lat:37.8657, lng:-122.2587, steps:[5]},
+    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[6, 7]},
+    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[9], greek:true}
   ];
-  /* per mode: the pin step 3 starts from, the pin step 13 ends at (when it's not the same one) and the walk back */
+  SHARED.forEach(function(s){ s.ord = s.steps[0]; });
+  /* per mode: the unnumbered start pin (ord 0, a letter), the walk back, and for BART an unnumbered end pin instead of the start */
   var MODES = {
-    bart: {start:{n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3]},
-           home:{n:'North Gate', lat:37.8749, lng:-122.2604, steps:[13], home:true},   /* the Uber home: end of the return, not on the walk out */
+    bart: {start:{n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[], ord:0, start:true, letter:'B', map:M('Downtown Berkeley BART Station')},
+           end:{n:'North Gate', lat:37.8749, lng:-122.2604, steps:[], ord:99, end:true, map:M('Hearst Ave & Euclid Ave Berkeley')},
            back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]]},   /* Greek → Gayley & Hearst → North Gate */
-    drive: {start:{n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[3, 13]}, home:null,
+    drive: {start:{n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[], ord:0, start:true, letter:'P', map:GARAGE_MAP}, end:null,
             back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]]}   /* Greek → Hearst → Oxford → the garage */
   };
   var PLACES = [], BACK = [];
   /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
   var LEG_WP = {
-    '3-4': [[37.8702, -122.2662], [37.8718, -122.2640]],
-    '4-5': [],
-    '5-6': [],
-    '6-7': [[37.8700, -122.2555], [37.8687, -122.2535]],
-    '7-8': [[37.8687, -122.2588]],
-    '8-9': [[37.8677, -122.2588]],
-    '9-12': [[37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+    'S-1': [[37.8702, -122.2662], [37.8718, -122.2640]],
+    '1-2': [],
+    '2-3': [],
+    '3-4': [[37.8700, -122.2555], [37.8687, -122.2535]],
+    '4-5': [[37.8687, -122.2588]],
+    '5-6': [[37.8677, -122.2588]],
+    '6-9': [[37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
   /* a skipped pin's two legs splice into one: the waypoints from the previous pin to the next; adjacent skips chain in order */
   var BYPASS = {
-    4: [[37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592]],
-    5: [],
-    6: [[37.8700, -122.2555], [37.8687, -122.2535]],
-    7: [[37.8700, -122.2555], [37.8687, -122.2535], [37.8687, -122.2588]],
-    8: [[37.8687, -122.2588], [37.8687, -122.2612]],
-    9: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+    1: [[37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592]],
+    2: [],
+    3: [[37.8700, -122.2555], [37.8687, -122.2535]],
+    4: [[37.8700, -122.2555], [37.8687, -122.2535], [37.8687, -122.2588]],
+    5: [[37.8687, -122.2588], [37.8687, -122.2612]],
+    6: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
   /* a better walk than the chained bypasses, from one pin to a later one with everything between skipped:
      Campanile → Sather Gate → Telegraph when the Glade and Strada are skipped. Used inside a chain too. */
-  var GAP_OVERRIDE = {'5-8': [[37.8703, -122.2595], [37.8687, -122.2588]]};
-  /* one colour per leg; a leg spliced by a skip takes the colour of the leg it starts with */
-  var LEG_COLOURS = {'3-4':'#3b82f6', '4-5':'#a855f7', '5-6':'#0ea5e9', '6-7':'#14b8a6', '7-8':'#22c55e', '8-9':'#f59e0b', '9-12':'#ec4899', 'ret':'#6b7682'};
-  function legColour(fromStep){
-    for (var k in LEG_COLOURS) if (k.split('-')[0] === String(fromStep)) return LEG_COLOURS[k];
+  var GAP_OVERRIDE = {'2-5': [[37.8703, -122.2595], [37.8687, -122.2588]]};
+  /* one colour per leg, keyed by the pin it starts from (S = the start pin); a leg spliced by a skip takes the colour of the leg it starts with */
+  var LEG_COLOURS = {'S-1':'#3b82f6', '1-2':'#a855f7', '2-3':'#0ea5e9', '3-4':'#14b8a6', '4-5':'#22c55e', '5-6':'#f59e0b', '6-9':'#ec4899', 'ret':'#6b7682'};
+  function kid(s){ return s.start ? 'S' : String(s.steps[0]); }   /* a pin's key in the leg tables */
+  function legColour(fromKey){
+    for (var k in LEG_COLOURS) if (k.split('-')[0] === fromKey) return LEG_COLOURS[k];
     return LEG_COLOURS.ret;
   }
   function darker(hex){   /* 20% darker, for pill text */
     var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ return Math.round(v * 0.8); });
     return '#' + c.map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
   }
-  /* a pin stays while any of its steps is live: skip 9 and City Club remains for dinner, reading 10 */
+  /* a pin stays while any of its steps is live: skip 6 and City Club remains for dinner, reading 7. The start and end pins always stay. */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
-  function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
+  function livePlaces(){ return PLACES.filter(function(s){ return s.start || s.end || liveSteps(s).length > 0; }); }
   /* walk time per leg: haversine along the waypoints, 3 mph (20 min/mile); the climb to the Greek at 2.5 mph */
   function metres(a, b){
     var R = 6371000, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dg = (b[1] - a[1]) * r;
@@ -371,27 +381,27 @@
     return 2 * R * Math.asin(Math.sqrt(x));
   }
   function walkLegs(){
-    var live = livePlaces().filter(function(s){ return !s.home; }), legs = [];   /* the walk out; a home-only pin (North Gate) is just the return's end */
+    var live = livePlaces().filter(function(s){ return !s.end; }), legs = [];   /* the walk out; an end pin (North Gate) is just the return's end */
     for (var i = 1; i < live.length; i++) {
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
-      var key = a.steps[0] + '-' + b.steps[0];
-      var gap = PLACES.filter(function(s){ return s.steps[0] > a.steps[0] && s.steps[0] < b.steps[0]; });   /* the skipped pins between them, in order */
+      var key = kid(a) + '-' + kid(b);
+      var gap = SHARED.filter(function(s){ return s.ord > a.ord && s.ord < b.ord; });   /* the skipped pins between them, in order */
       if (!gap.length) pts = pts.concat(LEG_WP[key] || []);
       /* through the skipped run: at each skipped pin, the longest override from the pin before it, else its bypass */
       for (var g = 0; g < gap.length;) {
-        var from = g ? gap[g - 1].steps[0] : a.steps[0], j = gap.length;
-        for (; j > g; j--) if (GAP_OVERRIDE[from + '-' + (j < gap.length ? gap[j] : b).steps[0]]) break;
-        if (j > g) { pts = pts.concat(GAP_OVERRIDE[from + '-' + (j < gap.length ? gap[j] : b).steps[0]]); g = j; }
-        else { pts = pts.concat(BYPASS[gap[g].steps[0]]); g++; }
+        var from = g ? kid(gap[g - 1]) : kid(a), j = gap.length;
+        for (; j > g; j--) if (GAP_OVERRIDE[from + '-' + kid(j < gap.length ? gap[j] : b)]) break;
+        if (j > g) { pts = pts.concat(GAP_OVERRIDE[from + '-' + kid(j < gap.length ? gap[j] : b)]); g = j; }
+        else { pts = pts.concat(BYPASS[gap[g].ord]); g++; }
       }
       pts.push([b.lat, b.lng]);
-      /* named by the steps at each end; the climb to the Greek is step 11, so it carries just that */
-      legs.push({pts:pts, mph:b.greek ? 2.5 : 3, a:a, b:b, col:legColour(a.steps[0]),
-                 name:b.greek ? '11' : liveSteps(a)[0] + '→' + liveSteps(b)[0]});
+      /* named by the steps at each end (the start pin by its letter); the climb to the Greek is step 8, so it carries just that */
+      legs.push({pts:pts, mph:b.greek ? 2.5 : 3, a:a, b:b, col:legColour(kid(a)),
+                 name:b.greek ? '8' : (a.start ? a.letter : liveSteps(a)[0]) + '→' + liveSteps(b)[0]});
     }
-    /* the walk back out: Greek → North Gate for the Uber */
-    var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.steps.indexOf(12) >= 0; })[0];
-    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'12→13'});
+    /* the walk back out: Greek → the car, or Greek → North Gate for the Uber */
+    var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.end; })[0] || PLACES[0];
+    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'9→' + (home.start ? home.letter : home.n)});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -402,7 +412,7 @@
   var LEGS = [];
   function routeData(){ LEGS = walkLegs(); }
   var K = Math.cos(37.87 * Math.PI / 180);
-  /* the active mode's steps 1–3 and 12, pins and walk back */
+  /* the active mode's step 10, pins and walk back */
   function applyMode(){
     var md = MODES[mode()];
     MODE_STEPS.forEach(function(i){
@@ -411,7 +421,7 @@
       r.querySelector('.title').textContent = p.title;
       r.querySelector('.map').href = p.map;
     });
-    PLACES = [md.start].concat(SHARED, md.home ? [md.home] : []);
+    PLACES = [md.start].concat(SHARED, md.end ? [md.end] : []);
     BACK = md.back;
     var segs = document.querySelectorAll('.modes .seg');
     for (var j = 0; j < segs.length; j++) {
@@ -513,7 +523,7 @@
     var dash = l.ret ? '8 6' : null;
     l.parts.forEach(function(pt, n){
       var off = hasOffset ? pt.off * 4 : 0, thin = !hasOffset && pt.off > 0;
-      var cls = 'leg' + (l.ret ? ' ret' : '') + ' l' + l.name.replace(/[^0-9]+/g, '-');
+      var cls = 'leg' + (l.ret ? ' ret' : '') + ' l' + l.name.replace(/[^0-9A-Za-z]+/g, '-');
       if (!thin) L.polyline(pt.ll, {color:'#fff', weight:9, opacity:1, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:'legcase'}).addTo(routeLayer);
       L.polyline(pt.ll, {color:l.col, weight:thin ? 3 : 5, opacity:l.ret ? .7 : 1, dashArray:dash, lineJoin:'round', lineCap:'round', offset:off, interactive:false, className:cls}).addTo(routeLayer);
     });
@@ -541,10 +551,10 @@
       L.marker(pillAt(l), {icon:L.divIcon({className:'walk' + (l.ret ? ' ret' : ''), html:html, iconSize:[0, 0]}), interactive:false, keyboard:false}).addTo(routeLayer);
     });
     PLACES.forEach(function(s, i){
-      var steps = liveSteps(s);
-      if (!steps.length) return;
-      var cls = 'pinm' + (s.greek ? ' greek' : '') + (steps.length > 1 ? ' two' : '');
-      var m = L.marker([s.lat, s.lng], {icon:L.divIcon({className:cls, html:'<span>' + steps.join('·') + '</span>', iconSize:[28, 28], iconAnchor:[14, 14]}), keyboard:false, riseOnHover:true}).addTo(routeLayer);
+      var steps = liveSteps(s), plain = s.start || s.end;
+      if (!steps.length && !plain) return;
+      var cls = 'pinm' + (s.greek ? ' greek' : '') + (steps.length > 1 ? ' two' : '') + (plain ? ' start' : ''), sz = plain ? 24 : 28;
+      var m = L.marker([s.lat, s.lng], {icon:L.divIcon({className:cls, html:'<span>' + (plain ? (s.letter || '') : steps.join('·')) + '</span>', iconSize:[sz, sz], iconAnchor:[sz / 2, sz / 2]}), keyboard:false, riseOnHover:true}).addTo(routeLayer);
       m.bindTooltip(esc(s.n), {permanent:true, direction:'auto', className:'pinlbl', offset:[0, 0], interactive:false});
       m.on('click', function(){ popOpen(i, m); });
       m.place = s; markers.push(m);
@@ -557,6 +567,7 @@
     markers.forEach(function(m){
       var el = m.getElement(); if (!el) return;
       var steps = liveSteps(m.place);
+      if (!steps.length) return;
       el.classList.toggle('done', steps.every(function(k){ return !!state['p' + (k - 1)]; }));
       el.classList.toggle('now', steps.some(function(k){ return k - 1 === ni && !state['p' + (k - 1)]; }));
     });
@@ -565,12 +576,12 @@
   function popClose(){ map.closePopup(); }
   function popOpen(i, m){
     var s = PLACES[i], steps = liveSteps(s);
-    var lines = [steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / ')];
+    var lines = steps.length ? [steps.map(function(k){ return 'step ' + k + ' · ' + esc(PLAN[k - 1].t); }).join(' / ')] : [];
     LEGS.forEach(function(l){
       if (l.a === s || l.b === s) lines.push('<i class="pp-dot" style="background:' + l.col + '"></i>' + l.name + ' · ' + l.min + ' min');
     });
     L.popup({className:'pinpop', closeButton:false, minWidth:168, maxWidth:250, offset:[0, -12], autoPanPadding:[12, 12]})
-      .setLatLng(m.getLatLng()).setContent(popPill(PLAN[steps[0] - 1].map, esc(s.n), lines)).openOn(map);
+      .setLatLng(m.getLatLng()).setContent(popPill(steps.length ? PLAN[steps[0] - 1].map : s.map, esc(s.n), lines)).openOn(map);
     linkedRows.forEach(function(r){ r.classList.remove('linked'); });
     linkedRows = steps.map(function(k){ return rowEls[k - 1]; });
     linkedRows.forEach(function(r){ r.classList.add('linked'); });
@@ -620,7 +631,7 @@
   document.addEventListener('visibilitychange', function(){ if (document.hidden) stopWatch(); else startWatch(); });
 
   buildMap();
-  /* switching mode: the travel steps' ticks go (they're different steps now); 4–12 keep theirs; the map refits */
+  /* switching mode: step 10's tick goes (it's a different step now); the rest keep theirs; the map refits */
   document.querySelector('.modes').addEventListener('click', function(e){
     var b = e.target.closest ? e.target.closest('.seg') : null;
     if (!b || b.getAttribute('data-mode') === mode()) return;
