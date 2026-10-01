@@ -125,7 +125,7 @@
     <span class="chip">Doors <b>5:00</b></span>
     <span class="chip">Show <b>6:30</b></span>
     <span class="chip">Julia's <b>5:00</b> ×2</span>
-    <span class="modes" role="group" aria-label="Getting there"><button type="button" class="chip seg" data-mode="bart" aria-pressed="true">BART <b>35 min</b></button><button type="button" class="chip seg" data-mode="drive" aria-pressed="false">Drive <b>45 min</b></button></span>
+    <span class="modes" role="group" aria-label="Getting there"><button type="button" class="chip seg" data-mode="bart" aria-pressed="true">BART <b>35 min</b></button><button type="button" class="chip seg" data-mode="drive" aria-pressed="false">Drive <b>40 min</b></button></span>
     <span class="chip now" id="clock"><span id="clocktime">—</span><span class="sub" id="clocksub" hidden></span></span>
   </div>
 </header>
@@ -157,20 +157,36 @@
   'use strict';
   var M = function(q){ return 'https://maps.apple.com/?q=' + encodeURIComponent(q); };
 
+  var GARAGE_MAP = M('Center Street Parking Garage 2025 Center St Berkeley');
   var PLAN = [
-    {t:'2:30', h:14, m:30, title:'Leave Grove St', note:'Uber to Civic Center BART (bus is fine, Uber buys you the Campanile).', map:M('Civic Center BART Station San Francisco')},
-    {t:'2:50', h:14, m:50, title:'Red line → Richmond', note:'Sit on the right side for the bay coming out of the tube. ~35 min.', map:M('Civic Center BART Station San Francisco')},
-    {t:'3:25', h:15, m:25, title:'Downtown Berkeley BART', note:'Exit to Shattuck, east on Center St two blocks to campus.', map:M('Downtown Berkeley BART Station')},
-    {t:'3:30', h:15, m:30, title:'Doe Library', note:'Through the west gate, straight ahead. No ID needed. North Reading Room (the vaulted one, green lamps) and Morrison Library (wood-panelled, couches, records) — both just inside the entrance. Whisper.', map:M('Doe Memorial Library UC Berkeley')},
-    {t:'3:55', h:15, m:55, title:'Campanile', note:'Elevator’s likely closed by now — the lawn at the base is the view. 10 min.', map:M('Sather Tower UC Berkeley')},
-    {t:'4:10', h:16, m:10, title:'Caffe Strada', note:'Exit campus at the SE corner (Bancroft & College). The patio under the trees. Tea or espresso.', map:M('Caffe Strada 2300 College Ave Berkeley')},
-    {t:'4:30', h:16, m:30, title:'Telegraph Ave', note:'West on Bancroft, south on Telegraph. Amoeba and Moe’s. 15 min.', map:M('Amoeba Music 2455 Telegraph Ave Berkeley')},
-    {t:'4:50', h:16, m:50, title:'Berkeley City Club', note:'North to Durant, two blocks west. Julia Morgan, 1929 — courtyard and indoor pool through the back. Julia’s is 2nd floor.', map:M('Berkeley City Club 2315 Durant Ave Berkeley')},
+    null, null, null,
+    {t:'2:55', h:14, m:55, title:'Doe Library', note:'Through the west gate, straight ahead. No ID needed. North Reading Room (the vaulted one, green lamps) and Morrison Library (wood-panelled, couches, records) — both just inside the entrance. 40 min, no clock.', map:M('Doe Memorial Library UC Berkeley')},
+    {t:'3:35', h:15, m:35, title:'Campanile — up', note:'$6, card only, open till 5. Ride up, 15 min on the deck: the bay, both bridges, the Greek below you.', map:M('Sather Tower UC Berkeley')},
+    {t:'3:55', h:15, m:55, title:'Faculty Glade', note:'Behind the tower toward College: quiet lawn under old oaks, redwoods, Strawberry Creek running through. Sit 15.', map:M('Faculty Glade UC Berkeley')},
+    {t:'4:10', h:16, m:10, title:'Caffe Strada', note:'Out the SE corner (Bancroft & College). The patio under the trees. Tea.', map:M('Caffe Strada 2300 College Ave Berkeley')},
+    {t:'4:25', h:16, m:25, title:'Telegraph Ave', note:'West on Bancroft, south on Telegraph. Moe’s Books (four floors, used) and Amoeba next door. 20 min.', map:M('Moe’s Books 2476 Telegraph Ave Berkeley')},
+    {t:'4:50', h:16, m:50, title:'Berkeley City Club', note:'North to Durant, two blocks west. Julia Morgan, 1929 — Moorish lobby, courtyard, the indoor pool. Julia’s is 2nd floor.', map:M('Berkeley City Club 2315 Durant Ave Berkeley')},
     {t:'5:00', h:17, m:0, title:'Dinner — Julia’s', note:'Table for 2. Zero-proof cocktails. Niçoise w/ trout, ratatouille, beet salad. Ask for the check by 6:10.', map:M('Julia’s Restaurant 2315 Durant Ave Berkeley')},
     {t:'6:15', h:18, m:15, title:'Walk to the Greek', note:'Durant east → College Ave north → Gayley Rd. 15 min, uphill at the end.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
     {t:'6:35', h:18, m:35, title:'In the gate', note:'G. Love on. Jack ~8:00. Done ~10:15. GA pit — standing, front of stage. Water refill on the middle concourse.', map:M('Greek Theatre 2001 Gayley Rd Berkeley')},
-    {t:'10:15', h:22, m:15, title:'Uber from North Gate', note:'Out the north side: up Gayley to Hearst, west on Hearst to Euclid. 8 min downhill, clear of the Gayley crowd. If surge is bad keep going west to Shattuck (10 more min).', map:M('Hearst Ave & Euclid Ave Berkeley')}
+    null
   ];
+  /* Getting there and back depends on the travel mode; steps 4–12 are the same either way */
+  var MODE_ROWS = {
+    bart: {
+      0:{t:'2:00', h:14, m:0, title:'Leave Grove St', note:'Uber to Civic Center BART.', map:M('Civic Center BART Station San Francisco')},
+      1:{t:'2:20', h:14, m:20, title:'Red line → Richmond', note:'Sit on the right side for the bay. ~35 min.', map:M('Civic Center BART Station San Francisco')},
+      2:{t:'2:55', h:14, m:55, title:'Downtown Berkeley BART', note:'Exit to Shattuck, east on Center St two blocks to campus.', map:M('Downtown Berkeley BART Station')},
+      12:{t:'10:15', h:22, m:15, title:'Uber from North Gate', note:'Out the north side: up Gayley to Hearst, west on Hearst to Euclid. 8 min downhill, clear of the Gayley crowd. If surge is bad keep going west to Shattuck (10 more min).', map:M('Hearst Ave & Euclid Ave Berkeley')}
+    },
+    drive: {
+      0:{t:'2:00', h:14, m:0, title:'Leave Grove St', note:'Bay Bridge → I-80 → University Ave, ~40 min.', map:GARAGE_MAP},
+      1:{t:'2:40', h:14, m:40, title:'Park · Center St Garage', note:'2025 Center St, enter from Center. $25 for the day, exit by 1 am. 20 EV spots — plug in.', map:GARAGE_MAP},
+      2:{t:'2:50', h:14, m:50, title:'Walk from the garage', note:'Out onto Center St, east two blocks to campus.', map:GARAGE_MAP},
+      12:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 15 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}
+    }
+  };
+  var MODE_STEPS = [0, 1, 2, 12];
 
   var BRING = [
     'Hoodie / jacket — mid-50s after dark',
@@ -182,7 +198,7 @@
     'Phone charged · Clipper in Wallet · tickets in Wallet'
   ];
 
-  var KEY = 'greek-night-v2';
+  var KEY = 'greek-night-v3';
   var state = {};
   try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -215,25 +231,15 @@
     return el;
   }
 
-  /* Getting there and back depends on the travel mode; steps 4–11 are the same either way */
-  var GARAGE_MAP = M('Center Street Parking Garage 2025 Center St Berkeley');
-  var MODES = {
-    bart: {rows:{0:PLAN[0], 1:PLAN[1], 2:PLAN[2], 11:PLAN[11]}},
-    drive: {rows:{
-      0:{t:'2:30', h:14, m:30, title:'Leave Grove St', note:'Drive. Bay Bridge → I-80 → University Ave. ~45 min with afternoon traffic.', map:GARAGE_MAP},
-      1:{t:'3:15', h:15, m:15, title:'Park · Center St Garage', note:'2025 Center St, enter from Center. $25 for the day, exit by 1 am. 20 EV spots — plug in.', map:GARAGE_MAP},
-      2:{t:'3:25', h:15, m:25, title:'Walk from the garage', note:'Out onto Center St, east two blocks to campus.', map:GARAGE_MAP},
-      11:{t:'10:15', h:22, m:15, title:'Back to the car', note:'Out the north side: Gayley → Hearst west → Oxford south → Center. 15 min downhill, clear of the Gayley crowd.', map:GARAGE_MAP}
-    }}
-  };
-  function mode(){ return state.mode === 'drive' ? 'drive' : 'bart'; }
+  function mode(){ return state.mode === 'bart' ? 'bart' : 'drive'; }   /* Drive unless BART is picked */
+  MODE_STEPS.forEach(function(i){ PLAN[i] = MODE_ROWS[mode()][i]; });
   var rowEls = PLAN.map(function(p, i){ return planEl.appendChild(row('p' + i, p.t, p.title, p.note, p.map)); });   /* by step; the list itself reorders */
   BRING.forEach(function(b, i){ bringEl.appendChild(row('b' + i, '', b, '', '')); });
 
-  /* steps 4–8 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
+  /* steps 4–9 can be skipped: a chip under the ↗ button; the row's right column stacks the two */
   function isSkipped(step){ return !!(state.skip && state.skip['p' + (step - 1)]); }
   function skipGain(i){ return (PLAN[i + 1].h * 60 + PLAN[i + 1].m) - (PLAN[i].h * 60 + PLAN[i].m); }
-  [4, 5, 6, 7, 8].forEach(function(step){
+  [4, 5, 6, 7, 8, 9].forEach(function(step){
     var r = rowEls[step - 1], a = r.querySelector('.map');
     var side = document.createElement('div'); side.className = 'side';
     r.replaceChild(side, a); side.appendChild(a);
@@ -325,40 +331,45 @@
   var SHARED = [
     {n:'Doe Library', lat:37.8723, lng:-122.2592, steps:[4]},
     {n:'Campanile', lat:37.8721, lng:-122.2578, steps:[5]},
-    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[6]},
-    {n:'Amoeba / Moe’s', lat:37.8657, lng:-122.2587, steps:[7]},
-    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[8, 9]},
-    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[11], greek:true}
+    {n:'Faculty Glade', lat:37.8711, lng:-122.2562, steps:[6]},
+    {n:'Caffe Strada', lat:37.8688, lng:-122.2533, steps:[7]},
+    {n:'Moe’s / Amoeba', lat:37.8657, lng:-122.2587, steps:[8]},
+    {n:'Berkeley City Club', lat:37.8678, lng:-122.2612, steps:[9, 10]},
+    {n:'Greek Theatre', lat:37.8737, lng:-122.2543, steps:[12], greek:true}
   ];
-  /* per mode: the pin step 3 starts from, the pin step 12 ends at (when it's not the same one) and the walk back */
-  MODES.bart.start = {n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3]};
-  MODES.bart.home = {n:'North Gate', lat:37.8749, lng:-122.2604, steps:[12], home:true};   /* the Uber home: end of the return, not on the walk out */
-  MODES.bart.back = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]];   /* Greek → Gayley & Hearst → North Gate */
-  MODES.drive.start = {n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[3, 12]};
-  MODES.drive.home = null;
-  MODES.drive.back = [[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]];   /* Greek → Hearst → Oxford → the garage */
+  /* per mode: the pin step 3 starts from, the pin step 13 ends at (when it's not the same one) and the walk back */
+  var MODES = {
+    bart: {start:{n:'Downtown Berkeley BART', lat:37.8699, lng:-122.2681, steps:[3]},
+           home:{n:'North Gate', lat:37.8749, lng:-122.2604, steps:[13], home:true},   /* the Uber home: end of the return, not on the walk out */
+           back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604]]},   /* Greek → Gayley & Hearst → North Gate */
+    drive: {start:{n:'Center St Garage', lat:37.8706, lng:-122.2684, steps:[3, 13]}, home:null,
+            back:[[37.8737, -122.2543], [37.8747, -122.2545], [37.8749, -122.2604], [37.8747, -122.2662], [37.8706, -122.2684]]}   /* Greek → Hearst → Oxford → the garage */
+  };
   var PLACES = [], BACK = [];
   /* walk out, as legs between pins: the waypoints between the two; the Bancroft & College retrace is the same sidewalk */
   var LEG_WP = {
     '3-4': [[37.8702, -122.2662], [37.8718, -122.2640]],
     '4-5': [],
-    '5-6': [[37.8700, -122.2555], [37.8687, -122.2535]],
-    '6-7': [[37.8687, -122.2588]],
-    '7-8': [[37.8677, -122.2588]],
-    '8-11': [[37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+    '5-6': [],
+    '6-7': [[37.8700, -122.2555], [37.8687, -122.2535]],
+    '7-8': [[37.8687, -122.2588]],
+    '8-9': [[37.8677, -122.2588]],
+    '9-12': [[37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
-  /* a skipped pin's two legs splice into one: the waypoints from the previous live pin to the next; adjacent skips chain in order */
+  /* a skipped pin's two legs splice into one: the waypoints from the previous pin to the next; adjacent skips chain in order */
   var BYPASS = {
     4: [[37.8702, -122.2662], [37.8718, -122.2640], [37.8723, -122.2592]],
-    5: [[37.8700, -122.2555], [37.8687, -122.2535]],
-    6: [[37.8703, -122.2595], [37.8687, -122.2588]],
-    7: [[37.8687, -122.2588], [37.8687, -122.2612]],
-    8: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
+    5: [],
+    6: [[37.8700, -122.2555], [37.8687, -122.2535]],
+    7: [[37.8700, -122.2555], [37.8687, -122.2535], [37.8687, -122.2588]],
+    8: [[37.8687, -122.2588], [37.8687, -122.2612]],
+    9: [[37.8677, -122.2588], [37.8677, -122.2535], [37.8687, -122.2535], [37.8705, -122.2545]]
   };
-  /* a gap with a better walk than its chained bypasses: skip 5 and 6 → Doe, Sather Gate, Bancroft & Telegraph, Amoeba */
-  var GAP_OVERRIDE = {'4-7': BYPASS[6]};
+  /* a better walk than the chained bypasses, from one pin to a later one with everything between skipped:
+     Campanile → Sather Gate → Telegraph when the Glade and Strada are skipped. Used inside a chain too. */
+  var GAP_OVERRIDE = {'5-8': [[37.8703, -122.2595], [37.8687, -122.2588]]};
   /* one colour per leg; a leg spliced by a skip takes the colour of the leg it starts with */
-  var LEG_COLOURS = {'3-4':'#3b82f6', '4-5':'#a855f7', '5-6':'#14b8a6', '6-7':'#22c55e', '7-8':'#f59e0b', '8-11':'#ec4899', 'ret':'#6b7682'};
+  var LEG_COLOURS = {'3-4':'#3b82f6', '4-5':'#a855f7', '5-6':'#0ea5e9', '6-7':'#14b8a6', '7-8':'#22c55e', '8-9':'#f59e0b', '9-12':'#ec4899', 'ret':'#6b7682'};
   function legColour(fromStep){
     for (var k in LEG_COLOURS) if (k.split('-')[0] === String(fromStep)) return LEG_COLOURS[k];
     return LEG_COLOURS.ret;
@@ -367,7 +378,7 @@
     var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ return Math.round(v * 0.8); });
     return '#' + c.map(function(v){ return ('0' + v.toString(16)).slice(-2); }).join('');
   }
-  /* a pin stays while any of its steps is live: skip 8 and City Club remains for dinner, reading 9 */
+  /* a pin stays while any of its steps is live: skip 9 and City Club remains for dinner, reading 10 */
   function liveSteps(s){ return s.steps.filter(function(k){ return !isSkipped(k); }); }
   function livePlaces(){ return PLACES.filter(function(s){ return liveSteps(s).length > 0; }); }
   /* [name, N–S?, fixed coord, from, to, labelled]; a null end runs to the frame's edge (south / west for from, north / east for to) */
@@ -395,17 +406,22 @@
       var a = live[i - 1], b = live[i], pts = [[a.lat, a.lng]];
       var key = a.steps[0] + '-' + b.steps[0];
       var gap = PLACES.filter(function(s){ return s.steps[0] > a.steps[0] && s.steps[0] < b.steps[0]; });   /* the skipped pins between them, in order */
-      if (gap.length && GAP_OVERRIDE[key]) pts = pts.concat(GAP_OVERRIDE[key]);
-      else if (gap.length) gap.forEach(function(s){ pts = pts.concat(BYPASS[s.steps[0]]); });
-      else pts = pts.concat(LEG_WP[key] || []);
+      if (!gap.length) pts = pts.concat(LEG_WP[key] || []);
+      /* through the skipped run: at each skipped pin, the longest override from the pin before it, else its bypass */
+      for (var g = 0; g < gap.length;) {
+        var from = g ? gap[g - 1].steps[0] : a.steps[0], j = gap.length;
+        for (; j > g; j--) if (GAP_OVERRIDE[from + '-' + (j < gap.length ? gap[j] : b).steps[0]]) break;
+        if (j > g) { pts = pts.concat(GAP_OVERRIDE[from + '-' + (j < gap.length ? gap[j] : b).steps[0]]); g = j; }
+        else { pts = pts.concat(BYPASS[gap[g].steps[0]]); g++; }
+      }
       pts.push([b.lat, b.lng]);
-      /* named by the steps at each end; the climb to the Greek is step 10 */
+      /* named by the steps at each end; the climb to the Greek is step 11, so it carries just that */
       legs.push({pts:pts, mph:b.greek ? 2.5 : 3, a:a, b:b, col:legColour(a.steps[0]),
-                 name:liveSteps(a)[0] + '→' + (b.greek ? 10 : liveSteps(b)[0])});
+                 name:b.greek ? '11' : liveSteps(a)[0] + '→' + liveSteps(b)[0]});
     }
     /* the walk back out: Greek → North Gate for the Uber */
     var greek = PLACES.filter(function(s){ return s.greek; })[0], home = PLACES.filter(function(s){ return s.steps.indexOf(12) >= 0; })[0];
-    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'11→12'});
+    legs.push({pts:BACK, mph:3, ret:true, a:greek, b:home, col:LEG_COLOURS.ret, name:'12→13'});
     legs.forEach(function(l){
       var m = 0;
       for (var j = 1; j < l.pts.length; j++) m += metres(l.pts[j - 1], l.pts[j]);
@@ -426,8 +442,8 @@
   /* the active mode's steps 1–3 and 12, pins and walk back */
   function applyMode(){
     var md = MODES[mode()];
-    [0, 1, 2, 11].forEach(function(i){
-      var p = PLAN[i] = md.rows[i], r = rowEls[i];
+    MODE_STEPS.forEach(function(i){
+      var p = PLAN[i] = MODE_ROWS[mode()][i], r = rowEls[i];
       r.querySelector('.time').textContent = p.t;
       r.querySelector('.title').textContent = p.title;
       r.querySelector('.map').href = p.map;
@@ -1074,7 +1090,7 @@
     var b = e.target.closest ? e.target.closest('.seg') : null;
     if (!b || b.getAttribute('data-mode') === mode()) return;
     state.mode = b.getAttribute('data-mode');
-    [0, 1, 2, 11].forEach(function(i){ delete state['p' + i]; rowEls[i].querySelector('.check').checked = false; });
+    MODE_STEPS.forEach(function(i){ delete state['p' + i]; rowEls[i].querySelector('.check').checked = false; });
     save(); applyMode(); popClose();
     VIEW = {x:0, y:0, z:1}; FIT = null;
     sizeCard(); buildMap(); lastW = svg.clientWidth + 'x' + svg.clientHeight; paint(); describe();
