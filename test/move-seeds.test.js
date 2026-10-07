@@ -152,6 +152,61 @@ for(const [w,h] of [[390,844],[1194,834]]){
   }
 }
 
+/* ---------- post-move close-out (postMoveCloseoutV1) ----------
+   The one "car" item split into three with nothing inherited; four items that happened get their tick;
+   done[] keys for seed items that no longer exist are dropped. A device that lived with the old card
+   is loaded, then reloaded, and the second load must change nothing. */
+{
+  const NEW=['car-insurance','car-license','car-reg'],TICK=['addr-changes','ipass','drive-budget','deposit'],ORPHAN=['jh-plan','jh-labels','car'];
+  const DEVICE={done:{car:true,'jh-plan':true,'jh-labels':true,'addr-changes':false,kane:true,'jh-key':true},
+    customTasks:{},collapsed:{},disp:{},custom:{},removed:{},notes:{},packed:{},ref:{},
+    trip:{departDate:'2026-09-06',arrived:{},arrivedAt:{},rolled:{}},spend:{entries:[]},meta:{stamped:true,touched:{}}};
+  for(const [w,h] of [[390,844],[1194,834]]){
+    console.log(`\n===== post-move close-out @ ${w}×${h} =====`);
+    const c=await b.newContext({viewport:{width:w,height:h}});
+    await c.addInitScript(S=>{localStorage.setItem('sfMoveApp_v1',JSON.stringify(S));},DEVICE);
+    const p=await c.newPage();const errs=[];
+    p.on('pageerror',e=>errs.push('pageerror: '+e.message));
+    p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text());});
+    await p.goto(URL);await p.waitForTimeout(900);await p.click('#nav-move');await p.waitForTimeout(400);
+    const probe=({NEW,TICK,ORPHAN})=>{
+      const lg=PHASES.find(ph=>ph.id==='logistics'),ids=lg.items.map(x=>x.id);
+      const card=[].slice.call(document.querySelectorAll('#phaseGroups .card')).find(x=>x.querySelector('.sec-head .t').textContent===lg.title);
+      const rows=card?[].slice.call(card.querySelectorAll('.check .ct')).map(e=>e.textContent):[];
+      const pills=card?[].slice.call(card.querySelectorAll('.btns a.btn')).map(a=>a.textContent.trim()):[];
+      const af=PHASES.find(ph=>ph.id==='landing').items.find(x=>x.id==='assess-furniture');
+      const ver=(document.querySelector('.appver').textContent.match(/v\d+/)||[''])[0];
+      return {flag:!!state.postMoveCloseoutV1,ids:ids,hasNew:NEW.every(id=>ids.indexOf(id)>=0),hasCar:ids.indexOf('car')>=0,
+        newUnticked:NEW.every(id=>!state.done[id]),ticks:TICK.map(id=>state.done[id]===true),orphans:ORPHAN.map(id=>id in state.done),
+        kept:[state.done.kane,state.done['jh-key']],rows:rows.length,wantRows:ids.length,
+        newRows:NEW.every(id=>rows.some(t=>t===lg.items.find(x=>x.id===id).t)),
+        pills:pills,afD:af?af.d:null,ver:ver,sub:document.getElementById('moveSub').textContent,
+        sig:JSON.stringify(Object.keys(state.done).sort().map(k=>[k,state.done[k]]))};};
+    const d=await p.evaluate(probe,{NEW,TICK,ORPHAN});
+    ok(d.hasNew&&!d.hasCar, `Logistics seeds ${NEW.join(', ')} and no "car" (${d.ids.join(' ')})`);
+    ok(d.newUnticked, `the three new items inherit nothing — all unticked`);
+    ok(d.flag&&d.ticks.every(Boolean), `postMoveCloseoutV1 ticked ${TICK.join(', ')}`);
+    ok(d.orphans.every(x=>!x), `orphan done keys removed (${ORPHAN.join(', ')})`);
+    ok(d.kept.every(Boolean), `other ticks untouched (kane, jh-key)`);
+    ok(d.rows===d.wantRows&&d.newRows, `the Logistics card renders all ${d.rows} items including the three new ones`);
+    ok(d.pills.some(t=>/CA DMV/.test(t))&&d.pills.some(t=>/Covered California/.test(t)), `CA DMV and Covered California pills still on Logistics (${d.pills.join(' · ')})`);
+    ok(d.afD==="4 weeks in as of Oct 9 — list what's actually missing", `assess-furniture description reads "${d.afD}"`);
+    ok(d.ver==='v120'&&d.sub.indexOf(d.ver)>=0, `Move header subtitle carries the footer's ${d.ver} — "${d.sub}"`);
+    if(process.env.SHOTS){
+      await p.evaluate(()=>{const lg=PHASES.find(ph=>ph.id==='logistics');const card=[].slice.call(document.querySelectorAll('#phaseGroups .card')).find(x=>x.querySelector('.sec-head .t').textContent===lg.title);
+        const s=document.getElementById('scroll')||document.scrollingElement;const bar=document.querySelector('header,.hdr,.topbar');const off=bar?bar.getBoundingClientRect().height:0;
+        s.scrollTo(0,Math.max(0,card.getBoundingClientRect().top+s.scrollTop-off-12));});
+      await p.waitForTimeout(300);await p.screenshot({path:path.join(OUT,`${d.ver}-move-${w}.png`)});
+    }
+    /* idempotent: a second load, flag already set, changes nothing */
+    await p.reload();await p.waitForTimeout(900);await p.click('#nav-move');await p.waitForTimeout(300);
+    const r=await p.evaluate(probe,{NEW,TICK,ORPHAN});
+    ok(r.sig===d.sig&&r.flag, `reload changes nothing — done[] identical, flag still set`);
+    ok(errs.length===0, `no page or console errors${errs.length?' — '+errs[0]:''}`);
+    await c.close();
+  }
+}
+
 await b.close();
 console.log(FAIL?`\n${FAIL} FAILURE(S)`:'\nALL CHECKS PASSED');
 process.exit(FAIL?1:0);

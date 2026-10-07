@@ -1,0 +1,2 @@
+# exports are never committed: this repo is public and an export carries the garage code and sync credentials
+data/

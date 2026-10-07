@@ -850,7 +850,7 @@
     <div id="spProjCard"></div>
   </div>
 
-  <div class="appver">SF Move · v119 · Sep 24</div>
+  <div class="appver">SF Move · v120 · Oct 7</div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -920,7 +920,9 @@
         {id:"mail", t:"USPS mail forwarding", d:"\u2192 1442A Grove Street, San Francisco, CA 94117 \u2014 then update bank, cards, insurance, subscriptions"},
         {id:"addr-changes", t:"Address changes: bank, insurance, Tesla", d:""},
         {id:"ipass", t:"I-PASS / tolls for the drive", d:""},
-        {id:"car", t:"Car: CA registration + license + insurance", d:"Registration within 20 days, license within 10 days of residency"},
+        {id:"car-insurance", t:"CA auto insurance \u2014 new policy effective Oct 17", d:"State Farm CA quote requested 10/7; Mercury benchmark $2,109/6mo"},
+        {id:"car-license", t:"CA driver's license \u2014 DMV appointment", d:"REAL ID; written test; 2 residency docs (Chase + Fidelity statements)"},
+        {id:"car-reg", t:"Tesla CA registration", d:"Deferred to Dec by choice; plate SEND 43; EV = no smog; bring car for VIN check"},
         {id:"utilities", t:"Utilities: PG&E + internet at the new place", d:"Live before you arrive; no IL shutoff rush \u2014 family owns the place"},
         {id:"renters", t:"Renters insurance for the SF place", d:""}
       ]
@@ -928,7 +930,7 @@
     {
       id:"landing", title:"After Landing \u2014 Round Two", tag:"NO RUSH",
       items:[
-        {id:"assess-furniture", t:"Live in the place 2\u20134 weeks \u2014 list what's actually missing", d:"The furnished stuff decides what ships"},
+        {id:"assess-furniture", t:"Live in the place 2\u20134 weeks \u2014 list what's actually missing", d:"4 weeks in as of Oct 9 \u2014 list what's actually missing"},
         {id:"fastrak-tag", t:"Get a FasTrak toll tag for the bridges", d:"Golden Gate + Bay Bridge are all-electronic. bayareafastrak.org, or a starter kit at Bay Area Costco / Walgreens. I-PASS / E-ZPass do not work in CA."}
       ]
     },
@@ -1352,6 +1354,11 @@ var ACCENTS = {
     state.spend.entries.forEach(function(e){if(e.note==="Watter"&&e.amount===18.72)e.note="Water";});
     state.spend.spendCloseoutV1=true;save(state);
   }
+  if(!state.postMoveCloseoutV1){   /* MOVE CLOSE-OUT (Oct 7): four items that happened get their tick; done[] keys for seed items that no longer exist (the two Ship Sticks Joey items, and "car", which split into car-insurance / car-license / car-reg with nothing inherited) are dropped so they never count again */
+    ["addr-changes","ipass","drive-budget","deposit"].forEach(function(id){state.done[id]=true;});
+    ["jh-plan","jh-labels","car"].forEach(function(id){delete state.done[id];});
+    state.postMoveCloseoutV1=true;save(state);
+  }
   /* migration: Both tag retired — any stored "both" becomes "undecided"; everything else untouched */
   Object.keys(state.disp).forEach(function(k){if(state.disp[k]==="both")state.disp[k]="undecided";});
   /* first run with change tracking: an established device stamps everything it already has with "now" so it out-ranks a fresh install's defaults (stamped 0) */
@@ -1382,7 +1389,8 @@ var ACCENTS = {
     var n=Math.round((d0-today)/86400000);   /* whole days from today to departure */
     document.getElementById("cdDays").textContent=n>0?n:"GO —";
     document.getElementById("moveDepart").textContent="Departs "+fmtDay(d0)+" · "+(n>0?"in "+n+(n===1?" day":" days"):n===0?"today":"on the road · day "+(1-n));
-    document.getElementById("moveSub").textContent="Assembly through "+fmtShort(eve)+" · drive out "+fmtShort(d0)+".";
+    var ver=(document.querySelector(".appver").textContent.match(/v\d+/)||[""])[0];   /* one source: the footer */
+    document.getElementById("moveSub").textContent="Assembly through "+fmtShort(eve)+" · drive out "+fmtShort(d0)+"."+(ver?" · "+ver:"");
     document.getElementById("chipAssembly").textContent="Assembly "+fmtShort(parseYMD(ASSEMBLY_START))+" – "+fmtShort(eve);
     document.getElementById("chipDrive").textContent="Drive "+fmtShort(d0);
   }
