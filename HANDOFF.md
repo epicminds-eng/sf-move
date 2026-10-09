@@ -34,8 +34,7 @@ localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only 
   assert structure. Locate pins **by id**. `.sec-head .m` also holds the ▼ chevron.
 
 ## Oct 9 (local, rules only)
-CLAUDE.md gained a Canary section and the board-room chair-first rule (with the BOARD-REVIEWED: exception), copied
-verbatim from ~/.claude/CLAUDE.md. No app files touched, no version bump, no tests run. App state is still v120.
+CLAUDE.md gained a Canary section and the board-room chair-first rule (BOARD-REVIEWED: exception included), verbatim from ~/.claude/CLAUDE.md. No app files, no version bump, no tests. App state is still v120.
 
 ## Next
 Nothing outstanding. The move continues in SF Setup.
