@@ -33,5 +33,9 @@ localStorage key `sfMoveApp_v1`. Sync (Gist + token) lives in `sfMoveSync` only 
 - **HARNESS RULE:** never retype a number that also lives in index.html — derive, assert the delta, or
   assert structure. Locate pins **by id**. `.sec-head .m` also holds the ▼ chevron.
 
+## Oct 9 (local, rules only)
+CLAUDE.md gained a Canary section and the board-room chair-first rule (with the BOARD-REVIEWED: exception), copied
+verbatim from ~/.claude/CLAUDE.md. No app files touched, no version bump, no tests run. App state is still v120.
+
 ## Next
 Nothing outstanding. The move continues in SF Setup.

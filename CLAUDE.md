@@ -11,3 +11,9 @@
 
 ## Reporting rules
 - greek-night.html: every commit bumps the version in BOTH places by 0.01 and updates the hash.
+
+## Canary
+Start every reply to Chad with his name, "Chad". If a reply doesn't open with it, these rules didn't load.
+
+## Board room
+Any ask that adds a tab, sub-tab, section, screen, picker, chip row, navigation row, data source, or new file (notes, tests and scratch excepted), adopts a component from another repo, changes a permission or hook rule, or names a version bump runs /board before editing; a one-line fix that does none of these skips it. A prompt whose first line starts with BOARD-REVIEWED: has already been through the board: run it as written.
